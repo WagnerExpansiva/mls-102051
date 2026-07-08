@@ -1,0 +1,92 @@
+/// <mls fileReference="_102051_/l4/operations/requestAiPromoSuggestions.defs.ts" enhancement="_blank"/>
+
+export const operationRequestAiPromoSuggestions = {
+  "operationId": "requestAiPromoSuggestions",
+  "title": "Solicitar sugestões de promoção por IA",
+  "actor": "gerente",
+  "entity": "Order",
+  "kind": "query",
+  "reads": [
+    "Order",
+    "OrderItem",
+    "StockLevel"
+  ],
+  "writes": [],
+  "rulesApplied": [
+    "aiPromoBasedOnLast7Days",
+    "aiConsumesDomainData"
+  ],
+  "story": {
+    "actor": "gerente",
+    "goal": "Obter sugestões de quais itens do cardápio promover com base nos dados de vendas dos últimos 7 dias, para planejar ações de marketing do próximo período.",
+    "steps": [
+      "O gerente aciona o assistente IA solicitando sugestões de promoção",
+      "O sistema agrega os dados de pedidos e itens vendidos dos últimos 7 dias, bem como os níveis atuais de estoque",
+      "O assistente IA analisa os dados agregados do domínio e gera sugestões de promoção por item",
+      "O gerente visualiza as sugestões geradas para decidir ações de marketing"
+    ],
+    "outcome": "O gerente recebe sugestões de promoção baseadas exclusivamente nos dados de operação dos últimos 7 dias, sem acesso a fontes externas."
+  },
+  "accessPattern": {
+    "kind": "lookup",
+    "entity": "Order",
+    "keyField": "Order.orderId",
+    "pagination": "none",
+    "selection": "none",
+    "output": [
+      "Order.orderId",
+      "Order.orderType",
+      "Order.status",
+      "Order.createdAt"
+    ]
+  },
+  "inputs": [
+    {
+      "inputId": "actorId",
+      "fieldRef": "Order.shiftId",
+      "required": true,
+      "source": "actorSession",
+      "description": "Identidade do gerente que solicita as sugestões, para auditoria e contexto de permissão"
+    },
+    {
+      "inputId": "windowStart",
+      "fieldRef": "Order.createdAt",
+      "required": true,
+      "source": "systemDefault",
+      "description": "Data de início da janela de análise (7 dias antes do momento atual)"
+    }
+  ],
+  "contextResolution": [
+    {
+      "targetRef": "Order.shiftId",
+      "source": "actorSession",
+      "originRef": "actorSession.actorId",
+      "description": "O backend resolve o identificador do gerente a partir da sessão ativa para validar permissão e registrar auditoria da solicitação"
+    },
+    {
+      "targetRef": "Order.createdAt",
+      "source": "systemDefault",
+      "originRef": "systemDefault.now",
+      "description": "O backend calcula o início da janela de 7 dias subtraindo 7 dias do timestamp atual (systemDefault.now) para filtrar apenas pedidos dentro do período relevante"
+    }
+  ],
+  "acceptanceAssertions": [
+    "As sugestões de promoção retornadas são baseadas exclusivamente nos dados de pedidos dos últimos 7 dias calculados a partir do momento atual",
+    "O assistente IA consome apenas dados agregados de pedidos (Order, OrderItem) e níveis de estoque (StockLevel) disponibilizados pelo domínio, sem acessar fontes externas",
+    "A operação não altera nenhum registro de pedido, item ou estoque — é estritamente de leitura",
+    "O resultado inclui sugestões de itens para promoção derivadas dos padrões de venda do período analisado"
+  ],
+  "pageId": "requestAiPromoSuggestions",
+  "commandName": "requestAiPromoSuggestions",
+  "bffName": "cafeFlow.requestAiPromoSuggestions.requestAiPromoSuggestions",
+  "capability": {
+    "capabilityId": "requestAiPromoSuggestions",
+    "title": "Solicitar sugestões de promoção por IA",
+    "actor": "gerente",
+    "priority": "soon"
+  },
+  "statusFrontend": "toCreate",
+  "statusBackend": "toCreate"
+} as const;
+
+export default operationRequestAiPromoSuggestions;

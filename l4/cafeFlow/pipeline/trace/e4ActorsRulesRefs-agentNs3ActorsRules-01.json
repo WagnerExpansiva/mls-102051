@@ -1,0 +1,611 @@
+{
+  "savedAt": "2026-07-08T04:11:29.155Z",
+  "stepId": "e4-actors-rules-refs",
+  "agentName": "agentNs3ActorsRules",
+  "attempt": 1,
+  "payload": {
+    "artifact": {
+      "schemaVersion": "2026-07-07-ns3-e4-v1",
+      "moduleName": "cafeFlow",
+      "userLanguage": "pt-BR",
+      "createdAt": "2026-07-08T04:11:29.142Z",
+      "actors": [
+        {
+          "actorId": "atendente",
+          "title": "Atendente / Caixa",
+          "description": "Lança pedidos rapidamente no POS, seleciona mesa ou takeout e acompanha status para entrega ao cliente.",
+          "roleScope": "cafeFlow:atendente"
+        },
+        {
+          "actorId": "cozinheiro",
+          "title": "Cozinheiro",
+          "description": "Visualiza pedidos em preparo, atualiza status da cozinha e sinaliza quando o item está pronto.",
+          "roleScope": "cafeFlow:cozinheiro"
+        },
+        {
+          "actorId": "gerente",
+          "title": "Gerente / Proprietário",
+          "description": "Cadastra itens do cardápio e estoque, abre e fecha turnos, consulta dashboard e utiliza o assistente IA para análise de vendas.",
+          "roleScope": "cafeFlow:gerente"
+        }
+      ],
+      "rules": [
+        {
+          "ruleId": "stockDecrementOnOrderLaunch",
+          "title": "Decréscimo de estoque no lançamento do pedido",
+          "description": "O estoque deve ser decrementado no momento do lançamento do pedido, não na entrega, conforme os ingredientes vinculados a cada item do cardápio pedido.",
+          "appliesTo": [
+            "StockConsumption",
+            "StockLevel",
+            "Order"
+          ],
+          "layer": "domain",
+          "sourceJourneyRules": [
+            "O estoque é decrementado no momento do lançamento do pedido, não na entrega.",
+            "O estoque é decrementado automaticamente no lançamento de pedidos conforme os ingredientes vinculados."
+          ]
+        },
+        {
+          "ruleId": "simpleItemsOnly",
+          "title": "Apenas itens simples suportados",
+          "description": "Apenas itens simples podem ser lançados e cadastrados no cardápio nesta fase; variantes devem ser cadastradas como itens separados, não como sub-opções de um mesmo item.",
+          "appliesTo": [
+            "MenuItem",
+            "OrderItem"
+          ],
+          "layer": "domain",
+          "sourceJourneyRules": [
+            "Apenas itens simples podem ser lançados; variantes são cadastradas como itens separados.",
+            "Apenas itens simples são suportados nesta fase; variantes devem ser cadastradas como itens separados."
+          ]
+        },
+        {
+          "ruleId": "insufficientStockAlertBeforeConfirm",
+          "title": "Alerta de estoque insuficiente antes de confirmar",
+          "description": "Se um item não tiver estoque suficiente, o atendente deve ser alertado antes de confirmar o pedido, impedindo o lançamento de itens sem cobertura de estoque.",
+          "appliesTo": [
+            "StockLevel",
+            "OrderItem"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "Se um item não tiver estoque suficiente, o atendente é alertado antes de confirmar o pedido."
+          ]
+        },
+        {
+          "ruleId": "orderStatusFlow",
+          "title": "Fluxo de status do pedido",
+          "description": "O fluxo de status do pedido deve seguir obrigatoriamente a sequência: recebido → em preparo → pronto → entregue, sem permitir pulos de etapa.",
+          "appliesTo": [
+            "Order"
+          ],
+          "layer": "domain",
+          "sourceJourneyRules": [
+            "O fluxo de status do pedido é: recebido → em preparo → pronto → entregue.",
+            "O fluxo de status do pedido é: recebido → em preparo → pronto → entregue."
+          ]
+        },
+        {
+          "ruleId": "readyBeforeDelivered",
+          "title": "Pedido pronto antes de entregue",
+          "description": "Apenas pedidos cujo status atual seja 'pronto' podem ser marcados como 'entregue', proibindo a entrega de pedidos ainda em preparo ou recém-recebidos.",
+          "appliesTo": [
+            "Order"
+          ],
+          "layer": "domain",
+          "sourceJourneyRules": [
+            "Apenas pedidos com status 'pronto' podem ser marcados como entregues."
+          ]
+        },
+        {
+          "ruleId": "inProgressBeforeReady",
+          "title": "Marcar em preparo antes de pronto",
+          "description": "O cozinheiro deve marcar o pedido como 'em preparo' antes de poder marcá-lo como 'pronto', garantindo que o preparo seja explicitamente iniciado.",
+          "appliesTo": [
+            "Order"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "O cozinheiro deve marcar o pedido como 'em preparo' antes de marcá-lo como 'pronto'."
+          ]
+        },
+        {
+          "ruleId": "fifoKitchenQueue",
+          "title": "Ordem de chegada na cozinha",
+          "description": "Pedidos devem ser preparados na ordem de chegada, salvo quando houver priorização justificada, garantindo atendimento sequencial padrão na fila da cozinha.",
+          "appliesTo": [
+            "Order"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "Pedidos devem ser preparados na ordem de chegada, salvo priorização justificada."
+          ]
+        },
+        {
+          "ruleId": "menuItemRequiresIngredient",
+          "title": "Item do cardápio exige ingrediente vinculado",
+          "description": "Um item do cardápio só pode ser ativado se tiver pelo menos um ingrediente de estoque vinculado, impedindo a ativação de itens sem rastreabilidade de consumo.",
+          "appliesTo": [
+            "MenuItem",
+            "MenuItemIngredient"
+          ],
+          "layer": "domain",
+          "sourceJourneyRules": [
+            "Um item do cardápio só pode ser ativado se tiver pelo menos um ingrediente de estoque vinculado."
+          ]
+        },
+        {
+          "ruleId": "lowStockAlertCalculation",
+          "title": "Cálculo do alerta de estoque baixo",
+          "description": "O alerta de estoque baixo deve ser calculado comparando a quantidade atual ao mínimo configurado por item de estoque, disparando aviso quando o atual atingir ou ficar abaixo do mínimo.",
+          "appliesTo": [
+            "StockLevel",
+            "StockItem"
+          ],
+          "layer": "domain",
+          "sourceJourneyRules": [
+            "O alerta de estoque baixo é calculado comparando a quantidade atual ao mínimo configurado por item."
+          ]
+        },
+        {
+          "ruleId": "dashboardCurrentShiftOnly",
+          "title": "Dashboard limitado ao turno/dia atual",
+          "description": "O dashboard deve exibir apenas dados do turno ou dia atual, não permitindo consulta de períodos históricos ou consolidados de múltiplos turnos.",
+          "appliesTo": [
+            "Shift",
+            "Order"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "O dashboard exibe apenas dados do turno/dia atual."
+          ]
+        },
+        {
+          "ruleId": "topSellersFromDayOrders",
+          "title": "Itens mais vendidos calculados do dia",
+          "description": "Os itens mais vendidos devem ser calculados com base nos pedidos do dia corrente, refletindo apenas o período atual e não dados históricos acumulados.",
+          "appliesTo": [
+            "Order",
+            "OrderItem"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "Os itens mais vendidos são calculados com base nos pedidos do dia."
+          ]
+        },
+        {
+          "ruleId": "shiftClosingRecordsRevenue",
+          "title": "Fechamento de turno registra valor apurado",
+          "description": "O fechamento de turno deve registrar o valor apurado para conferência, sem realizar conciliação bancária, limitando-se ao registro do total apurado no período.",
+          "appliesTo": [
+            "Shift",
+            "ShiftClosingReport"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "O fechamento de turno registra o valor apurado para conferência, sem conciliação bancária."
+          ]
+        },
+        {
+          "ruleId": "shiftClosingConsolidatesPaidOrders",
+          "title": "Relatório consolida pedidos pagos do turno",
+          "description": "O relatório de fechamento deve consolidar apenas os pedidos pagos dentro do período do turno, excluindo pedidos não pagos ou de outros turnos.",
+          "appliesTo": [
+            "ShiftClosingReport",
+            "Order"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "O relatório de fechamento consolida os pedidos pagos no período do turno."
+          ]
+        },
+        {
+          "ruleId": "singleOpenShift",
+          "title": "Apenas um turno aberto por vez",
+          "description": "Apenas um turno pode estar aberto por vez em toda a operação, impedindo a abertura simultânea de múltiplos turnos concorrentes.",
+          "appliesTo": [
+            "Shift"
+          ],
+          "layer": "domain",
+          "sourceJourneyRules": [
+            "Apenas um turno pode estar aberto por vez."
+          ]
+        },
+        {
+          "ruleId": "aiConsumesDomainData",
+          "title": "Assistente IA consome dados do domínio",
+          "description": "O assistente IA deve consumir apenas dados agregados de pedidos e estoque disponibilizados pelo domínio, sem acessar diretamente fontes externas ou dados não expostos pelo módulo.",
+          "appliesTo": [
+            "Order",
+            "StockLevel"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "O assistente IA consome dados agregados de pedidos e estoque disponibilizados pelo domínio."
+          ]
+        },
+        {
+          "ruleId": "aiPromoBasedOnLast7Days",
+          "title": "Sugestões de promoção baseadas em 7 dias",
+          "description": "As sugestões de promoção geradas pelo assistente IA devem ser baseadas exclusivamente nos dados dos últimos 7 dias de operação, não considerando períodos mais longos.",
+          "appliesTo": [
+            "Order"
+          ],
+          "layer": "application",
+          "sourceJourneyRules": [
+            "As sugestões de promoção são baseadas nos dados dos últimos 7 dias."
+          ]
+        }
+      ],
+      "externalRefs": {
+        "mdm": [
+          {
+            "title": "Catálogo de produtos (cardápio e estoque)",
+            "reason": "Itens do cardápio e itens de estoque são dados de registro com identidade estável e raras alterações que poderiam ser sincronizados com o MDM da plataforma 102034 para padronização multi-unidade no futuro."
+          }
+        ],
+        "horizontals": [
+          {
+            "title": "Pagamentos",
+            "reason": "O fechamento de turno registra valor apurado e consolida pedidos pagos, indicando que uma capacidade de pagamento cross-module é necessária para processar as transações que alimentam o relatório."
+          }
+        ],
+        "plugins": [
+          {
+            "title": "Documento fiscal (cupom fiscal / NF-e)",
+            "reason": "Embora as regras de jornada não mencionem explicitamente emissão fiscal, um POS de cafeteria no Brasil tipicamente precisa emitir cupom fiscal ou NF-e, podendo ser integrado como plugin opcional no futuro."
+          }
+        ],
+        "agents": [
+          {
+            "title": "Assistente IA de vendas",
+            "reason": "As jornadas useAiAssistant exigem um assistente IA que consome dados agregados de pedidos e estoque do domínio para gerar resumo de vendas do dia e sugestões de promoção baseadas nos últimos 7 dias, utilizando o proxy LLM da plataforma."
+          }
+        ]
+      }
+    },
+    "gate": {
+      "ok": true,
+      "artifact": {
+        "schemaVersion": "2026-07-07-ns3-e4-v1",
+        "moduleName": "cafeFlow",
+        "userLanguage": "pt-BR",
+        "createdAt": "2026-07-08T04:11:29.142Z",
+        "actors": [
+          {
+            "actorId": "atendente",
+            "title": "Atendente / Caixa",
+            "description": "Lança pedidos rapidamente no POS, seleciona mesa ou takeout e acompanha status para entrega ao cliente.",
+            "roleScope": "cafeFlow:atendente"
+          },
+          {
+            "actorId": "cozinheiro",
+            "title": "Cozinheiro",
+            "description": "Visualiza pedidos em preparo, atualiza status da cozinha e sinaliza quando o item está pronto.",
+            "roleScope": "cafeFlow:cozinheiro"
+          },
+          {
+            "actorId": "gerente",
+            "title": "Gerente / Proprietário",
+            "description": "Cadastra itens do cardápio e estoque, abre e fecha turnos, consulta dashboard e utiliza o assistente IA para análise de vendas.",
+            "roleScope": "cafeFlow:gerente"
+          }
+        ],
+        "rules": [
+          {
+            "ruleId": "stockDecrementOnOrderLaunch",
+            "title": "Decréscimo de estoque no lançamento do pedido",
+            "description": "O estoque deve ser decrementado no momento do lançamento do pedido, não na entrega, conforme os ingredientes vinculados a cada item do cardápio pedido.",
+            "appliesTo": [
+              "StockConsumption",
+              "StockLevel",
+              "Order"
+            ],
+            "layer": "domain",
+            "sourceJourneyRules": [
+              "O estoque é decrementado no momento do lançamento do pedido, não na entrega.",
+              "O estoque é decrementado automaticamente no lançamento de pedidos conforme os ingredientes vinculados."
+            ]
+          },
+          {
+            "ruleId": "simpleItemsOnly",
+            "title": "Apenas itens simples suportados",
+            "description": "Apenas itens simples podem ser lançados e cadastrados no cardápio nesta fase; variantes devem ser cadastradas como itens separados, não como sub-opções de um mesmo item.",
+            "appliesTo": [
+              "MenuItem",
+              "OrderItem"
+            ],
+            "layer": "domain",
+            "sourceJourneyRules": [
+              "Apenas itens simples podem ser lançados; variantes são cadastradas como itens separados.",
+              "Apenas itens simples são suportados nesta fase; variantes devem ser cadastradas como itens separados."
+            ]
+          },
+          {
+            "ruleId": "insufficientStockAlertBeforeConfirm",
+            "title": "Alerta de estoque insuficiente antes de confirmar",
+            "description": "Se um item não tiver estoque suficiente, o atendente deve ser alertado antes de confirmar o pedido, impedindo o lançamento de itens sem cobertura de estoque.",
+            "appliesTo": [
+              "StockLevel",
+              "OrderItem"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "Se um item não tiver estoque suficiente, o atendente é alertado antes de confirmar o pedido."
+            ]
+          },
+          {
+            "ruleId": "orderStatusFlow",
+            "title": "Fluxo de status do pedido",
+            "description": "O fluxo de status do pedido deve seguir obrigatoriamente a sequência: recebido → em preparo → pronto → entregue, sem permitir pulos de etapa.",
+            "appliesTo": [
+              "Order"
+            ],
+            "layer": "domain",
+            "sourceJourneyRules": [
+              "O fluxo de status do pedido é: recebido → em preparo → pronto → entregue.",
+              "O fluxo de status do pedido é: recebido → em preparo → pronto → entregue."
+            ]
+          },
+          {
+            "ruleId": "readyBeforeDelivered",
+            "title": "Pedido pronto antes de entregue",
+            "description": "Apenas pedidos cujo status atual seja 'pronto' podem ser marcados como 'entregue', proibindo a entrega de pedidos ainda em preparo ou recém-recebidos.",
+            "appliesTo": [
+              "Order"
+            ],
+            "layer": "domain",
+            "sourceJourneyRules": [
+              "Apenas pedidos com status 'pronto' podem ser marcados como entregues."
+            ]
+          },
+          {
+            "ruleId": "inProgressBeforeReady",
+            "title": "Marcar em preparo antes de pronto",
+            "description": "O cozinheiro deve marcar o pedido como 'em preparo' antes de poder marcá-lo como 'pronto', garantindo que o preparo seja explicitamente iniciado.",
+            "appliesTo": [
+              "Order"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "O cozinheiro deve marcar o pedido como 'em preparo' antes de marcá-lo como 'pronto'."
+            ]
+          },
+          {
+            "ruleId": "fifoKitchenQueue",
+            "title": "Ordem de chegada na cozinha",
+            "description": "Pedidos devem ser preparados na ordem de chegada, salvo quando houver priorização justificada, garantindo atendimento sequencial padrão na fila da cozinha.",
+            "appliesTo": [
+              "Order"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "Pedidos devem ser preparados na ordem de chegada, salvo priorização justificada."
+            ]
+          },
+          {
+            "ruleId": "menuItemRequiresIngredient",
+            "title": "Item do cardápio exige ingrediente vinculado",
+            "description": "Um item do cardápio só pode ser ativado se tiver pelo menos um ingrediente de estoque vinculado, impedindo a ativação de itens sem rastreabilidade de consumo.",
+            "appliesTo": [
+              "MenuItem",
+              "MenuItemIngredient"
+            ],
+            "layer": "domain",
+            "sourceJourneyRules": [
+              "Um item do cardápio só pode ser ativado se tiver pelo menos um ingrediente de estoque vinculado."
+            ]
+          },
+          {
+            "ruleId": "lowStockAlertCalculation",
+            "title": "Cálculo do alerta de estoque baixo",
+            "description": "O alerta de estoque baixo deve ser calculado comparando a quantidade atual ao mínimo configurado por item de estoque, disparando aviso quando o atual atingir ou ficar abaixo do mínimo.",
+            "appliesTo": [
+              "StockLevel",
+              "StockItem"
+            ],
+            "layer": "domain",
+            "sourceJourneyRules": [
+              "O alerta de estoque baixo é calculado comparando a quantidade atual ao mínimo configurado por item."
+            ]
+          },
+          {
+            "ruleId": "dashboardCurrentShiftOnly",
+            "title": "Dashboard limitado ao turno/dia atual",
+            "description": "O dashboard deve exibir apenas dados do turno ou dia atual, não permitindo consulta de períodos históricos ou consolidados de múltiplos turnos.",
+            "appliesTo": [
+              "Shift",
+              "Order"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "O dashboard exibe apenas dados do turno/dia atual."
+            ]
+          },
+          {
+            "ruleId": "topSellersFromDayOrders",
+            "title": "Itens mais vendidos calculados do dia",
+            "description": "Os itens mais vendidos devem ser calculados com base nos pedidos do dia corrente, refletindo apenas o período atual e não dados históricos acumulados.",
+            "appliesTo": [
+              "Order",
+              "OrderItem"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "Os itens mais vendidos são calculados com base nos pedidos do dia."
+            ]
+          },
+          {
+            "ruleId": "shiftClosingRecordsRevenue",
+            "title": "Fechamento de turno registra valor apurado",
+            "description": "O fechamento de turno deve registrar o valor apurado para conferência, sem realizar conciliação bancária, limitando-se ao registro do total apurado no período.",
+            "appliesTo": [
+              "Shift",
+              "ShiftClosingReport"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "O fechamento de turno registra o valor apurado para conferência, sem conciliação bancária."
+            ]
+          },
+          {
+            "ruleId": "shiftClosingConsolidatesPaidOrders",
+            "title": "Relatório consolida pedidos pagos do turno",
+            "description": "O relatório de fechamento deve consolidar apenas os pedidos pagos dentro do período do turno, excluindo pedidos não pagos ou de outros turnos.",
+            "appliesTo": [
+              "ShiftClosingReport",
+              "Order"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "O relatório de fechamento consolida os pedidos pagos no período do turno."
+            ]
+          },
+          {
+            "ruleId": "singleOpenShift",
+            "title": "Apenas um turno aberto por vez",
+            "description": "Apenas um turno pode estar aberto por vez em toda a operação, impedindo a abertura simultânea de múltiplos turnos concorrentes.",
+            "appliesTo": [
+              "Shift"
+            ],
+            "layer": "domain",
+            "sourceJourneyRules": [
+              "Apenas um turno pode estar aberto por vez."
+            ]
+          },
+          {
+            "ruleId": "aiConsumesDomainData",
+            "title": "Assistente IA consome dados do domínio",
+            "description": "O assistente IA deve consumir apenas dados agregados de pedidos e estoque disponibilizados pelo domínio, sem acessar diretamente fontes externas ou dados não expostos pelo módulo.",
+            "appliesTo": [
+              "Order",
+              "StockLevel"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "O assistente IA consome dados agregados de pedidos e estoque disponibilizados pelo domínio."
+            ]
+          },
+          {
+            "ruleId": "aiPromoBasedOnLast7Days",
+            "title": "Sugestões de promoção baseadas em 7 dias",
+            "description": "As sugestões de promoção geradas pelo assistente IA devem ser baseadas exclusivamente nos dados dos últimos 7 dias de operação, não considerando períodos mais longos.",
+            "appliesTo": [
+              "Order"
+            ],
+            "layer": "application",
+            "sourceJourneyRules": [
+              "As sugestões de promoção são baseadas nos dados dos últimos 7 dias."
+            ]
+          }
+        ],
+        "externalRefs": {
+          "mdm": [
+            {
+              "title": "Catálogo de produtos (cardápio e estoque)",
+              "reason": "Itens do cardápio e itens de estoque são dados de registro com identidade estável e raras alterações que poderiam ser sincronizados com o MDM da plataforma 102034 para padronização multi-unidade no futuro."
+            }
+          ],
+          "horizontals": [
+            {
+              "title": "Pagamentos",
+              "reason": "O fechamento de turno registra valor apurado e consolida pedidos pagos, indicando que uma capacidade de pagamento cross-module é necessária para processar as transações que alimentam o relatório."
+            }
+          ],
+          "plugins": [
+            {
+              "title": "Documento fiscal (cupom fiscal / NF-e)",
+              "reason": "Embora as regras de jornada não mencionem explicitamente emissão fiscal, um POS de cafeteria no Brasil tipicamente precisa emitir cupom fiscal ou NF-e, podendo ser integrado como plugin opcional no futuro."
+            }
+          ],
+          "agents": [
+            {
+              "title": "Assistente IA de vendas",
+              "reason": "As jornadas useAiAssistant exigem um assistente IA que consome dados agregados de pedidos e estoque do domínio para gerar resumo de vendas do dia e sugestões de promoção baseadas nos últimos 7 dias, utilizando o proxy LLM da plataforma."
+            }
+          ]
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "attempts": 1,
+      "needsHumanInput": false,
+      "pipeline": {
+        "schemaVersion": "2026-07-05-ns3-pipeline-v1",
+        "flowId": "agentNewSolution3",
+        "moduleName": "cafeFlow",
+        "createdAt": "2026-07-08T04:04:21.362Z",
+        "updatedAt": "2026-07-08T04:11:29.147Z",
+        "steps": {
+          "e1-draft": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:04:21.375Z",
+            "dirty": false,
+            "inputsHash": "djb2:edd0baab",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:04:21.363Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:04:21.375Z",
+            "approvedBy": "auto"
+          },
+          "checkpoint-draft": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:04:21.362Z"
+          },
+          "e2-journeys": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:07:30.151Z",
+            "dirty": false,
+            "inputsHash": "djb2:f9d33d35",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:06:17.097Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:07:30.151Z",
+            "approvedBy": "human",
+            "artifactVersion": 1
+          },
+          "checkpoint-journeys": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:07:30.151Z",
+            "dirty": false,
+            "approvedAt": "2026-07-08T04:07:30.151Z",
+            "approvedBy": "human",
+            "artifactVersion": 1
+          },
+          "e3-ontology": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:10:01.325Z",
+            "dirty": false,
+            "inputsHash": "djb2:b8fecc12",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:09:16.168Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:10:01.325Z",
+            "approvedBy": "auto"
+          },
+          "e4-actors-rules-refs": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:11:29.147Z",
+            "dirty": false,
+            "inputsHash": "djb2:a4a9b358",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:11:29.147Z",
+              "errors": [],
+              "warnings": []
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "2026-07-05-ns3-pipeline-v1",
+  "flowId": "agentNewSolution3",
+  "moduleName": "cafeFlow",
+  "createdAt": "2026-07-08T04:04:21.362Z",
+  "updatedAt": "2026-07-08T05:07:26.951Z",
+  "steps": {
+    "e1-draft": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T04:04:21.375Z",
+      "dirty": false,
+      "inputsHash": "djb2:edd0baab",
+      "lastGate": {
+        "ok": true,
+        "checkedAt": "2026-07-08T04:04:21.363Z",
+        "errors": [],
+        "warnings": []
+      },
+      "approvedAt": "2026-07-08T04:04:21.375Z",
+      "approvedBy": "auto"
+    },
+    "checkpoint-draft": {
+      "status": "pending",
+      "updatedAt": "2026-07-08T04:04:21.362Z"
+    },
+    "e2-journeys": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T04:07:30.151Z",
+      "dirty": false,
+      "inputsHash": "djb2:f9d33d35",
+      "lastGate": {
+        "ok": true,
+        "checkedAt": "2026-07-08T04:06:17.097Z",
+        "errors": [],
+        "warnings": []
+      },
+      "approvedAt": "2026-07-08T04:07:30.151Z",
+      "approvedBy": "human",
+      "artifactVersion": 1
+    },
+    "checkpoint-journeys": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T04:07:30.151Z",
+      "dirty": false,
+      "approvedAt": "2026-07-08T04:07:30.151Z",
+      "approvedBy": "human",
+      "artifactVersion": 1
+    },
+    "e3-ontology": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T04:10:01.325Z",
+      "dirty": false,
+      "inputsHash": "djb2:b8fecc12",
+      "lastGate": {
+        "ok": true,
+        "checkedAt": "2026-07-08T04:09:16.168Z",
+        "errors": [],
+        "warnings": []
+      },
+      "approvedAt": "2026-07-08T04:10:01.325Z",
+      "approvedBy": "auto"
+    },
+    "e4-actors-rules-refs": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T04:11:29.147Z",
+      "dirty": false,
+      "inputsHash": "djb2:a4a9b358",
+      "lastGate": {
+        "ok": true,
+        "checkedAt": "2026-07-08T04:11:29.147Z",
+        "errors": [],
+        "warnings": []
+      },
+      "approvedAt": "2026-07-08T04:11:29.147Z",
+      "approvedBy": "auto"
+    },
+    "e5-workflows-operations": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T05:06:59.151Z",
+      "dirty": false,
+      "inputsHash": "djb2:a4a9b358",
+      "lastGate": {
+        "ok": true,
+        "checkedAt": "2026-07-08T05:05:04.536Z",
+        "errors": [],
+        "warnings": []
+      },
+      "approvedAt": "2026-07-08T05:06:59.151Z",
+      "approvedBy": "auto"
+    },
+    "e6-journey-map": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T05:07:26.741Z",
+      "dirty": false,
+      "inputsHash": "djb2:73c73bf6",
+      "lastGate": {
+        "ok": true,
+        "checkedAt": "2026-07-08T05:07:26.741Z",
+        "errors": [],
+        "warnings": []
+      },
+      "approvedAt": "2026-07-08T05:07:26.741Z",
+      "approvedBy": "auto"
+    },
+    "e7-validation-summary": {
+      "status": "approved",
+      "updatedAt": "2026-07-08T05:07:26.951Z",
+      "dirty": false,
+      "inputsHash": "djb2:8bfe2f5d",
+      "lastGate": {
+        "ok": true,
+        "checkedAt": "2026-07-08T05:07:26.951Z",
+        "errors": [],
+        "warnings": [
+          "capability.multiowned: capability 'orderLifecycle' is owned by 2 workspaces (kitchenQueue, posWorkspace)"
+        ]
+      },
+      "approvedAt": "2026-07-08T05:07:26.951Z",
+      "approvedBy": "auto"
+    }
+  }
+}

@@ -1,0 +1,417 @@
+{
+  "savedAt": "2026-07-08T05:07:26.745Z",
+  "stepId": "e6-journey-map",
+  "agentName": "agentNs3JourneyMap",
+  "attempt": 1,
+  "payload": {
+    "artifact": {
+      "schemaVersion": "2026-07-07-ns3-e6-v1",
+      "moduleName": "cafeFlow",
+      "note": "Consolidated navigation map derived from workflows/operations stories (view, not source).",
+      "workspaces": [
+        {
+          "workspaceId": "posWorkspace",
+          "title": "POS — Lançamento e acompanhamento de pedidos",
+          "actor": "atendente",
+          "kind": "workflow",
+          "entity": "Order",
+          "operationIds": [
+            "createOrder",
+            "viewOrderBoard",
+            "deliverOrder"
+          ],
+          "purpose": "O atendente lança pedidos no POS, acompanha o painel de status e entrega os pedidos prontos ao cliente.",
+          "workflowId": "orderLifecycle"
+        },
+        {
+          "workspaceId": "kitchenQueue",
+          "title": "Fila da cozinha — Preparo de pedidos",
+          "actor": "cozinheiro",
+          "kind": "workflow",
+          "entity": "Order",
+          "operationIds": [
+            "viewKitchenBoard",
+            "updateOrderStatus"
+          ],
+          "purpose": "O cozinheiro visualiza a fila de pedidos recebidos, inicia o preparo e sinaliza quando o pedido está pronto.",
+          "workflowId": "orderLifecycle"
+        },
+        {
+          "workspaceId": "menuManagement",
+          "title": "Gestão de cardápio",
+          "actor": "gerente",
+          "kind": "workflow",
+          "entity": "MenuItem",
+          "operationIds": [
+            "browseMenuItems",
+            "manageMenuItem"
+          ],
+          "purpose": "O gerente consulta, cria e edita itens do cardápio vinculando ingredientes de estoque e controlando a ativação.",
+          "workflowId": "menuItemLifecycle"
+        },
+        {
+          "workspaceId": "stockManagement",
+          "title": "Gestão de estoque e alertas",
+          "actor": "gerente",
+          "kind": "operation",
+          "entity": "StockItem",
+          "operationIds": [
+            "browseStockItems",
+            "manageStockItem"
+          ],
+          "purpose": "O gerente consulta itens de estoque, visualiza alertas de baixo estoque e atualiza cadastros de insumos."
+        },
+        {
+          "workspaceId": "shiftManagement",
+          "title": "Gestão de turno diário",
+          "actor": "gerente",
+          "kind": "workflow",
+          "entity": "Shift",
+          "operationIds": [
+            "openShift",
+            "closeShift",
+            "viewShiftClosingReport"
+          ],
+          "purpose": "O gerente abre e fecha o turno diário e revisa o relatório de fechamento para conferência do expediente.",
+          "workflowId": "shiftLifecycle"
+        },
+        {
+          "workspaceId": "managerDashboard",
+          "title": "Dashboard e assistente IA",
+          "actor": "gerente",
+          "kind": "operation",
+          "entity": "Order",
+          "operationIds": [
+            "viewDashboard",
+            "requestAiSalesSummary",
+            "requestAiPromoSuggestions"
+          ],
+          "purpose": "O gerente consulta o dashboard de vendas do dia e utiliza o assistente IA para obter resumos e sugestões de promoção."
+        }
+      ],
+      "landings": [
+        {
+          "actorId": "atendente",
+          "workspaceId": "posWorkspace",
+          "reason": "O atendente inicia o expediente lançando pedidos no POS e acompanhando o painel de status."
+        },
+        {
+          "actorId": "cozinheiro",
+          "workspaceId": "kitchenQueue",
+          "reason": "O cozinheiro começa o turno visualizando a fila de pedidos recebidos para iniciar o preparo."
+        },
+        {
+          "actorId": "gerente",
+          "workspaceId": "shiftManagement",
+          "reason": "O gerente abre o dia abrindo o turno antes de qualquer outra operação no módulo."
+        }
+      ],
+      "navigationEdges": [
+        {
+          "from": "shiftManagement",
+          "to": "posWorkspace",
+          "operationId": "openShift",
+          "description": "Turno aberto habilita o lançamento de pedidos no POS pelo atendente."
+        },
+        {
+          "from": "posWorkspace",
+          "to": "kitchenQueue",
+          "operationId": "createOrder",
+          "description": "Pedido confirmado é enviado à cozinha e aparece na fila do cozinheiro."
+        },
+        {
+          "from": "kitchenQueue",
+          "to": "posWorkspace",
+          "operationId": "updateOrderStatus",
+          "description": "Cozinheiro marca pedido como pronto, sinalizando o atendente para entregar ao cliente."
+        },
+        {
+          "from": "menuManagement",
+          "to": "stockManagement",
+          "description": "Gerente vincula ingredientes de estoque ao cadastrar item de cardápio, navegando para a gestão de estoque."
+        },
+        {
+          "from": "managerDashboard",
+          "to": "shiftManagement",
+          "operationId": "closeShift",
+          "description": "Gerente consulta o dashboard de vendas antes de fechar o turno e gerar o relatório de fechamento."
+        },
+        {
+          "from": "shiftManagement",
+          "to": "managerDashboard",
+          "operationId": "viewShiftClosingReport",
+          "description": "Após fechar o turno, o gerente pode consultar o dashboard e o assistente IA para análise do dia."
+        }
+      ]
+    },
+    "gate": {
+      "ok": true,
+      "artifact": {
+        "schemaVersion": "2026-07-07-ns3-e6-v1",
+        "moduleName": "cafeFlow",
+        "note": "Consolidated navigation map derived from workflows/operations stories (view, not source).",
+        "workspaces": [
+          {
+            "workspaceId": "posWorkspace",
+            "title": "POS — Lançamento e acompanhamento de pedidos",
+            "actor": "atendente",
+            "kind": "workflow",
+            "entity": "Order",
+            "operationIds": [
+              "createOrder",
+              "viewOrderBoard",
+              "deliverOrder"
+            ],
+            "purpose": "O atendente lança pedidos no POS, acompanha o painel de status e entrega os pedidos prontos ao cliente.",
+            "workflowId": "orderLifecycle"
+          },
+          {
+            "workspaceId": "kitchenQueue",
+            "title": "Fila da cozinha — Preparo de pedidos",
+            "actor": "cozinheiro",
+            "kind": "workflow",
+            "entity": "Order",
+            "operationIds": [
+              "viewKitchenBoard",
+              "updateOrderStatus"
+            ],
+            "purpose": "O cozinheiro visualiza a fila de pedidos recebidos, inicia o preparo e sinaliza quando o pedido está pronto.",
+            "workflowId": "orderLifecycle"
+          },
+          {
+            "workspaceId": "menuManagement",
+            "title": "Gestão de cardápio",
+            "actor": "gerente",
+            "kind": "workflow",
+            "entity": "MenuItem",
+            "operationIds": [
+              "browseMenuItems",
+              "manageMenuItem"
+            ],
+            "purpose": "O gerente consulta, cria e edita itens do cardápio vinculando ingredientes de estoque e controlando a ativação.",
+            "workflowId": "menuItemLifecycle"
+          },
+          {
+            "workspaceId": "stockManagement",
+            "title": "Gestão de estoque e alertas",
+            "actor": "gerente",
+            "kind": "operation",
+            "entity": "StockItem",
+            "operationIds": [
+              "browseStockItems",
+              "manageStockItem"
+            ],
+            "purpose": "O gerente consulta itens de estoque, visualiza alertas de baixo estoque e atualiza cadastros de insumos."
+          },
+          {
+            "workspaceId": "shiftManagement",
+            "title": "Gestão de turno diário",
+            "actor": "gerente",
+            "kind": "workflow",
+            "entity": "Shift",
+            "operationIds": [
+              "openShift",
+              "closeShift",
+              "viewShiftClosingReport"
+            ],
+            "purpose": "O gerente abre e fecha o turno diário e revisa o relatório de fechamento para conferência do expediente.",
+            "workflowId": "shiftLifecycle"
+          },
+          {
+            "workspaceId": "managerDashboard",
+            "title": "Dashboard e assistente IA",
+            "actor": "gerente",
+            "kind": "operation",
+            "entity": "Order",
+            "operationIds": [
+              "viewDashboard",
+              "requestAiSalesSummary",
+              "requestAiPromoSuggestions"
+            ],
+            "purpose": "O gerente consulta o dashboard de vendas do dia e utiliza o assistente IA para obter resumos e sugestões de promoção."
+          }
+        ],
+        "landings": [
+          {
+            "actorId": "atendente",
+            "workspaceId": "posWorkspace",
+            "reason": "O atendente inicia o expediente lançando pedidos no POS e acompanhando o painel de status."
+          },
+          {
+            "actorId": "cozinheiro",
+            "workspaceId": "kitchenQueue",
+            "reason": "O cozinheiro começa o turno visualizando a fila de pedidos recebidos para iniciar o preparo."
+          },
+          {
+            "actorId": "gerente",
+            "workspaceId": "shiftManagement",
+            "reason": "O gerente abre o dia abrindo o turno antes de qualquer outra operação no módulo."
+          }
+        ],
+        "navigationEdges": [
+          {
+            "from": "shiftManagement",
+            "to": "posWorkspace",
+            "operationId": "openShift",
+            "description": "Turno aberto habilita o lançamento de pedidos no POS pelo atendente."
+          },
+          {
+            "from": "posWorkspace",
+            "to": "kitchenQueue",
+            "operationId": "createOrder",
+            "description": "Pedido confirmado é enviado à cozinha e aparece na fila do cozinheiro."
+          },
+          {
+            "from": "kitchenQueue",
+            "to": "posWorkspace",
+            "operationId": "updateOrderStatus",
+            "description": "Cozinheiro marca pedido como pronto, sinalizando o atendente para entregar ao cliente."
+          },
+          {
+            "from": "menuManagement",
+            "to": "stockManagement",
+            "description": "Gerente vincula ingredientes de estoque ao cadastrar item de cardápio, navegando para a gestão de estoque."
+          },
+          {
+            "from": "managerDashboard",
+            "to": "shiftManagement",
+            "operationId": "closeShift",
+            "description": "Gerente consulta o dashboard de vendas antes de fechar o turno e gerar o relatório de fechamento."
+          },
+          {
+            "from": "shiftManagement",
+            "to": "managerDashboard",
+            "operationId": "viewShiftClosingReport",
+            "description": "Após fechar o turno, o gerente pode consultar o dashboard e o assistente IA para análise do dia."
+          }
+        ]
+      },
+      "errors": [],
+      "warnings": [],
+      "attempts": 1,
+      "needsHumanInput": false,
+      "pipeline": {
+        "schemaVersion": "2026-07-05-ns3-pipeline-v1",
+        "flowId": "agentNewSolution3",
+        "moduleName": "cafeFlow",
+        "createdAt": "2026-07-08T04:04:21.362Z",
+        "updatedAt": "2026-07-08T05:07:26.741Z",
+        "steps": {
+          "e1-draft": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:04:21.375Z",
+            "dirty": false,
+            "inputsHash": "djb2:edd0baab",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:04:21.363Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:04:21.375Z",
+            "approvedBy": "auto"
+          },
+          "checkpoint-draft": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:04:21.362Z"
+          },
+          "e2-journeys": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:07:30.151Z",
+            "dirty": false,
+            "inputsHash": "djb2:f9d33d35",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:06:17.097Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:07:30.151Z",
+            "approvedBy": "human",
+            "artifactVersion": 1
+          },
+          "checkpoint-journeys": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:07:30.151Z",
+            "dirty": false,
+            "approvedAt": "2026-07-08T04:07:30.151Z",
+            "approvedBy": "human",
+            "artifactVersion": 1
+          },
+          "e3-ontology": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:10:01.325Z",
+            "dirty": false,
+            "inputsHash": "djb2:b8fecc12",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:09:16.168Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:10:01.325Z",
+            "approvedBy": "auto"
+          },
+          "e4-actors-rules-refs": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T04:11:29.147Z",
+            "dirty": false,
+            "inputsHash": "djb2:a4a9b358",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:11:29.147Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:11:29.147Z",
+            "approvedBy": "auto"
+          },
+          "e5-workflows-operations": {
+            "status": "approved",
+            "updatedAt": "2026-07-08T05:06:59.151Z",
+            "dirty": false,
+            "inputsHash": "djb2:a4a9b358",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T05:05:04.536Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T05:06:59.151Z",
+            "approvedBy": "auto"
+          },
+          "e6-journey-map": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T05:07:26.741Z",
+            "dirty": false,
+            "inputsHash": "djb2:73c73bf6",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T05:07:26.741Z",
+              "errors": [],
+              "warnings": []
+            },
+            "approvedAt": "2026-07-08T04:14:10.246Z",
+            "approvedBy": "auto"
+          },
+          "e7-validation-summary": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:14:10.616Z",
+            "dirty": false,
+            "inputsHash": "djb2:a61d0dc1",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:14:10.616Z",
+              "errors": [],
+              "warnings": [
+                "capability.multiowned: capability 'orderLifecycle' is owned by 2 workspaces (kitchenQueue, posOrder)"
+              ]
+            },
+            "approvedAt": "2026-07-08T04:14:10.616Z",
+            "approvedBy": "auto"
+          }
+        }
+      }
+    }
+  }
+}

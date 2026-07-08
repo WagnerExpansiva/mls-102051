@@ -1,0 +1,16 @@
+{
+  "savedAt": "2026-07-08T05:31:19.582Z",
+  "outcome": "passed",
+  "l1Defs": 58,
+  "findings": [],
+  "warnings": [],
+  "repairHistory": [
+    "2026-07-08T04:33:46.001Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/requestAiPromoSuggestions.defs.ts :: attempt 1 :: rulesApplied 'aiConsumesDomainData' not present in generated .ts",
+    "2026-07-08T04:36:30.470Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/manageMenuItem.defs.ts :: attempt 1 :: mdm local import forbidden -> _102051_/l1/cafeFlow/layer_3_domain/entities/menuItemIngredient",
+    "2026-07-08T04:37:21.078Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/viewDashboard.defs.ts :: attempt 1 :: handler cafeFlowViewDashboardHandler requires 'shiftId' outside l4 inputContract",
+    "2026-07-08T04:39:03.484Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/viewDashboard.defs.ts :: attempt 1 :: handler cafeFlowViewDashboardHandler requires 'shiftId' outside l4 inputContract",
+    "2026-07-08T05:25:08.530Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/manageStockItem.defs.ts :: attempt 1 :: compiler: TS2698: Spread types may only be created from object types."
+  ],
+  "globalAttempts": 1,
+  "judgeRuns": 1
+}

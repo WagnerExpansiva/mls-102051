@@ -1,0 +1,21 @@
+{
+  "moduleName": "cafeFlow",
+  "savedAt": "2026-07-08T05:07:26.947Z",
+  "report": {
+    "passed": true,
+    "counts": {
+      "entities": 11,
+      "workflows": 3,
+      "operations": 15,
+      "workspaces": 6
+    },
+    "errors": [],
+    "warnings": [
+      {
+        "severity": "warning",
+        "code": "capability.multiowned",
+        "message": "capability 'orderLifecycle' is owned by 2 workspaces (kitchenQueue, posWorkspace)"
+      }
+    ]
+  }
+}

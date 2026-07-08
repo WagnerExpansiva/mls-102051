@@ -1,0 +1,153 @@
+{
+  "savedAt": "2026-07-08T04:09:54.572Z",
+  "stepId": "e3-entity-StockConsumption",
+  "agentName": "agentNs3Ontology",
+  "attempt": 1,
+  "payload": {
+    "artifact": {
+      "entityId": "StockConsumption",
+      "title": "Consumo de Estoque",
+      "description": "Fato imutável registrado no lançamento de um pedido que decrementa o estoque de um ingrediente conforme os vínculos do item do cardápio.",
+      "kind": "event",
+      "ownership": "moduleOwned",
+      "fields": [
+        {
+          "fieldId": "stockConsumptionId",
+          "type": "uuid",
+          "required": true,
+          "description": "Identificador único do consumo de estoque."
+        },
+        {
+          "fieldId": "stockItemId",
+          "type": "uuid",
+          "required": true,
+          "description": "Item de estoque cuja quantidade foi decrementada por este consumo."
+        },
+        {
+          "fieldId": "orderId",
+          "type": "uuid",
+          "required": true,
+          "description": "Pedido que disparou este consumo de estoque no momento do lançamento."
+        },
+        {
+          "fieldId": "quantity",
+          "type": "number",
+          "required": true,
+          "description": "Quantidade do item de estoque consumida e decrementada neste lançamento."
+        },
+        {
+          "fieldId": "status",
+          "type": "string",
+          "required": true,
+          "description": "Situação do consumo: lançado ou estornado.",
+          "enum": [
+            "posted",
+            "voided"
+          ]
+        },
+        {
+          "fieldId": "createdAt",
+          "type": "datetime",
+          "required": true,
+          "description": "Data e hora do registro do consumo de estoque."
+        },
+        {
+          "fieldId": "voidedAt",
+          "type": "datetime",
+          "required": false,
+          "description": "Data e hora em que o consumo foi estornado, quando aplicável."
+        },
+        {
+          "fieldId": "voidReason",
+          "type": "text",
+          "required": false,
+          "description": "Motivo do estorno do consumo de estoque."
+        }
+      ],
+      "statusEnum": [
+        "posted",
+        "voided"
+      ],
+      "eventPolicy": {
+        "purpose": "audit",
+        "retentionDays": 365
+      }
+    },
+    "gate": {
+      "ok": true,
+      "artifact": {
+        "entityId": "StockConsumption",
+        "title": "Consumo de Estoque",
+        "description": "Fato imutável registrado no lançamento de um pedido que decrementa o estoque de um ingrediente conforme os vínculos do item do cardápio.",
+        "kind": "event",
+        "ownership": "moduleOwned",
+        "fields": [
+          {
+            "fieldId": "stockConsumptionId",
+            "type": "uuid",
+            "required": true,
+            "description": "Identificador único do consumo de estoque."
+          },
+          {
+            "fieldId": "stockItemId",
+            "type": "uuid",
+            "required": true,
+            "description": "Item de estoque cuja quantidade foi decrementada por este consumo."
+          },
+          {
+            "fieldId": "orderId",
+            "type": "uuid",
+            "required": true,
+            "description": "Pedido que disparou este consumo de estoque no momento do lançamento."
+          },
+          {
+            "fieldId": "quantity",
+            "type": "number",
+            "required": true,
+            "description": "Quantidade do item de estoque consumida e decrementada neste lançamento."
+          },
+          {
+            "fieldId": "status",
+            "type": "string",
+            "required": true,
+            "description": "Situação do consumo: lançado ou estornado.",
+            "enum": [
+              "posted",
+              "voided"
+            ]
+          },
+          {
+            "fieldId": "createdAt",
+            "type": "datetime",
+            "required": true,
+            "description": "Data e hora do registro do consumo de estoque."
+          },
+          {
+            "fieldId": "voidedAt",
+            "type": "datetime",
+            "required": false,
+            "description": "Data e hora em que o consumo foi estornado, quando aplicável."
+          },
+          {
+            "fieldId": "voidReason",
+            "type": "text",
+            "required": false,
+            "description": "Motivo do estorno do consumo de estoque."
+          }
+        ],
+        "statusEnum": [
+          "posted",
+          "voided"
+        ],
+        "eventPolicy": {
+          "purpose": "audit",
+          "retentionDays": 365
+        }
+      },
+      "errors": [],
+      "warnings": [],
+      "attempts": 1,
+      "needsHumanInput": false
+    }
+  }
+}
