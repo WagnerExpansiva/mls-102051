@@ -91,7 +91,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/shiftManagement.defs.ts",
-    "layoutId": "shiftManagementLayout"
+    "layoutId": "page11"
   },
   "states": [
     {
@@ -183,6 +183,36 @@ export const definition = {
       "outputShape": "object",
       "collection": false,
       "defaultValue": null
+    },
+    {
+      "stateKey": "ui.shiftManagement.output.openShift",
+      "name": "OutputOpenShift",
+      "kind": "commandOutput",
+      "defaultValue": null
+    },
+    {
+      "stateKey": "ui.shiftManagement.output.closeShift",
+      "name": "OutputCloseShift",
+      "kind": "commandOutput",
+      "defaultValue": null
+    },
+    {
+      "stateKey": "ui.shiftManagement.layout.field-board-status",
+      "name": "LayoutFieldBoardStatus",
+      "kind": "layoutState",
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.shiftManagement.layout.col-board-openedAt",
+      "name": "LayoutColBoardOpenedAt",
+      "kind": "layoutState",
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.shiftManagement.layout.col-board-closedAt",
+      "name": "LayoutColBoardClosedAt",
+      "kind": "layoutState",
+      "defaultValue": ""
     }
   ],
   "actions": [
@@ -197,7 +227,9 @@ export const definition = {
       "inputStateKeys": [
         "ui.shiftManagement.input.openShift.notes"
       ],
-      "outputStateKeys": [],
+      "outputStateKeys": [
+        "ui.shiftManagement.output.openShift"
+      ],
       "statusStateKey": "ui.shiftManagement.action.openShift.status",
       "refreshActionIds": [
         "viewShiftClosingReport"
@@ -215,7 +247,9 @@ export const definition = {
         "ui.shiftManagement.input.closeShift.totalApurado",
         "ui.shiftManagement.input.closeShift.notes"
       ],
-      "outputStateKeys": [],
+      "outputStateKeys": [
+        "ui.shiftManagement.output.closeShift"
+      ],
       "statusStateKey": "ui.shiftManagement.action.closeShift.status",
       "refreshActionIds": [
         "viewShiftClosingReport"
@@ -273,26 +307,41 @@ export const definition = {
     ]
   },
   "i18n": {
-    "shiftManagement.section.title": "Gestão de turno diário",
-    "shiftManagement.openShift.title": "Abrir turno diário",
-    "shiftManagement.openShift.form.title": "Command Form",
-    "shiftManagement.openShift.notes.label": "Notes",
-    "shiftManagement.openShift.submit.label": "Open Shift",
-    "shiftManagement.closeShift.title": "Fechar turno diário",
-    "shiftManagement.closeShift.form.title": "Command Form",
-    "shiftManagement.closeShift.totalApurado.label": "Total Apurado",
-    "shiftManagement.closeShift.notes.label": "Notes",
-    "shiftManagement.closeShift.submit.label": "Close Shift",
-    "shiftManagement.viewReport.title": "Revisar relatório de fechamento de turno",
-    "shiftManagement.viewReport.action.title": "Action List",
-    "shiftManagement.viewReport.action.label": "View Shift Closing Report",
-    "shiftManagement.viewReport.summary.title": "Summary",
-    "shiftManagement.viewReport.shiftClosingReportId.label": "Shift Closing Report Id",
-    "shiftManagement.viewReport.shiftId.label": "Shift Id",
-    "shiftManagement.viewReport.totalApurado.label": "Total Apurado",
-    "shiftManagement.viewReport.paidOrderCount.label": "Paid Order Count",
-    "shiftManagement.viewReport.createdAt.label": "Created At",
-    "shiftManagement.viewReport.updatedAt.label": "Updated At"
+    "shiftManagement.section.main.title": "Gestão de turno diário",
+    "shiftManagement.report.cards.title": "Relatórios de fechamento",
+    "shiftManagement.report.cards.list.title": "Relatórios disponíveis",
+    "shiftManagement.report.field.shiftId": "Turno",
+    "shiftManagement.report.field.totalApurado": "Total apurado",
+    "shiftManagement.report.field.paidOrderCount": "Pedidos pagos",
+    "shiftManagement.report.field.createdAt": "Criado em",
+    "shiftManagement.report.action.refresh": "Atualizar relatórios",
+    "shiftManagement.report.action.view": "Ver relatório",
+    "shiftManagement.openShift.title": "Abrir turno",
+    "shiftManagement.openShift.form.title": "Abertura do turno diário",
+    "shiftManagement.openShift.field.notes": "Observações do turno",
+    "shiftManagement.openShift.action.submit": "Abrir turno",
+    "shiftManagement.closeShift.title": "Fechar turno",
+    "shiftManagement.closeShift.form.title": "Fechamento do turno diário",
+    "shiftManagement.closeShift.field.totalApurado": "Total apurado",
+    "shiftManagement.closeShift.field.notes": "Observações do fechamento",
+    "shiftManagement.closeShift.action.submit": "Fechar turno",
+    "shiftManagement.summary.title": "Resumo do turno",
+    "shiftManagement.summary.section.title": "Resumo e status do turno",
+    "shiftManagement.summary.field.status": "Status do turno",
+    "shiftManagement.summary.field.openedAt": "Abertura",
+    "shiftManagement.summary.field.closedAt": "Fechamento",
+    "shiftManagement.summary.field.totalApurado": "Total apurado",
+    "shiftManagement.board.title": "Pipeline do turno",
+    "shiftManagement.board.intent.title": "Status do turno",
+    "shiftManagement.board.field.status": "Status do turno",
+    "shiftManagement.board.field.shiftId": "Turno",
+    "shiftManagement.board.field.openedAt": "Abertura",
+    "shiftManagement.board.field.closedAt": "Fechamento",
+    "shiftManagement.board.field.totalApurado": "Total apurado",
+    "shiftManagement.board.field.paidOrderCount": "Pedidos pagos",
+    "shiftManagement.queue.title": "Fila de relatórios do turno",
+    "shiftManagement.queue.list.title": "Relatórios para conferência",
+    "shiftManagement.report.field.updatedAt": "Atualizado em"
   },
   "automation": {
     "statePrefix": "ui.shiftManagement",
@@ -304,7 +353,12 @@ export const definition = {
       "ui.shiftManagement.input.closeShift.totalApurado",
       "ui.shiftManagement.input.closeShift.notes",
       "ui.shiftManagement.action.viewShiftClosingReport.status",
-      "ui.shiftManagement.data.viewShiftClosingReport"
+      "ui.shiftManagement.data.viewShiftClosingReport",
+      "ui.shiftManagement.output.openShift",
+      "ui.shiftManagement.output.closeShift",
+      "ui.shiftManagement.layout.field-board-status",
+      "ui.shiftManagement.layout.col-board-openedAt",
+      "ui.shiftManagement.layout.col-board-closedAt"
     ],
     "actionIds": [
       "openShift",

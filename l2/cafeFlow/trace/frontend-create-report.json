@@ -1,0 +1,32 @@
+{
+  "savedAt": "2026-07-08T20:31:52.076Z",
+  "pagesDone": [
+    "kitchenQueue",
+    "managerDashboard",
+    "menuManagement",
+    "posWorkspace",
+    "shiftManagement",
+    "stockManagement"
+  ],
+  "ownersDone": [
+    "workflow:orderLifecycle",
+    "workflow:menuItemLifecycle",
+    "workflow:shiftLifecycle",
+    "operation:createOrder",
+    "operation:updateOrderStatus",
+    "operation:deliverOrder",
+    "operation:viewOrderBoard",
+    "operation:viewKitchenBoard",
+    "operation:manageMenuItem",
+    "operation:browseMenuItems",
+    "operation:manageStockItem",
+    "operation:browseStockItems",
+    "operation:viewDashboard",
+    "operation:openShift",
+    "operation:closeShift",
+    "operation:viewShiftClosingReport",
+    "operation:requestAiSalesSummary",
+    "operation:requestAiPromoSuggestions"
+  ],
+  "skippedPages": []
+}

@@ -1,7 +1,7 @@
 {
-  "savedAt": "2026-07-08T20:27:19.840Z",
+  "savedAt": "2026-07-08T20:31:51.526Z",
   "status": "done",
   "pageId": "kitchenQueue",
   "moduleName": "cafeFlow",
-  "agent": "agentCfeCreatePage"
+  "agent": "agentCfeRegisterFrontend"
 }

@@ -1,4 +1,4 @@
-/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page11/stockManagement.defs.ts" enhancement="_blank"/>
+/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page21/stockManagement.defs.ts" enhancement="_blank"/>
 
 export const definition = {
   "pageId": "stockManagement",
@@ -67,7 +67,7 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec_stock_management_main",
+      "id": "sec_stock_queue_main",
       "type": "section",
       "sectionName": "Gestão de estoque e alertas",
       "titleKey": "stockManagement.section.main.title",
@@ -75,8 +75,8 @@ export const definition = {
       "order": 10,
       "organisms": [
         {
-          "id": "org_stock_list_workspace",
-          "type": "listPanel",
+          "id": "org_stock_queue_list",
+          "type": "queueList",
           "organismName": "BrowseStockItems",
           "titleKey": "stockManagement.browseStockItems.title",
           "purpose": "Consultar itens de estoque e alertas",
@@ -91,7 +91,6 @@ export const definition = {
             "name",
             "unit",
             "minimumLevel",
-            "createdAt",
             "updatedAt"
           ],
           "writesFields": [],
@@ -101,7 +100,7 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int_stock_query_list",
+              "id": "int_stock_queue_list",
               "intent": "queryList",
               "stateKey": "ui.stockManagement.data.browseStockItems",
               "order": 10
@@ -109,8 +108,8 @@ export const definition = {
           ]
         },
         {
-          "id": "org_stock_manage_panel",
-          "type": "formPanel",
+          "id": "org_stock_queue_action",
+          "type": "actionPanel",
           "organismName": "ManageStockItem",
           "titleKey": "stockManagement.manageStockItem.title",
           "purpose": "Gerenciar itens de estoque",
@@ -136,7 +135,7 @@ export const definition = {
           "order": 20,
           "intentionRefs": [
             {
-              "id": "int_manage_stock_form",
+              "id": "int_queue_manage_form",
               "intent": "commandForm",
               "submitAction": "manageStockItem",
               "order": 10
@@ -144,7 +143,7 @@ export const definition = {
           ]
         },
         {
-          "id": "org_stock_summary_panel",
+          "id": "org_stock_queue_summary",
           "type": "summaryPanel",
           "organismName": "StockSummary",
           "titleKey": "stockManagement.summary.title",
@@ -164,7 +163,7 @@ export const definition = {
           "order": 30,
           "intentionRefs": [
             {
-              "id": "int_stock_summary",
+              "id": "int_queue_summary",
               "intent": "summary",
               "order": 10
             }
@@ -174,11 +173,11 @@ export const definition = {
     }
   ],
   "layout": {
-    "id": "page11",
+    "id": "page21",
     "type": "page",
     "sections": [
       {
-        "id": "sec_stock_management_main",
+        "id": "sec_stock_queue_main",
         "type": "section",
         "sectionName": "Gestão de estoque e alertas",
         "titleKey": "stockManagement.section.main.title",
@@ -186,8 +185,8 @@ export const definition = {
         "order": 10,
         "organisms": [
           {
-            "id": "org_stock_list_workspace",
-            "type": "listPanel",
+            "id": "org_stock_queue_list",
+            "type": "queueList",
             "organismName": "BrowseStockItems",
             "titleKey": "stockManagement.browseStockItems.title",
             "purpose": "Consultar itens de estoque e alertas",
@@ -202,7 +201,6 @@ export const definition = {
               "name",
               "unit",
               "minimumLevel",
-              "createdAt",
               "updatedAt"
             ],
             "writesFields": [],
@@ -212,7 +210,7 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int_stock_query_list",
+                "id": "int_stock_queue_list",
                 "intent": "queryList",
                 "order": 10,
                 "titleKey": "stockManagement.browseStockItems.list.title",
@@ -220,7 +218,7 @@ export const definition = {
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col_stock_name",
+                    "id": "col_queue_name",
                     "field": "name",
                     "labelKey": "stockManagement.stockItem.name.label",
                     "order": 10,
@@ -228,7 +226,7 @@ export const definition = {
                     "stateKey": "ui.stockManagement.data.browseStockItems"
                   },
                   {
-                    "id": "col_stock_unit",
+                    "id": "col_queue_unit",
                     "field": "unit",
                     "labelKey": "stockManagement.stockItem.unit.label",
                     "order": 20,
@@ -236,7 +234,7 @@ export const definition = {
                     "stateKey": "ui.stockManagement.data.browseStockItems"
                   },
                   {
-                    "id": "col_stock_minimum",
+                    "id": "col_queue_minimum",
                     "field": "minimumLevel",
                     "labelKey": "stockManagement.stockItem.minimumLevel.label",
                     "order": 30,
@@ -244,7 +242,7 @@ export const definition = {
                     "stateKey": "ui.stockManagement.data.browseStockItems"
                   },
                   {
-                    "id": "col_stock_updated",
+                    "id": "col_queue_updated",
                     "field": "updatedAt",
                     "labelKey": "stockManagement.stockItem.updatedAt.label",
                     "order": 40,
@@ -254,7 +252,7 @@ export const definition = {
                 ],
                 "filters": [
                   {
-                    "id": "filter_stock_search",
+                    "id": "filter_queue_search",
                     "field": "searchTerm",
                     "labelKey": "stockManagement.browseStockItems.searchTerm.label",
                     "order": 10,
@@ -272,8 +270,8 @@ export const definition = {
             ]
           },
           {
-            "id": "org_stock_manage_panel",
-            "type": "formPanel",
+            "id": "org_stock_queue_action",
+            "type": "actionPanel",
             "organismName": "ManageStockItem",
             "titleKey": "stockManagement.manageStockItem.title",
             "purpose": "Gerenciar itens de estoque",
@@ -299,14 +297,14 @@ export const definition = {
             "order": 20,
             "intentions": [
               {
-                "id": "int_manage_stock_form",
+                "id": "int_queue_manage_form",
                 "intent": "commandForm",
                 "order": 10,
                 "titleKey": "stockManagement.manageStockItem.form.title",
                 "submitAction": "manageStockItem",
                 "fields": [
                   {
-                    "id": "field_manage_name",
+                    "id": "field_queue_name",
                     "field": "name",
                     "labelKey": "stockManagement.stockItem.name.label",
                     "order": 10,
@@ -316,7 +314,7 @@ export const definition = {
                     "stateKey": "ui.stockManagement.input.manageStockItem.name"
                   },
                   {
-                    "id": "field_manage_unit",
+                    "id": "field_queue_unit",
                     "field": "unit",
                     "labelKey": "stockManagement.stockItem.unit.label",
                     "order": 20,
@@ -326,7 +324,7 @@ export const definition = {
                     "stateKey": "ui.stockManagement.input.manageStockItem.unit"
                   },
                   {
-                    "id": "field_manage_minimum",
+                    "id": "field_queue_minimum",
                     "field": "minimumLevel",
                     "labelKey": "stockManagement.stockItem.minimumLevel.label",
                     "order": 30,
@@ -342,7 +340,7 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "action_manage_submit",
+                    "id": "action_queue_submit",
                     "action": "manageStockItem",
                     "labelKey": "stockManagement.manageStockItem.submit.label",
                     "order": 10,
@@ -353,7 +351,7 @@ export const definition = {
             ]
           },
           {
-            "id": "org_stock_summary_panel",
+            "id": "org_stock_queue_summary",
             "type": "summaryPanel",
             "organismName": "StockSummary",
             "titleKey": "stockManagement.summary.title",
@@ -373,13 +371,13 @@ export const definition = {
             "order": 30,
             "intentions": [
               {
-                "id": "int_stock_summary",
+                "id": "int_queue_summary",
                 "intent": "summary",
                 "order": 10,
                 "titleKey": "stockManagement.summary.detail.title",
                 "fields": [
                   {
-                    "id": "summary_name",
+                    "id": "summary_queue_name",
                     "field": "name",
                     "labelKey": "stockManagement.stockItem.name.label",
                     "order": 10,
@@ -387,7 +385,7 @@ export const definition = {
                     "inputType": "text"
                   },
                   {
-                    "id": "summary_unit",
+                    "id": "summary_queue_unit",
                     "field": "unit",
                     "labelKey": "stockManagement.stockItem.unit.label",
                     "order": 20,
@@ -395,7 +393,7 @@ export const definition = {
                     "inputType": "text"
                   },
                   {
-                    "id": "summary_minimum",
+                    "id": "summary_queue_minimum",
                     "field": "minimumLevel",
                     "labelKey": "stockManagement.stockItem.minimumLevel.label",
                     "order": 30,
@@ -403,7 +401,7 @@ export const definition = {
                     "inputType": "number"
                   },
                   {
-                    "id": "summary_updated",
+                    "id": "summary_queue_updated",
                     "field": "updatedAt",
                     "labelKey": "stockManagement.stockItem.updatedAt.label",
                     "order": 40,
@@ -451,10 +449,10 @@ export const definition = {
 
 export const pipeline = [
   {
-    "id": "stockManagement__l2_page",
+    "id": "stockManagement__page21__l2_page",
     "type": "l2_page",
-    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page11/stockManagement.ts",
-    "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/stockManagement.defs.ts",
+    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page21/stockManagement.ts",
+    "defPath": "_102051_/l2/cafeFlow/web/desktop/page21/stockManagement.defs.ts",
     "dependsFiles": [
       "_102051_/l2/cafeFlow/web/shared/stockManagement.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/stockManagement.ts",
