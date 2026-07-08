@@ -1,4 +1,4 @@
-/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.defs.ts" enhancement="_blank"/>
+/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page31/kitchenQueue.defs.ts" enhancement="_blank"/>
 
 export const definition = {
   "pageId": "kitchenQueue",
@@ -80,7 +80,7 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec.kitchenQueue.queue",
+      "id": "sec.kitchenQueue.board",
       "type": "section",
       "sectionName": "Fila da cozinha — Preparo de pedidos",
       "titleKey": "kitchenQueue.section.queue.title",
@@ -88,11 +88,11 @@ export const definition = {
       "order": 10,
       "organisms": [
         {
-          "id": "org.kitchenQueue.queueCards",
-          "type": "list",
-          "organismName": "KitchenQueueCards",
-          "titleKey": "kitchenQueue.queueCards.title",
-          "purpose": "Exibir a fila de pedidos do turno atual em cartões priorizados",
+          "id": "org.kitchenQueue.kanbanBoard",
+          "type": "board",
+          "organismName": "KitchenKanbanBoard",
+          "titleKey": "kitchenQueue.kanbanBoard.title",
+          "purpose": "Visualizar pedidos por status e avançar transições permitidas",
           "userActions": [
             "viewKitchenBoard",
             "updateOrderStatus"
@@ -125,19 +125,19 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int.kitchenQueue.queueCards.list",
+              "id": "int.kitchenQueue.kanbanBoard.lanes",
               "intent": "queryList",
               "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
               "order": 10
             },
             {
-              "id": "int.kitchenQueue.queueCards.transition",
+              "id": "int.kitchenQueue.kanbanBoard.transition",
               "intent": "commandForm",
               "submitAction": "updateOrderStatus",
               "order": 20
             },
             {
-              "id": "int.kitchenQueue.queueCards.summary",
+              "id": "int.kitchenQueue.kanbanBoard.summary",
               "intent": "summary",
               "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
               "order": 30
@@ -148,11 +148,11 @@ export const definition = {
     }
   ],
   "layout": {
-    "id": "page11",
+    "id": "page31",
     "type": "page",
     "sections": [
       {
-        "id": "sec.kitchenQueue.queue",
+        "id": "sec.kitchenQueue.board",
         "type": "section",
         "sectionName": "Fila da cozinha — Preparo de pedidos",
         "titleKey": "kitchenQueue.section.queue.title",
@@ -160,11 +160,11 @@ export const definition = {
         "order": 10,
         "organisms": [
           {
-            "id": "org.kitchenQueue.queueCards",
-            "type": "list",
-            "organismName": "KitchenQueueCards",
-            "titleKey": "kitchenQueue.queueCards.title",
-            "purpose": "Exibir a fila de pedidos do turno atual em cartões priorizados",
+            "id": "org.kitchenQueue.kanbanBoard",
+            "type": "board",
+            "organismName": "KitchenKanbanBoard",
+            "titleKey": "kitchenQueue.kanbanBoard.title",
+            "purpose": "Visualizar pedidos por status e avançar transições permitidas",
             "userActions": [
               "viewKitchenBoard",
               "updateOrderStatus"
@@ -197,10 +197,10 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int.kitchenQueue.queueCards.list",
+                "id": "int.kitchenQueue.kanbanBoard.lanes",
                 "intent": "queryList",
                 "order": 10,
-                "titleKey": "kitchenQueue.queueCards.list.title",
+                "titleKey": "kitchenQueue.kanbanBoard.lanes.title",
                 "source": "viewKitchenBoard",
                 "binding": "ui.kitchenQueue.data.viewKitchenBoard",
                 "fields": [],
@@ -246,36 +246,10 @@ export const definition = {
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col.priorityReason",
-                    "field": "priorityReason",
-                    "labelKey": "kitchenQueue.field.priorityReason",
-                    "order": 60,
-                    "required": false,
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
-                  },
-                  {
                     "id": "col.receivedAt",
                     "field": "receivedAt",
                     "labelKey": "kitchenQueue.field.receivedAt",
-                    "order": 70,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
-                  },
-                  {
-                    "id": "col.inPreparationAt",
-                    "field": "inPreparationAt",
-                    "labelKey": "kitchenQueue.field.inPreparationAt",
-                    "order": 80,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
-                  },
-                  {
-                    "id": "col.createdAt",
-                    "field": "createdAt",
-                    "labelKey": "kitchenQueue.field.createdAt",
-                    "order": 90,
+                    "order": 60,
                     "required": false,
                     "format": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
@@ -297,10 +271,10 @@ export const definition = {
                 "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
               },
               {
-                "id": "int.kitchenQueue.queueCards.transition",
+                "id": "int.kitchenQueue.kanbanBoard.transition",
                 "intent": "commandForm",
                 "order": 20,
-                "titleKey": "kitchenQueue.queueCards.transition.title",
+                "titleKey": "kitchenQueue.kanbanBoard.transition.title",
                 "submitAction": "updateOrderStatus",
                 "fields": [
                   {
@@ -329,10 +303,10 @@ export const definition = {
                 ]
               },
               {
-                "id": "int.kitchenQueue.queueCards.summary",
+                "id": "int.kitchenQueue.kanbanBoard.summary",
                 "intent": "summary",
                 "order": 30,
-                "titleKey": "kitchenQueue.queueCards.summary.title",
+                "titleKey": "kitchenQueue.kanbanBoard.summary.title",
                 "fields": [
                   {
                     "id": "sum.orderId",
@@ -432,10 +406,10 @@ export const definition = {
 
 export const pipeline = [
   {
-    "id": "kitchenQueue__l2_page",
+    "id": "kitchenQueue__page31__l2_page",
     "type": "l2_page",
-    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.ts",
-    "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.defs.ts",
+    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page31/kitchenQueue.ts",
+    "defPath": "_102051_/l2/cafeFlow/web/desktop/page31/kitchenQueue.defs.ts",
     "dependsFiles": [
       "_102051_/l2/cafeFlow/web/shared/kitchenQueue.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/kitchenQueue.ts",

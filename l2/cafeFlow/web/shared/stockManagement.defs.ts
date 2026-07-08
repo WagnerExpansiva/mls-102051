@@ -65,7 +65,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/stockManagement.defs.ts",
-    "layoutId": "stockManagement.layout.v1"
+    "layoutId": "page11"
   },
   "states": [
     {
@@ -160,10 +160,10 @@ export const definition = {
       "defaultValue": ""
     },
     {
-      "stateKey": "ui.stockManagement.layout.summary-manageStockItem-updatedAt",
-      "name": "LayoutSummaryManageStockItemUpdatedAt",
-      "kind": "layoutState",
-      "defaultValue": ""
+      "stateKey": "ui.stockManagement.output.manageStockItem",
+      "name": "OutputManageStockItem",
+      "kind": "commandOutput",
+      "defaultValue": null
     }
   ],
   "actions": [
@@ -196,7 +196,9 @@ export const definition = {
         "ui.stockManagement.input.manageStockItem.unit",
         "ui.stockManagement.input.manageStockItem.minimumLevel"
       ],
-      "outputStateKeys": [],
+      "outputStateKeys": [
+        "ui.stockManagement.output.manageStockItem"
+      ],
       "statusStateKey": "ui.stockManagement.action.manageStockItem.status",
       "refreshActionIds": [
         "browseStockItems"
@@ -248,20 +250,18 @@ export const definition = {
   },
   "i18n": {
     "stockManagement.section.main.title": "Gestão de estoque e alertas",
-    "stockManagement.organism.browseStockItems.title": "Consultar itens de estoque e alertas",
-    "stockManagement.intentions.browseStockItems.queryList.title": "Itens de estoque",
-    "stockManagement.intentions.browseStockItems.queryList.empty": "Nenhum item de estoque encontrado",
-    "stockManagement.filters.searchTerm": "Buscar por nome",
-    "stockManagement.fields.name": "Nome",
-    "stockManagement.fields.unit": "Unidade",
-    "stockManagement.fields.minimumLevel": "Limite mínimo",
-    "stockManagement.fields.updatedAt": "Atualizado em",
-    "stockManagement.fields.createdAt": "Criado em",
-    "stockManagement.actions.browseStockItems": "Buscar",
-    "stockManagement.organism.manageStockItem.title": "Gerenciar item de estoque",
-    "stockManagement.intentions.manageStockItem.form.title": "Editar item de estoque",
-    "stockManagement.actions.manageStockItem": "Salvar alterações",
-    "stockManagement.intentions.manageStockItem.summary.title": "Resumo da atualização"
+    "stockManagement.browseStockItems.title": "Itens de estoque e alertas",
+    "stockManagement.browseStockItems.list.title": "Lista de itens de estoque",
+    "stockManagement.browseStockItems.searchTerm.label": "Buscar por nome",
+    "stockManagement.manageStockItem.title": "Atualizar item de estoque",
+    "stockManagement.manageStockItem.form.title": "Editar dados do item",
+    "stockManagement.manageStockItem.submit.label": "Salvar alterações",
+    "stockManagement.summary.title": "Resumo do item",
+    "stockManagement.summary.detail.title": "Detalhes atuais do item",
+    "stockManagement.stockItem.name.label": "Nome do ingrediente",
+    "stockManagement.stockItem.unit.label": "Unidade de medida",
+    "stockManagement.stockItem.minimumLevel.label": "Limite mínimo",
+    "stockManagement.stockItem.updatedAt.label": "Última atualização"
   },
   "automation": {
     "statePrefix": "ui.stockManagement",
@@ -274,7 +274,7 @@ export const definition = {
       "ui.stockManagement.input.manageStockItem.name",
       "ui.stockManagement.input.manageStockItem.unit",
       "ui.stockManagement.input.manageStockItem.minimumLevel",
-      "ui.stockManagement.layout.summary-manageStockItem-updatedAt"
+      "ui.stockManagement.output.manageStockItem"
     ],
     "actionIds": [
       "browseStockItems",

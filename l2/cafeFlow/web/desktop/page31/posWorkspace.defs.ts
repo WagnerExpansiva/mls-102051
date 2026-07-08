@@ -1,4 +1,4 @@
-/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page11/posWorkspace.defs.ts" enhancement="_blank"/>
+/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page31/posWorkspace.defs.ts" enhancement="_blank"/>
 
 export const definition = {
   "pageId": "posWorkspace",
@@ -96,19 +96,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-order-board",
+      "id": "sec-queue",
       "type": "section",
-      "sectionName": "painelPedidos",
-      "titleKey": "posWorkspace.section.orderBoard.title",
+      "sectionName": "filaPedidos",
+      "titleKey": "posWorkspace.section.queue.title",
       "mode": "view",
       "order": 10,
       "organisms": [
         {
-          "id": "org-view-order-board",
+          "id": "org-queue-order-board",
           "type": "organism",
           "organismName": "ViewOrderBoard",
-          "titleKey": "posWorkspace.organism.viewOrderBoard.title",
-          "purpose": "Visualizar painel de pedidos",
+          "titleKey": "posWorkspace.organism.queueBoard.title",
+          "purpose": "Fila de pedidos do turno",
           "userActions": [
             "viewOrderBoard"
           ],
@@ -122,9 +122,6 @@ export const definition = {
             "orderType",
             "tableNumber",
             "priority",
-            "priorityReason",
-            "receivedAt",
-            "inPreparationAt",
             "readyAt",
             "createdAt"
           ],
@@ -137,7 +134,7 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int-order-board-query",
+              "id": "int-queue-query",
               "intent": "queryList",
               "stateKey": "ui.posWorkspace.data.viewOrderBoard",
               "action": "viewOrderBoard",
@@ -148,7 +145,7 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-create-order",
+      "id": "sec-create-order-q",
       "type": "section",
       "sectionName": "lancarPedido",
       "titleKey": "posWorkspace.section.createOrder.title",
@@ -156,7 +153,7 @@ export const definition = {
       "order": 20,
       "organisms": [
         {
-          "id": "org-create-order",
+          "id": "org-create-order-q",
           "type": "organism",
           "organismName": "CreateOrder",
           "titleKey": "posWorkspace.organism.createOrder.title",
@@ -194,27 +191,27 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int-create-order-type",
+              "id": "int-q-create-order-type",
               "intent": "commandForm",
               "order": 10
             },
             {
-              "id": "int-create-order-items",
+              "id": "int-q-create-order-items",
               "intent": "commandForm",
               "order": 20
             },
             {
-              "id": "int-create-order-priority",
+              "id": "int-q-create-order-priority",
               "intent": "commandForm",
               "order": 30
             },
             {
-              "id": "int-create-order-summary",
+              "id": "int-q-create-order-summary",
               "intent": "summary",
               "order": 40
             },
             {
-              "id": "int-create-order-submit",
+              "id": "int-q-create-order-submit",
               "intent": "actionList",
               "submitAction": "createOrder",
               "order": 50
@@ -224,7 +221,7 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-deliver-order",
+      "id": "sec-deliver-order-q",
       "type": "section",
       "sectionName": "entregarPedido",
       "titleKey": "posWorkspace.section.deliverOrder.title",
@@ -232,7 +229,7 @@ export const definition = {
       "order": 30,
       "organisms": [
         {
-          "id": "org-deliver-order",
+          "id": "org-deliver-order-q",
           "type": "organism",
           "organismName": "DeliverOrder",
           "titleKey": "posWorkspace.organism.deliverOrder.title",
@@ -261,12 +258,12 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int-deliver-order-summary",
+              "id": "int-q-deliver-summary",
               "intent": "summary",
               "order": 10
             },
             {
-              "id": "int-deliver-order-submit",
+              "id": "int-q-deliver-submit",
               "intent": "actionList",
               "submitAction": "deliverOrder",
               "order": 20
@@ -277,23 +274,23 @@ export const definition = {
     }
   ],
   "layout": {
-    "id": "page11",
+    "id": "page31",
     "type": "page",
     "sections": [
       {
-        "id": "sec-order-board",
+        "id": "sec-queue",
         "type": "section",
-        "sectionName": "painelPedidos",
-        "titleKey": "posWorkspace.section.orderBoard.title",
+        "sectionName": "filaPedidos",
+        "titleKey": "posWorkspace.section.queue.title",
         "mode": "view",
         "order": 10,
         "organisms": [
           {
-            "id": "org-view-order-board",
+            "id": "org-queue-order-board",
             "type": "organism",
             "organismName": "ViewOrderBoard",
-            "titleKey": "posWorkspace.organism.viewOrderBoard.title",
-            "purpose": "Visualizar painel de pedidos",
+            "titleKey": "posWorkspace.organism.queueBoard.title",
+            "purpose": "Fila de pedidos do turno",
             "userActions": [
               "viewOrderBoard"
             ],
@@ -307,9 +304,6 @@ export const definition = {
               "orderType",
               "tableNumber",
               "priority",
-              "priorityReason",
-              "receivedAt",
-              "inPreparationAt",
               "readyAt",
               "createdAt"
             ],
@@ -322,17 +316,17 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int-order-board-query",
+                "id": "int-queue-query",
                 "intent": "queryList",
                 "order": 10,
-                "titleKey": "posWorkspace.intent.orderBoard.query.title",
+                "titleKey": "posWorkspace.intent.queue.query.title",
                 "binding": "viewOrderBoard",
                 "action": "viewOrderBoard",
-                "displayHint": "cardList",
+                "displayHint": "queue",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-order-id",
+                    "id": "col-q-order-id",
                     "field": "orderId",
                     "labelKey": "posWorkspace.field.orderId",
                     "order": 10,
@@ -340,7 +334,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-status",
+                    "id": "col-q-status",
                     "field": "status",
                     "labelKey": "posWorkspace.field.status",
                     "order": 20,
@@ -348,7 +342,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-order-type",
+                    "id": "col-q-order-type",
                     "field": "orderType",
                     "labelKey": "posWorkspace.field.orderType",
                     "order": 30,
@@ -356,7 +350,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-table-number",
+                    "id": "col-q-table-number",
                     "field": "tableNumber",
                     "labelKey": "posWorkspace.field.tableNumber",
                     "order": 40,
@@ -364,7 +358,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-priority",
+                    "id": "col-q-priority",
                     "field": "priority",
                     "labelKey": "posWorkspace.field.priority",
                     "order": 50,
@@ -372,7 +366,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-ready-at",
+                    "id": "col-q-ready-at",
                     "field": "readyAt",
                     "labelKey": "posWorkspace.field.readyAt",
                     "order": 60,
@@ -380,7 +374,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-created-at",
+                    "id": "col-q-created-at",
                     "field": "createdAt",
                     "labelKey": "posWorkspace.field.createdAt",
                     "order": 70,
@@ -391,7 +385,7 @@ export const definition = {
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb-refresh-board",
+                    "id": "tb-q-refresh",
                     "action": "viewOrderBoard",
                     "labelKey": "posWorkspace.action.refreshBoard",
                     "order": 10,
@@ -408,7 +402,7 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-create-order",
+        "id": "sec-create-order-q",
         "type": "section",
         "sectionName": "lancarPedido",
         "titleKey": "posWorkspace.section.createOrder.title",
@@ -416,7 +410,7 @@ export const definition = {
         "order": 20,
         "organisms": [
           {
-            "id": "org-create-order",
+            "id": "org-create-order-q",
             "type": "organism",
             "organismName": "CreateOrder",
             "titleKey": "posWorkspace.organism.createOrder.title",
@@ -454,7 +448,7 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int-create-order-type",
+                "id": "int-q-create-order-type",
                 "intent": "commandForm",
                 "order": 10,
                 "titleKey": "posWorkspace.intent.createOrder.type.title",
@@ -462,7 +456,7 @@ export const definition = {
                 "displayHint": "step",
                 "fields": [
                   {
-                    "id": "fld-order-type",
+                    "id": "fld-q-order-type",
                     "field": "orderType",
                     "labelKey": "posWorkspace.field.orderType",
                     "order": 10,
@@ -471,7 +465,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.input.createOrder.orderType"
                   },
                   {
-                    "id": "fld-table-number",
+                    "id": "fld-q-table-number",
                     "field": "tableNumber",
                     "labelKey": "posWorkspace.field.tableNumber",
                     "order": 20,
@@ -487,7 +481,7 @@ export const definition = {
                 "actions": []
               },
               {
-                "id": "int-create-order-items",
+                "id": "int-q-create-order-items",
                 "intent": "commandForm",
                 "order": 20,
                 "titleKey": "posWorkspace.intent.createOrder.items.title",
@@ -495,7 +489,7 @@ export const definition = {
                 "displayHint": "repeatable",
                 "fields": [
                   {
-                    "id": "fld-order-items",
+                    "id": "fld-q-order-items",
                     "field": "orderItems",
                     "labelKey": "posWorkspace.field.orderItems",
                     "order": 10,
@@ -511,7 +505,7 @@ export const definition = {
                 "actions": []
               },
               {
-                "id": "int-create-order-priority",
+                "id": "int-q-create-order-priority",
                 "intent": "commandForm",
                 "order": 30,
                 "titleKey": "posWorkspace.intent.createOrder.priority.title",
@@ -519,7 +513,7 @@ export const definition = {
                 "displayHint": "step",
                 "fields": [
                   {
-                    "id": "fld-priority",
+                    "id": "fld-q-priority",
                     "field": "priority",
                     "labelKey": "posWorkspace.field.priority",
                     "order": 10,
@@ -528,7 +522,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.input.createOrder.priority"
                   },
                   {
-                    "id": "fld-priority-reason",
+                    "id": "fld-q-priority-reason",
                     "field": "priorityReason",
                     "labelKey": "posWorkspace.field.priorityReason",
                     "order": 20,
@@ -544,7 +538,7 @@ export const definition = {
                 "actions": []
               },
               {
-                "id": "int-create-order-summary",
+                "id": "int-q-create-order-summary",
                 "intent": "summary",
                 "order": 40,
                 "titleKey": "posWorkspace.intent.createOrder.summary.title",
@@ -558,7 +552,7 @@ export const definition = {
                 "actions": []
               },
               {
-                "id": "int-create-order-submit",
+                "id": "int-q-create-order-submit",
                 "intent": "actionList",
                 "order": 50,
                 "titleKey": "posWorkspace.intent.createOrder.submit.title",
@@ -572,7 +566,7 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-create-order",
+                    "id": "act-q-create-order",
                     "action": "createOrder",
                     "labelKey": "posWorkspace.action.createOrder",
                     "order": 10,
@@ -586,7 +580,7 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-deliver-order",
+        "id": "sec-deliver-order-q",
         "type": "section",
         "sectionName": "entregarPedido",
         "titleKey": "posWorkspace.section.deliverOrder.title",
@@ -594,7 +588,7 @@ export const definition = {
         "order": 30,
         "organisms": [
           {
-            "id": "org-deliver-order",
+            "id": "org-deliver-order-q",
             "type": "organism",
             "organismName": "DeliverOrder",
             "titleKey": "posWorkspace.organism.deliverOrder.title",
@@ -623,7 +617,7 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int-deliver-order-summary",
+                "id": "int-q-deliver-summary",
                 "intent": "summary",
                 "order": 10,
                 "titleKey": "posWorkspace.intent.deliverOrder.summary.title",
@@ -637,7 +631,7 @@ export const definition = {
                 "actions": []
               },
               {
-                "id": "int-deliver-order-submit",
+                "id": "int-q-deliver-submit",
                 "intent": "actionList",
                 "order": 20,
                 "titleKey": "posWorkspace.intent.deliverOrder.submit.title",
@@ -651,7 +645,7 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-deliver-order",
+                    "id": "act-q-deliver-order",
                     "action": "deliverOrder",
                     "labelKey": "posWorkspace.action.deliverOrder",
                     "order": 10,
@@ -702,10 +696,10 @@ export const definition = {
 
 export const pipeline = [
   {
-    "id": "posWorkspace__l2_page",
+    "id": "posWorkspace__page31__l2_page",
     "type": "l2_page",
-    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page11/posWorkspace.ts",
-    "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/posWorkspace.defs.ts",
+    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page31/posWorkspace.ts",
+    "defPath": "_102051_/l2/cafeFlow/web/desktop/page31/posWorkspace.defs.ts",
     "dependsFiles": [
       "_102051_/l2/cafeFlow/web/shared/posWorkspace.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/posWorkspace.ts",

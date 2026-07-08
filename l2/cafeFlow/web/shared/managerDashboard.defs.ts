@@ -82,7 +82,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/managerDashboard.defs.ts",
-    "layoutId": "managerDashboard.layout"
+    "layoutId": "page11"
   },
   "states": [
     {
@@ -165,6 +165,12 @@ export const definition = {
       "outputShape": "array",
       "collection": true,
       "defaultValue": []
+    },
+    {
+      "stateKey": "ui.managerDashboard.layout.fld-shiftId",
+      "name": "LayoutFldShiftId",
+      "kind": "layoutState",
+      "defaultValue": ""
     }
   ],
   "actions": [
@@ -236,21 +242,34 @@ export const definition = {
   },
   "i18n": {
     "managerDashboard.section.dashboard.title": "Dashboard e assistente IA",
-    "managerDashboard.organism.viewDashboard.title": "Dashboard do dia",
-    "managerDashboard.organism.requestAiSalesSummary.title": "Resumo de vendas por IA",
-    "managerDashboard.organism.requestAiPromoSuggestions.title": "Sugestões de promoção por IA",
-    "managerDashboard.intention.viewDashboard.list.title": "Pedidos do turno atual",
-    "managerDashboard.intention.requestAiSalesSummary.list.title": "Resumo de vendas do dia",
-    "managerDashboard.intention.requestAiPromoSuggestions.list.title": "Sugestões de promoção",
+    "managerDashboard.dashboard.title": "Visão do turno atual",
+    "managerDashboard.dashboard.list.title": "Pedidos do turno",
+    "managerDashboard.dashboard.summary.title": "Resumo do turno",
     "managerDashboard.field.status": "Status",
     "managerDashboard.field.orderType": "Tipo do pedido",
     "managerDashboard.field.createdAt": "Criado em",
-    "managerDashboard.field.shiftId": "Turno",
     "managerDashboard.field.deliveredAt": "Entregue em",
-    "managerDashboard.field.orderId": "Pedido",
+    "managerDashboard.field.shiftId": "Turno",
+    "managerDashboard.aiSales.title": "Resumo de vendas (IA)",
+    "managerDashboard.aiSales.actions.title": "Solicitar resumo de vendas",
+    "managerDashboard.aiSales.list.title": "Saída do resumo de vendas",
+    "managerDashboard.aiPromo.title": "Sugestões de promoção (IA)",
+    "managerDashboard.aiPromo.actions.title": "Solicitar sugestões",
+    "managerDashboard.aiPromo.list.title": "Saída de sugestões",
     "managerDashboard.action.viewDashboard": "Atualizar dashboard",
     "managerDashboard.action.requestAiSalesSummary": "Gerar resumo de vendas",
-    "managerDashboard.action.requestAiPromoSuggestions": "Gerar sugestões de promoção"
+    "managerDashboard.action.requestAiPromoSuggestions": "Gerar sugestões de promoção",
+    "managerDashboard.empty.dashboard": "Nenhum dado do turno atual.",
+    "managerDashboard.empty.aiSales": "Nenhum resumo gerado.",
+    "managerDashboard.empty.aiPromo": "Nenhuma sugestão gerada.",
+    "managerDashboard.field.orderId": "Order Id",
+    "managerDashboard.master.title": "Painel do turno",
+    "managerDashboard.master.list.title": "Pedidos do turno",
+    "managerDashboard.detail.title": "Detalhe e assistente IA",
+    "managerDashboard.detail.summary.title": "Resumo do turno",
+    "managerDashboard.cards.dashboard.title": "Pedidos do turno atual",
+    "managerDashboard.cards.aiSales.title": "Resumo de vendas (IA)",
+    "managerDashboard.cards.aiPromo.title": "Sugestões de promoção (IA)"
   },
   "automation": {
     "statePrefix": "ui.managerDashboard",
@@ -261,7 +280,8 @@ export const definition = {
       "ui.managerDashboard.action.requestAiSalesSummary.status",
       "ui.managerDashboard.data.requestAiSalesSummary",
       "ui.managerDashboard.action.requestAiPromoSuggestions.status",
-      "ui.managerDashboard.data.requestAiPromoSuggestions"
+      "ui.managerDashboard.data.requestAiPromoSuggestions",
+      "ui.managerDashboard.layout.fld-shiftId"
     ],
     "actionIds": [
       "viewDashboard",

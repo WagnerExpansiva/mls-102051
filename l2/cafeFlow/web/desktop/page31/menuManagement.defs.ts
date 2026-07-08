@@ -1,4 +1,4 @@
-/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page11/menuManagement.defs.ts" enhancement="_blank"/>
+/// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page31/menuManagement.defs.ts" enhancement="_blank"/>
 
 export const definition = {
   "pageId": "menuManagement",
@@ -89,10 +89,10 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-queue",
+      "id": "sec-cards",
       "type": "section",
       "sectionName": "Gestão de cardápio",
-      "titleKey": "section.queue",
+      "titleKey": "section.cards",
       "mode": "edit",
       "order": 10,
       "organisms": [
@@ -101,7 +101,7 @@ export const definition = {
           "type": "organism",
           "organismName": "BrowseMenuItems",
           "titleKey": "org.browse.title",
-          "purpose": "Consultar itens do cardápio e selecionar um item para gestão",
+          "purpose": "Navegar por cartões e selecionar item",
           "userActions": [
             "browseMenuItems"
           ],
@@ -113,9 +113,7 @@ export const definition = {
             "MenuItem.name",
             "MenuItem.menuCategoryId",
             "MenuItem.price",
-            "MenuItem.itemType",
-            "MenuItem.status",
-            "MenuItem.updatedAt"
+            "MenuItem.status"
           ],
           "writesFields": [],
           "rulesApplied": [
@@ -130,7 +128,7 @@ export const definition = {
               "order": 10
             },
             {
-              "id": "int-queue-list",
+              "id": "int-cards-list",
               "intent": "queryList",
               "stateKey": "ui.menuManagement.data.browseMenuItems",
               "action": "browseMenuItems",
@@ -153,7 +151,7 @@ export const definition = {
           "type": "organism",
           "organismName": "ManageMenuItem",
           "titleKey": "org.manage.title",
-          "purpose": "Editar dados e status do item selecionado",
+          "purpose": "Editar item selecionado com foco mobile",
           "userActions": [
             "manageMenuItem"
           ],
@@ -210,14 +208,14 @@ export const definition = {
     }
   ],
   "layout": {
-    "id": "page11",
+    "id": "page31",
     "type": "page",
     "sections": [
       {
-        "id": "sec-queue",
+        "id": "sec-cards",
         "type": "section",
         "sectionName": "Gestão de cardápio",
-        "titleKey": "section.queue",
+        "titleKey": "section.cards",
         "mode": "edit",
         "order": 10,
         "organisms": [
@@ -226,7 +224,7 @@ export const definition = {
             "type": "organism",
             "organismName": "BrowseMenuItems",
             "titleKey": "org.browse.title",
-            "purpose": "Consultar itens do cardápio e selecionar um item para gestão",
+            "purpose": "Navegar por cartões e selecionar item",
             "userActions": [
               "browseMenuItems"
             ],
@@ -238,9 +236,7 @@ export const definition = {
               "MenuItem.name",
               "MenuItem.menuCategoryId",
               "MenuItem.price",
-              "MenuItem.itemType",
-              "MenuItem.status",
-              "MenuItem.updatedAt"
+              "MenuItem.status"
             ],
             "writesFields": [],
             "rulesApplied": [
@@ -263,15 +259,15 @@ export const definition = {
                 "stateKey": "ui.menuManagement.data.browseMenuItems"
               },
               {
-                "id": "int-queue-list",
+                "id": "int-cards-list",
                 "intent": "queryList",
                 "order": 20,
-                "titleKey": "intent.queue.list.title",
+                "titleKey": "intent.cards.list.title",
                 "source": "ui.menuManagement.data.browseMenuItems",
                 "binding": "bind-browseMenuItems",
                 "action": "browseMenuItems",
-                "emptyKey": "empty.queue",
-                "displayHint": "queueList",
+                "emptyKey": "empty.cards",
+                "displayHint": "cardList",
                 "stateKey": "ui.menuManagement.data.browseMenuItems",
                 "fields": [],
                 "columns": [
@@ -301,28 +297,11 @@ export const definition = {
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   },
                   {
-                    "id": "col-itemType",
-                    "field": "itemType",
-                    "labelKey": "column.itemType",
-                    "order": 40,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.data.browseMenuItems"
-                  },
-                  {
                     "id": "col-status",
                     "field": "status",
                     "labelKey": "column.status",
-                    "order": 50,
+                    "order": 40,
                     "required": false,
-                    "stateKey": "ui.menuManagement.data.browseMenuItems"
-                  },
-                  {
-                    "id": "col-updatedAt",
-                    "field": "updatedAt",
-                    "labelKey": "column.updatedAt",
-                    "order": 60,
-                    "required": false,
-                    "format": "datetime",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   }
                 ],
@@ -376,7 +355,7 @@ export const definition = {
             "type": "organism",
             "organismName": "ManageMenuItem",
             "titleKey": "org.manage.title",
-            "purpose": "Editar dados e status do item selecionado",
+            "purpose": "Editar item selecionado com foco mobile",
             "userActions": [
               "manageMenuItem"
             ],
@@ -418,7 +397,7 @@ export const definition = {
                 "titleKey": "intent.manage.form.title",
                 "binding": "bind-manageMenuItem",
                 "submitAction": "manageMenuItem",
-                "displayHint": "form",
+                "displayHint": "bottomSheetForm",
                 "fields": [
                   {
                     "id": "fld-name",
@@ -600,10 +579,10 @@ export const definition = {
 
 export const pipeline = [
   {
-    "id": "menuManagement__l2_page",
+    "id": "menuManagement__page31__l2_page",
     "type": "l2_page",
-    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page11/menuManagement.ts",
-    "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/menuManagement.defs.ts",
+    "outputPath": "_102051_/l2/cafeFlow/web/desktop/page31/menuManagement.ts",
+    "defPath": "_102051_/l2/cafeFlow/web/desktop/page31/menuManagement.defs.ts",
     "dependsFiles": [
       "_102051_/l2/cafeFlow/web/shared/menuManagement.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/menuManagement.ts",

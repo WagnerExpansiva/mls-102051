@@ -76,7 +76,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.defs.ts",
-    "layoutId": "kitchenQueueLayout"
+    "layoutId": "page11"
   },
   "states": [
     {
@@ -138,46 +138,10 @@ export const definition = {
       "defaultValue": ""
     },
     {
-      "stateKey": "ui.kitchenQueue.layout.sum-order-id",
-      "name": "LayoutSumOrderId",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.kitchenQueue.layout.sum-order-type",
-      "name": "LayoutSumOrderType",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.kitchenQueue.layout.sum-table-number",
-      "name": "LayoutSumTableNumber",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.kitchenQueue.layout.sum-priority",
-      "name": "LayoutSumPriority",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.kitchenQueue.layout.sum-priority-reason",
-      "name": "LayoutSumPriorityReason",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.kitchenQueue.layout.sum-received-at",
-      "name": "LayoutSumReceivedAt",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.kitchenQueue.layout.sum-in-preparation-at",
-      "name": "LayoutSumInPreparationAt",
-      "kind": "layoutState",
-      "defaultValue": ""
+      "stateKey": "ui.kitchenQueue.output.updateOrderStatus",
+      "name": "OutputUpdateOrderStatus",
+      "kind": "commandOutput",
+      "defaultValue": null
     }
   ],
   "actions": [
@@ -206,7 +170,9 @@ export const definition = {
       "inputStateKeys": [
         "ui.kitchenQueue.input.updateOrderStatus.status"
       ],
-      "outputStateKeys": [],
+      "outputStateKeys": [
+        "ui.kitchenQueue.output.updateOrderStatus"
+      ],
       "statusStateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
       "refreshActionIds": [
         "viewKitchenBoard"
@@ -236,12 +202,11 @@ export const definition = {
     ]
   },
   "i18n": {
-    "kitchenQueue.section.title": "Fila da cozinha — Preparo de pedidos",
-    "kitchenQueue.viewKitchenBoard.title": "Fila da cozinha",
-    "kitchenQueue.viewKitchenBoard.list.title": "Pedidos na fila da cozinha",
-    "kitchenQueue.updateOrderStatus.title": "Atualizar status do pedido",
-    "kitchenQueue.updateOrderStatus.form.title": "Atualizar status",
-    "kitchenQueue.summary.title": "Resumo do pedido",
+    "kitchenQueue.section.queue.title": "Fila da cozinha",
+    "kitchenQueue.queueCards.title": "Fila de pedidos da cozinha",
+    "kitchenQueue.queueCards.list.title": "Pedidos em fila",
+    "kitchenQueue.queueCards.transition.title": "Atualizar status do pedido",
+    "kitchenQueue.queueCards.summary.title": "Resumo do pedido selecionado",
     "kitchenQueue.field.orderId": "Pedido",
     "kitchenQueue.field.status": "Status",
     "kitchenQueue.field.orderType": "Tipo",
@@ -249,10 +214,18 @@ export const definition = {
     "kitchenQueue.field.priority": "Prioridade",
     "kitchenQueue.field.priorityReason": "Motivo da prioridade",
     "kitchenQueue.field.receivedAt": "Recebido em",
-    "kitchenQueue.field.inPreparationAt": "Em preparo em",
+    "kitchenQueue.field.inPreparationAt": "Em preparo desde",
     "kitchenQueue.field.createdAt": "Criado em",
-    "kitchenQueue.action.refreshBoard": "Atualizar fila",
-    "kitchenQueue.action.updateStatus": "Atualizar status"
+    "kitchenQueue.action.startOrFinish": "Atualizar status",
+    "kitchenQueue.action.updateStatus": "Confirmar status",
+    "kitchenQueue.workflowQueue.title": "Fila operacional por status",
+    "kitchenQueue.workflowQueue.list.title": "Fila ativa",
+    "kitchenQueue.workflowQueue.transition.title": "Transição de status",
+    "kitchenQueue.workflowQueue.summary.title": "Detalhes do pedido",
+    "kitchenQueue.kanbanBoard.title": "Pipeline de preparo",
+    "kitchenQueue.kanbanBoard.lanes.title": "Pedidos por status",
+    "kitchenQueue.kanbanBoard.transition.title": "Mover pedido de status",
+    "kitchenQueue.kanbanBoard.summary.title": "Resumo do pedido"
   },
   "automation": {
     "statePrefix": "ui.kitchenQueue",
@@ -262,13 +235,7 @@ export const definition = {
       "ui.kitchenQueue.data.viewKitchenBoard",
       "ui.kitchenQueue.action.updateOrderStatus.status",
       "ui.kitchenQueue.input.updateOrderStatus.status",
-      "ui.kitchenQueue.layout.sum-order-id",
-      "ui.kitchenQueue.layout.sum-order-type",
-      "ui.kitchenQueue.layout.sum-table-number",
-      "ui.kitchenQueue.layout.sum-priority",
-      "ui.kitchenQueue.layout.sum-priority-reason",
-      "ui.kitchenQueue.layout.sum-received-at",
-      "ui.kitchenQueue.layout.sum-in-preparation-at"
+      "ui.kitchenQueue.output.updateOrderStatus"
     ],
     "actionIds": [
       "viewKitchenBoard",
