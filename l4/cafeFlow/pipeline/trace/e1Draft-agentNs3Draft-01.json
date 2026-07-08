@@ -1,0 +1,198 @@
+{
+  "savedAt": "2026-07-08T04:04:21.371Z",
+  "stepId": "e1-draft",
+  "agentName": "agentNs3Draft",
+  "attempt": 1,
+  "payload": {
+    "artifact": {
+      "schemaVersion": "2026-07-05-ns3-e1-v1",
+      "moduleName": "cafeFlow",
+      "moduleTitle": "CafeFlow",
+      "userLanguage": "pt-BR",
+      "sourcePrompt": "Gere um app profissional chamado CafeFlow para cafeterias e lanchonetes pequenas. Entidades principais: Item do Cardápio (categoria, preço, ingredientes em estoque), Pedido (mesa ou takeout, itens, status), Turno Diário, Item de Estoque. Telas chave: Dashboard (vendas de hoje, itens mais vendidos, estoque baixo), Interface rápida de POS (lançamento de pedido + status cozinha), Gerenciamento de cardápio e estoque, Relatório de fechamento de turno. Funcionalidade LLM: Assistente IA que gera \"resumo de vendas do dia\" ou sugere \"quais itens promover com base nos últimos 7 dias\". Foco: Atendimento rápido de pedidos, coordenação de cozinha e controle simples de estoque para food service. linguagem: en, pt-br",
+      "problem": "Pequenas cafeterias e lanchonetes precisam de uma ferramenta unificada para atender pedidos com agilidade, coordenar a cozinha em tempo real e controlar o estoque de forma simples, sem a complexidade de sistemas ERP ou PDV enterprise. A ausência de integração entre cardápio, pedidos e estoque gera retrabalho, falta de ingredientes durante o serviço e dificuldade de acompanhar o desempenho do dia.",
+      "actors": [
+        {
+          "actorId": "atendente",
+          "name": "Atendente / Caixa",
+          "assumption": "Lança pedidos rapidamente no POS, seleciona mesa ou takeout e acompanha status para entrega ao cliente."
+        },
+        {
+          "actorId": "cozinheiro",
+          "name": "Cozinheiro",
+          "assumption": "Visualiza pedidos em preparo, atualiza status da cozinha e sinaliza quando o item está pronto."
+        },
+        {
+          "actorId": "gerente",
+          "name": "Gerente / Proprietário",
+          "assumption": "Cadastra itens do cardápio e estoque, abre e fecha turnos, consulta dashboard e utiliza o assistente IA para análise de vendas."
+        }
+      ],
+      "scope": {
+        "in": [
+          "Cadastro de itens do cardápio com categoria, preço e vínculo a ingredientes de estoque",
+          "Cadastro de itens de estoque com quantidade atual e alerta de mínimo",
+          "Lançamento de pedidos no POS (mesa ou takeout) com itens do cardápio",
+          "Acompanhamento de status do pedido para coordenação da cozinha",
+          "Dashboard com vendas do dia, itens mais vendidos e alertas de estoque baixo",
+          "Abertura e fechamento de turno diário com relatório de fechamento",
+          "Assistente IA com resumo de vendas do dia e sugestões de promoção baseadas nos últimos 7 dias"
+        ],
+        "out": [
+          "Integração com maquininhas de cartão ou gateways de pagamento",
+          "Mapa visual de mesas do salão",
+          "Delivery com rastreamento de entregadores",
+          "Emissão fiscal ou integração contábil",
+          "Gestão de funcionários, folha de pagamento ou CRM de clientes",
+          "Compras e gestão de fornecedores"
+        ]
+      },
+      "openQuestions": [
+        {
+          "questionId": "estoqueDecremento",
+          "question": "O estoque é decrementado no lançamento do pedido ou na entrega?",
+          "classification": "assumed",
+          "impact": "Define o momento exato da baixa de estoque e o comportamento do alerta de insuficiente.",
+          "defaultAnswer": "No lançamento do pedido, para simplificar o controle e evitar vendas sem estoque."
+        },
+        {
+          "questionId": "turnoZeramento",
+          "question": "O fechamento de turno zera o caixa ou apenas registra o valor apurado para conferência?",
+          "classification": "assumed",
+          "impact": "Influencia se o turno é um controle operacional simples ou se envolve conciliação financeira.",
+          "defaultAnswer": "Registra o valor apurado para conferência do gerente, sem conciliação bancária."
+        },
+        {
+          "questionId": "variantesCardapio",
+          "question": "Há necessidade de suportar variantes de item (ex: tamanho P, M, G) ou apenas itens simples?",
+          "classification": "assumed",
+          "impact": "Afeta a modelagem do cardápio e a interface de lançamento no POS.",
+          "defaultAnswer": "Apenas itens simples nesta fase; variantes podem ser cadastradas como itens separados."
+        }
+      ],
+      "assumptions": [
+        "A plataforma fornece autenticação, autorização, isolamento multi-tenant e proxy LLM; esses recursos não serão recriados.",
+        "O fluxo de status do pedido é: recebido → em preparo → pronto → entregue.",
+        "O alerta de estoque baixo é calculado comparando a quantidade atual ao mínimo configurado por item.",
+        "O assistente IA consome dados agregados de pedidos e estoque disponibilizados pelo domínio.",
+        "O relatório de fechamento de turno consolida pedidos pagos no período do turno."
+      ],
+      "createdAt": "2026-07-08"
+    },
+    "gate": {
+      "ok": true,
+      "artifact": {
+        "schemaVersion": "2026-07-05-ns3-e1-v1",
+        "moduleName": "cafeFlow",
+        "moduleTitle": "CafeFlow",
+        "userLanguage": "pt-BR",
+        "sourcePrompt": "Gere um app profissional chamado CafeFlow para cafeterias e lanchonetes pequenas. Entidades principais: Item do Cardápio (categoria, preço, ingredientes em estoque), Pedido (mesa ou takeout, itens, status), Turno Diário, Item de Estoque. Telas chave: Dashboard (vendas de hoje, itens mais vendidos, estoque baixo), Interface rápida de POS (lançamento de pedido + status cozinha), Gerenciamento de cardápio e estoque, Relatório de fechamento de turno. Funcionalidade LLM: Assistente IA que gera \"resumo de vendas do dia\" ou sugere \"quais itens promover com base nos últimos 7 dias\". Foco: Atendimento rápido de pedidos, coordenação de cozinha e controle simples de estoque para food service. linguagem: en, pt-br",
+        "problem": "Pequenas cafeterias e lanchonetes precisam de uma ferramenta unificada para atender pedidos com agilidade, coordenar a cozinha em tempo real e controlar o estoque de forma simples, sem a complexidade de sistemas ERP ou PDV enterprise. A ausência de integração entre cardápio, pedidos e estoque gera retrabalho, falta de ingredientes durante o serviço e dificuldade de acompanhar o desempenho do dia.",
+        "actors": [
+          {
+            "actorId": "atendente",
+            "name": "Atendente / Caixa",
+            "assumption": "Lança pedidos rapidamente no POS, seleciona mesa ou takeout e acompanha status para entrega ao cliente."
+          },
+          {
+            "actorId": "cozinheiro",
+            "name": "Cozinheiro",
+            "assumption": "Visualiza pedidos em preparo, atualiza status da cozinha e sinaliza quando o item está pronto."
+          },
+          {
+            "actorId": "gerente",
+            "name": "Gerente / Proprietário",
+            "assumption": "Cadastra itens do cardápio e estoque, abre e fecha turnos, consulta dashboard e utiliza o assistente IA para análise de vendas."
+          }
+        ],
+        "scope": {
+          "in": [
+            "Cadastro de itens do cardápio com categoria, preço e vínculo a ingredientes de estoque",
+            "Cadastro de itens de estoque com quantidade atual e alerta de mínimo",
+            "Lançamento de pedidos no POS (mesa ou takeout) com itens do cardápio",
+            "Acompanhamento de status do pedido para coordenação da cozinha",
+            "Dashboard com vendas do dia, itens mais vendidos e alertas de estoque baixo",
+            "Abertura e fechamento de turno diário com relatório de fechamento",
+            "Assistente IA com resumo de vendas do dia e sugestões de promoção baseadas nos últimos 7 dias"
+          ],
+          "out": [
+            "Integração com maquininhas de cartão ou gateways de pagamento",
+            "Mapa visual de mesas do salão",
+            "Delivery com rastreamento de entregadores",
+            "Emissão fiscal ou integração contábil",
+            "Gestão de funcionários, folha de pagamento ou CRM de clientes",
+            "Compras e gestão de fornecedores"
+          ]
+        },
+        "openQuestions": [
+          {
+            "questionId": "estoqueDecremento",
+            "question": "O estoque é decrementado no lançamento do pedido ou na entrega?",
+            "classification": "assumed",
+            "impact": "Define o momento exato da baixa de estoque e o comportamento do alerta de insuficiente.",
+            "defaultAnswer": "No lançamento do pedido, para simplificar o controle e evitar vendas sem estoque."
+          },
+          {
+            "questionId": "turnoZeramento",
+            "question": "O fechamento de turno zera o caixa ou apenas registra o valor apurado para conferência?",
+            "classification": "assumed",
+            "impact": "Influencia se o turno é um controle operacional simples ou se envolve conciliação financeira.",
+            "defaultAnswer": "Registra o valor apurado para conferência do gerente, sem conciliação bancária."
+          },
+          {
+            "questionId": "variantesCardapio",
+            "question": "Há necessidade de suportar variantes de item (ex: tamanho P, M, G) ou apenas itens simples?",
+            "classification": "assumed",
+            "impact": "Afeta a modelagem do cardápio e a interface de lançamento no POS.",
+            "defaultAnswer": "Apenas itens simples nesta fase; variantes podem ser cadastradas como itens separados."
+          }
+        ],
+        "assumptions": [
+          "A plataforma fornece autenticação, autorização, isolamento multi-tenant e proxy LLM; esses recursos não serão recriados.",
+          "O fluxo de status do pedido é: recebido → em preparo → pronto → entregue.",
+          "O alerta de estoque baixo é calculado comparando a quantidade atual ao mínimo configurado por item.",
+          "O assistente IA consome dados agregados de pedidos e estoque disponibilizados pelo domínio.",
+          "O relatório de fechamento de turno consolida pedidos pagos no período do turno."
+        ],
+        "createdAt": "2026-07-08"
+      },
+      "errors": [],
+      "warnings": [],
+      "attempts": 1,
+      "needsHumanInput": false,
+      "pipeline": {
+        "schemaVersion": "2026-07-05-ns3-pipeline-v1",
+        "flowId": "agentNewSolution3",
+        "moduleName": "cafeFlow",
+        "createdAt": "2026-07-08T04:04:21.362Z",
+        "updatedAt": "2026-07-08T04:04:21.363Z",
+        "steps": {
+          "e1-draft": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:04:21.363Z",
+            "dirty": false,
+            "inputsHash": "djb2:edd0baab",
+            "lastGate": {
+              "ok": true,
+              "checkedAt": "2026-07-08T04:04:21.363Z",
+              "errors": [],
+              "warnings": []
+            }
+          },
+          "checkpoint-draft": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:04:21.362Z"
+          },
+          "e2-journeys": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:04:21.362Z"
+          },
+          "checkpoint-journeys": {
+            "status": "pending",
+            "updatedAt": "2026-07-08T04:04:21.362Z"
+          }
+        }
+      }
+    }
+  }
+}
