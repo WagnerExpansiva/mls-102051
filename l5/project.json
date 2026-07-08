@@ -54,6 +54,11 @@
     }
   ],
   "masters": {
+    "frontend": {
+      "masterProject": 102020,
+      "agentFolder": "agentChangeFrontend",
+      "runtimeProject": 102033
+    },
     "backend": {
       "masterProject": 102021,
       "agentFolder": "agentChangeBackend",
