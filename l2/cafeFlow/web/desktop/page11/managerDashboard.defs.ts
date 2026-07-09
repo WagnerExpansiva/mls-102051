@@ -83,19 +83,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-dashboard",
+      "id": "sec-overview",
       "type": "section",
-      "sectionName": "Dashboard e assistente IA",
-      "titleKey": "managerDashboard.section.dashboard.title",
+      "sectionName": "dashboardOverview",
+      "titleKey": "managerDashboard.section.overview.title",
       "mode": "view",
       "order": 10,
       "organisms": [
         {
-          "id": "org-dashboard",
-          "type": "panel",
+          "id": "org-dashboard-status",
+          "type": "data",
           "organismName": "ViewDashboard",
-          "titleKey": "managerDashboard.dashboard.title",
-          "purpose": "Monitorar dados do turno atual e visão geral do dia",
+          "titleKey": "managerDashboard.organism.viewDashboard.title",
+          "purpose": "Monitorar vendas do dia e status de pedidos do turno atual",
           "userActions": [
             "viewDashboard"
           ],
@@ -120,31 +120,30 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int-dashboard-actions",
-              "intent": "actionList",
+              "id": "int-dashboard-status-group",
+              "intent": "workflowStatus",
               "stateKey": "ui.managerDashboard.data.viewDashboard",
+              "action": "viewDashboard",
               "order": 10
-            },
-            {
-              "id": "int-dashboard-summary",
-              "intent": "summary",
-              "stateKey": "ui.managerDashboard.data.viewDashboard",
-              "order": 20
-            },
-            {
-              "id": "int-dashboard-list",
-              "intent": "queryList",
-              "stateKey": "ui.managerDashboard.data.viewDashboard",
-              "order": 30
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "sec-ai-assistant",
+      "type": "section",
+      "sectionName": "aiAssistant",
+      "titleKey": "managerDashboard.section.aiAssistant.title",
+      "mode": "view",
+      "order": 20,
+      "organisms": [
         {
-          "id": "org-aiSales",
-          "type": "panel",
+          "id": "org-ai-sales-summary",
+          "type": "data",
           "organismName": "RequestAiSalesSummary",
-          "titleKey": "managerDashboard.aiSales.title",
-          "purpose": "Solicitar e visualizar resumo de vendas do dia gerado por IA",
+          "titleKey": "managerDashboard.organism.aiSalesSummary.title",
+          "purpose": "Solicitar e visualizar resumo de vendas do dia por IA",
           "userActions": [
             "requestAiSalesSummary"
           ],
@@ -167,28 +166,30 @@ export const definition = {
             "aiConsumesDomainData",
             "topSellersFromDayOrders"
           ],
-          "order": 20,
+          "order": 10,
           "intentionRefs": [
             {
-              "id": "int-aiSales-actions",
+              "id": "int-ai-sales-action",
               "intent": "actionList",
               "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
+              "submitAction": "requestAiSalesSummary",
               "order": 10
             },
             {
-              "id": "int-aiSales-list",
+              "id": "int-ai-sales-result",
               "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
+              "action": "requestAiSalesSummary",
               "order": 20
             }
           ]
         },
         {
-          "id": "org-aiPromo",
-          "type": "panel",
+          "id": "org-ai-promo-suggestions",
+          "type": "data",
           "organismName": "RequestAiPromoSuggestions",
-          "titleKey": "managerDashboard.aiPromo.title",
-          "purpose": "Solicitar e visualizar sugestões de promoção geradas por IA",
+          "titleKey": "managerDashboard.organism.aiPromoSuggestions.title",
+          "purpose": "Solicitar e visualizar sugestões de promoção por IA",
           "userActions": [
             "requestAiPromoSuggestions"
           ],
@@ -208,18 +209,20 @@ export const definition = {
             "aiPromoBasedOnLast7Days",
             "aiConsumesDomainData"
           ],
-          "order": 30,
+          "order": 20,
           "intentionRefs": [
             {
-              "id": "int-aiPromo-actions",
+              "id": "int-ai-promo-action",
               "intent": "actionList",
               "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
+              "submitAction": "requestAiPromoSuggestions",
               "order": 10
             },
             {
-              "id": "int-aiPromo-list",
+              "id": "int-ai-promo-result",
               "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
+              "action": "requestAiPromoSuggestions",
               "order": 20
             }
           ]
@@ -228,23 +231,23 @@ export const definition = {
     }
   ],
   "layout": {
-    "id": "page11",
+    "id": "managerDashboard.page11",
     "type": "page",
     "sections": [
       {
-        "id": "sec-dashboard",
+        "id": "sec-overview",
         "type": "section",
-        "sectionName": "Dashboard e assistente IA",
-        "titleKey": "managerDashboard.section.dashboard.title",
+        "sectionName": "dashboardOverview",
+        "titleKey": "managerDashboard.section.overview.title",
         "mode": "view",
         "order": 10,
         "organisms": [
           {
-            "id": "org-dashboard",
-            "type": "panel",
+            "id": "org-dashboard-status",
+            "type": "data",
             "organismName": "ViewDashboard",
-            "titleKey": "managerDashboard.dashboard.title",
-            "purpose": "Monitorar dados do turno atual e visão geral do dia",
+            "titleKey": "managerDashboard.organism.viewDashboard.title",
+            "purpose": "Monitorar vendas do dia e status de pedidos do turno atual",
             "userActions": [
               "viewDashboard"
             ],
@@ -269,68 +272,20 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int-dashboard-actions",
-                "intent": "actionList",
+                "id": "int-dashboard-status-group",
+                "intent": "workflowStatus",
                 "order": 10,
-                "titleKey": "managerDashboard.dashboard.title",
-                "fields": [],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": [
-                  {
-                    "id": "act-viewDashboard",
-                    "action": "viewDashboard",
-                    "labelKey": "managerDashboard.action.viewDashboard",
-                    "order": 10,
-                    "actionKey": "viewDashboard"
-                  }
-                ],
-                "stateKey": "ui.managerDashboard.data.viewDashboard"
-              },
-              {
-                "id": "int-dashboard-summary",
-                "intent": "summary",
-                "order": 20,
-                "titleKey": "managerDashboard.dashboard.summary.title",
-                "fields": [
-                  {
-                    "id": "fld-shiftId",
-                    "field": "shiftId",
-                    "labelKey": "managerDashboard.field.shiftId",
-                    "order": 10,
-                    "required": false,
-                    "inputType": "text",
-                    "stateKey": "ui.managerDashboard.data.viewDashboard"
-                  },
-                  {
-                    "id": "fld-status",
-                    "field": "status",
-                    "labelKey": "managerDashboard.field.status",
-                    "order": 20,
-                    "required": false,
-                    "inputType": "text",
-                    "stateKey": "ui.managerDashboard.data.viewDashboard"
-                  }
-                ],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": [],
-                "stateKey": "ui.managerDashboard.data.viewDashboard"
-              },
-              {
-                "id": "int-dashboard-list",
-                "intent": "queryList",
-                "order": 30,
-                "titleKey": "managerDashboard.dashboard.list.title",
-                "emptyKey": "managerDashboard.empty.dashboard",
+                "titleKey": "managerDashboard.intent.dashboardStatus.title",
+                "source": "ui.managerDashboard.data.viewDashboard",
+                "binding": "viewDashboard",
+                "action": "viewDashboard",
+                "emptyKey": "managerDashboard.intent.dashboardStatus.empty",
+                "displayHint": "statusGroup",
+                "stateKey": "ui.managerDashboard.data.viewDashboard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-status",
+                    "id": "col-order-status",
                     "field": "status",
                     "labelKey": "managerDashboard.field.status",
                     "order": 10,
@@ -338,7 +293,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-orderType",
+                    "id": "col-order-type",
                     "field": "orderType",
                     "labelKey": "managerDashboard.field.orderType",
                     "order": 20,
@@ -346,7 +301,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-createdAt",
+                    "id": "col-order-created",
                     "field": "createdAt",
                     "labelKey": "managerDashboard.field.createdAt",
                     "order": 30,
@@ -355,29 +310,55 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-deliveredAt",
+                    "id": "col-order-delivered",
                     "field": "deliveredAt",
                     "labelKey": "managerDashboard.field.deliveredAt",
                     "order": 40,
                     "required": false,
                     "format": "datetime",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
+                  },
+                  {
+                    "id": "col-order-shift",
+                    "field": "shiftId",
+                    "labelKey": "managerDashboard.field.shiftId",
+                    "order": 50,
+                    "required": false,
+                    "stateKey": "ui.managerDashboard.data.viewDashboard"
                   }
                 ],
                 "filters": [],
-                "toolbar": [],
+                "toolbar": [
+                  {
+                    "id": "tb-refresh-dashboard",
+                    "action": "viewDashboard",
+                    "labelKey": "managerDashboard.action.refreshDashboard",
+                    "order": 10,
+                    "displayHint": "primary",
+                    "actionKey": "viewDashboard"
+                  }
+                ],
                 "rowActions": [],
-                "actions": [],
-                "stateKey": "ui.managerDashboard.data.viewDashboard"
+                "actions": []
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "id": "sec-ai-assistant",
+        "type": "section",
+        "sectionName": "aiAssistant",
+        "titleKey": "managerDashboard.section.aiAssistant.title",
+        "mode": "view",
+        "order": 20,
+        "organisms": [
           {
-            "id": "org-aiSales",
-            "type": "panel",
+            "id": "org-ai-sales-summary",
+            "type": "data",
             "organismName": "RequestAiSalesSummary",
-            "titleKey": "managerDashboard.aiSales.title",
-            "purpose": "Solicitar e visualizar resumo de vendas do dia gerado por IA",
+            "titleKey": "managerDashboard.organism.aiSalesSummary.title",
+            "purpose": "Solicitar e visualizar resumo de vendas do dia por IA",
             "userActions": [
               "requestAiSalesSummary"
             ],
@@ -400,13 +381,17 @@ export const definition = {
               "aiConsumesDomainData",
               "topSellersFromDayOrders"
             ],
-            "order": 20,
+            "order": 10,
             "intentions": [
               {
-                "id": "int-aiSales-actions",
+                "id": "int-ai-sales-action",
                 "intent": "actionList",
                 "order": 10,
-                "titleKey": "managerDashboard.aiSales.actions.title",
+                "titleKey": "managerDashboard.intent.aiSalesAction.title",
+                "submitAction": "requestAiSalesSummary",
+                "emptyKey": "managerDashboard.intent.aiSalesAction.empty",
+                "displayHint": "actionPanel",
+                "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
                 "fields": [],
                 "columns": [],
                 "filters": [],
@@ -414,25 +399,30 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-requestAiSalesSummary",
+                    "id": "act-request-sales-summary",
                     "action": "requestAiSalesSummary",
                     "labelKey": "managerDashboard.action.requestAiSalesSummary",
                     "order": 10,
+                    "displayHint": "primary",
                     "actionKey": "requestAiSalesSummary"
                   }
-                ],
-                "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
+                ]
               },
               {
-                "id": "int-aiSales-list",
+                "id": "int-ai-sales-result",
                 "intent": "queryList",
                 "order": 20,
-                "titleKey": "managerDashboard.aiSales.list.title",
-                "emptyKey": "managerDashboard.empty.aiSales",
+                "titleKey": "managerDashboard.intent.aiSalesResult.title",
+                "source": "ui.managerDashboard.data.requestAiSalesSummary",
+                "binding": "requestAiSalesSummary",
+                "action": "requestAiSalesSummary",
+                "emptyKey": "managerDashboard.intent.aiSalesResult.empty",
+                "displayHint": "list",
+                "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-aiSales-orderId",
+                    "id": "col-ai-sales-orderId",
                     "field": "orderId",
                     "labelKey": "managerDashboard.field.orderId",
                     "order": 10,
@@ -440,7 +430,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-aiSales-status",
+                    "id": "col-ai-sales-status",
                     "field": "status",
                     "labelKey": "managerDashboard.field.status",
                     "order": 20,
@@ -448,7 +438,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-aiSales-orderType",
+                    "id": "col-ai-sales-type",
                     "field": "orderType",
                     "labelKey": "managerDashboard.field.orderType",
                     "order": 30,
@@ -456,7 +446,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-aiSales-createdAt",
+                    "id": "col-ai-sales-created",
                     "field": "createdAt",
                     "labelKey": "managerDashboard.field.createdAt",
                     "order": 40,
@@ -465,7 +455,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-aiSales-deliveredAt",
+                    "id": "col-ai-sales-delivered",
                     "field": "deliveredAt",
                     "labelKey": "managerDashboard.field.deliveredAt",
                     "order": 50,
@@ -477,17 +467,16 @@ export const definition = {
                 "filters": [],
                 "toolbar": [],
                 "rowActions": [],
-                "actions": [],
-                "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
+                "actions": []
               }
             ]
           },
           {
-            "id": "org-aiPromo",
-            "type": "panel",
+            "id": "org-ai-promo-suggestions",
+            "type": "data",
             "organismName": "RequestAiPromoSuggestions",
-            "titleKey": "managerDashboard.aiPromo.title",
-            "purpose": "Solicitar e visualizar sugestões de promoção geradas por IA",
+            "titleKey": "managerDashboard.organism.aiPromoSuggestions.title",
+            "purpose": "Solicitar e visualizar sugestões de promoção por IA",
             "userActions": [
               "requestAiPromoSuggestions"
             ],
@@ -507,13 +496,17 @@ export const definition = {
               "aiPromoBasedOnLast7Days",
               "aiConsumesDomainData"
             ],
-            "order": 30,
+            "order": 20,
             "intentions": [
               {
-                "id": "int-aiPromo-actions",
+                "id": "int-ai-promo-action",
                 "intent": "actionList",
                 "order": 10,
-                "titleKey": "managerDashboard.aiPromo.actions.title",
+                "titleKey": "managerDashboard.intent.aiPromoAction.title",
+                "submitAction": "requestAiPromoSuggestions",
+                "emptyKey": "managerDashboard.intent.aiPromoAction.empty",
+                "displayHint": "actionPanel",
+                "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
                 "fields": [],
                 "columns": [],
                 "filters": [],
@@ -521,25 +514,30 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-requestAiPromoSuggestions",
+                    "id": "act-request-promo",
                     "action": "requestAiPromoSuggestions",
                     "labelKey": "managerDashboard.action.requestAiPromoSuggestions",
                     "order": 10,
+                    "displayHint": "primary",
                     "actionKey": "requestAiPromoSuggestions"
                   }
-                ],
-                "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
+                ]
               },
               {
-                "id": "int-aiPromo-list",
+                "id": "int-ai-promo-result",
                 "intent": "queryList",
                 "order": 20,
-                "titleKey": "managerDashboard.aiPromo.list.title",
-                "emptyKey": "managerDashboard.empty.aiPromo",
+                "titleKey": "managerDashboard.intent.aiPromoResult.title",
+                "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
+                "binding": "requestAiPromoSuggestions",
+                "action": "requestAiPromoSuggestions",
+                "emptyKey": "managerDashboard.intent.aiPromoResult.empty",
+                "displayHint": "list",
+                "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-aiPromo-orderId",
+                    "id": "col-ai-promo-orderId",
                     "field": "orderId",
                     "labelKey": "managerDashboard.field.orderId",
                     "order": 10,
@@ -547,7 +545,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-aiPromo-orderType",
+                    "id": "col-ai-promo-type",
                     "field": "orderType",
                     "labelKey": "managerDashboard.field.orderType",
                     "order": 20,
@@ -555,7 +553,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-aiPromo-status",
+                    "id": "col-ai-promo-status",
                     "field": "status",
                     "labelKey": "managerDashboard.field.status",
                     "order": 30,
@@ -563,7 +561,7 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-aiPromo-createdAt",
+                    "id": "col-ai-promo-created",
                     "field": "createdAt",
                     "labelKey": "managerDashboard.field.createdAt",
                     "order": 40,
@@ -575,8 +573,7 @@ export const definition = {
                 "filters": [],
                 "toolbar": [],
                 "rowActions": [],
-                "actions": [],
-                "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
+                "actions": []
               }
             ]
           }
@@ -586,40 +583,31 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "db-viewDashboard-data",
-      "source": "state",
-      "description": "Dados do dashboard do turno atual",
-      "stateKey": "ui.managerDashboard.data.viewDashboard"
+      "id": "db-viewDashboard",
+      "source": "command",
+      "entity": "Order",
+      "command": "viewDashboard",
+      "description": "Dados do dashboard do turno",
+      "stateKey": "ui.managerDashboard.data.viewDashboard",
+      "inputStateKeys": []
     },
     {
-      "id": "db-viewDashboard-status",
-      "source": "state",
-      "description": "Status da ação de atualizar dashboard",
-      "stateKey": "ui.managerDashboard.action.viewDashboard.status"
+      "id": "db-requestAiSalesSummary",
+      "source": "command",
+      "entity": "Order",
+      "command": "requestAiSalesSummary",
+      "description": "Resumo de vendas por IA",
+      "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
+      "inputStateKeys": []
     },
     {
-      "id": "db-aiSales-data",
-      "source": "state",
-      "description": "Dados do resumo de vendas gerado pela IA",
-      "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
-    },
-    {
-      "id": "db-aiSales-status",
-      "source": "state",
-      "description": "Status da ação de gerar resumo de vendas",
-      "stateKey": "ui.managerDashboard.action.requestAiSalesSummary.status"
-    },
-    {
-      "id": "db-aiPromo-data",
-      "source": "state",
-      "description": "Dados das sugestões de promoção geradas pela IA",
-      "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
-    },
-    {
-      "id": "db-aiPromo-status",
-      "source": "state",
-      "description": "Status da ação de gerar sugestões de promoção",
-      "stateKey": "ui.managerDashboard.action.requestAiPromoSuggestions.status"
+      "id": "db-requestAiPromoSuggestions",
+      "source": "command",
+      "entity": "Order",
+      "command": "requestAiPromoSuggestions",
+      "description": "Sugestões de promoção por IA",
+      "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
+      "inputStateKeys": []
     }
   ]
 };
@@ -634,7 +622,8 @@ export const pipeline = [
       "_102051_/l2/cafeFlow/web/shared/managerDashboard.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/managerDashboard.ts",
       "_102051_/l2/cafeFlow/web/contracts/managerDashboard.defs.ts",
-      "_102051_/l2/cafeFlow/web/contracts/managerDashboard.ts"
+      "_102051_/l2/cafeFlow/web/contracts/managerDashboard.ts",
+      "_102051_/l2/designSystem.ts"
     ],
     "dependsOn": [
       "managerDashboard__l2_shared"

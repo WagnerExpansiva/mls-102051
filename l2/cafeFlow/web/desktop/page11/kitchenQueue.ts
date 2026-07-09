@@ -8,180 +8,219 @@ import type { CafeFlowViewKitchenBoardOutputItem } from '/_102051_/l2/cafeFlow/w
 @customElement('cafe-flow--web--desktop--page11--kitchen-queue-102051')
 export class CafeFlowDesktopPage11KitchenQueuePage extends CafeFlowKitchenQueueBase {
   render() {
-    const m = this.msg;
     const items: CafeFlowViewKitchenBoardOutputItem[] = this.viewKitchenBoardData?.items ?? [];
+    const total: number = this.viewKitchenBoardData?.total ?? 0;
+    const isLoadingBoard: boolean = this.viewKitchenBoardState === 'loading';
+    const isBoardError: boolean = this.viewKitchenBoardState === 'error';
+    const isUpdating: boolean = this.updateOrderStatusState === 'loading';
+    const isUpdateError: boolean = this.updateOrderStatusState === 'error';
 
     return html`
-      <div class="min-h-full bg-slate-50 dark:bg-slate-950">
+      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <!-- Page header -->
-          <div>
-            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
-              ${m['kitchenQueue.section.title'] ?? ''}
-            </h1>
-          </div>
+          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
+            ${this.msg['kitchenQueue.section.board.title']}
+          </h1>
 
-          <!-- Section: Kitchen Queue -->
-          <section class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
-            <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-200">
-              ${m['kitchenQueue.section.title'] ?? ''}
+          <!-- Section: Queue Board -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['kitchenQueue.organism.board.title']}
+              </h2>
+              <button
+                class="px-3 py-1.5 rounded text-sm text-[var(--text-primary-color,#403f3f)] border border-[var(--grey-color,#E6E6E6)] hover:bg-[var(--bg-secondary-color,#E6E6E6)]"
+                @click=${(e: Event) => this.handleViewKitchenBoardClick(e)}
+              >
+                ${this.msg['kitchenQueue.intent.board.list.title']}
+              </button>
+            </div>
+
+            ${isLoadingBoard
+              ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">Loading…</p>`
+              : ''}
+            ${isBoardError
+              ? html`<p class="text-sm text-[var(--error-color,#FF4D4F)]">Error loading orders.</p>`
+              : ''}
+            ${!isLoadingBoard && items.length === 0
+              ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">No orders.</p>`
+              : ''}
+
+            ${items.length > 0
+              ? html`
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr
+                          class="border-b border-[var(--grey-color,#E6E6E6)] text-left text-[var(--text-primary-color-lighter,#535353)]"
+                        >
+                          <th class="py-2 px-2">${this.msg['kitchenQueue.field.orderId']}</th>
+                          <th class="py-2 px-2">${this.msg['kitchenQueue.field.status']}</th>
+                          <th class="py-2 px-2">${this.msg['kitchenQueue.field.orderType']}</th>
+                          <th class="py-2 px-2">${this.msg['kitchenQueue.field.tableNumber']}</th>
+                          <th class="py-2 px-2">${this.msg['kitchenQueue.field.priority']}</th>
+                          <th class="py-2 px-2">${this.msg['kitchenQueue.field.receivedAt']}</th>
+                          <th class="py-2 px-2">${this.msg['kitchenQueue.field.inPreparationAt']}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${items.map(
+                          (item: CafeFlowViewKitchenBoardOutputItem) => html`
+                            <tr
+                              class="border-b border-[var(--grey-color,#E6E6E6)]"
+                              style=${item.priority
+                                ? 'background-color: var(--warning-color,#FAAD14); opacity: 0.08;'
+                                : ''}
+                            >
+                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">
+                                ${item.orderId}
+                              </td>
+                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">
+                                ${item.status}
+                              </td>
+                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">
+                                ${item.orderType}
+                              </td>
+                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">
+                                ${item.tableNumber || '—'}
+                              </td>
+                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">
+                                ${item.priority ? '⚠' : ''}
+                              </td>
+                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">
+                                ${item.receivedAt || '—'}
+                              </td>
+                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">
+                                ${item.inPreparationAt || '—'}
+                              </td>
+                            </tr>
+                          `,
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
+                    ${total} ${this.msg['kitchenQueue.intent.board.list.title']}
+                  </p>
+                `
+              : ''}
+          </section>
+
+          <!-- Section: Transition -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['kitchenQueue.organism.update.title']}
             </h2>
 
-            <!-- Organism: ViewKitchenBoard -->
             <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <h3 class="text-base font-medium text-slate-600 dark:text-slate-300">
-                  ${m['kitchenQueue.viewKitchenBoard.title'] ?? ''}
-                </h3>
-                <button
-                  type="button"
-                  class="px-3 py-1.5 text-sm font-medium rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors"
-                  @click=${(e: Event) => this.handleViewKitchenBoardClick(e)}
+              <label class="block">
+                <span class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                  ${this.msg['kitchenQueue.field.status']}
+                </span>
+                <select
+                  class="mt-1 block w-full rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-3 py-2 text-sm text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.updateOrderStatusStatus}
+                  @change=${(e: Event) => this.handleUpdateOrderStatusStatusChange(e)}
                 >
-                  ${m['kitchenQueue.action.refreshBoard'] ?? ''}
+                  <option value="" ?selected=${this.updateOrderStatusStatus === 'inPreparation'}>—</option>
+                  <option
+                    value="inPreparation"
+                    ?selected=${this.updateOrderStatusStatus === 'inPreparation'}
+                  >
+                    inPreparation
+                  </option>
+                  <option value="ready" ?selected=${this.updateOrderStatusStatus === 'ready'}>
+                    ready
+                  </option>
+                </select>
+              </label>
+
+              <div class="flex gap-3">
+                <button
+                  class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  ?disabled=${isUpdating}
+                  @click=${() => {
+                    this.setUpdateOrderStatusStatus('inPreparation');
+                    this.handleUpdateOrderStatusClick(new Event('click'));
+                  }}
+                >
+                  ${this.msg['kitchenQueue.action.markInPreparation']}
+                </button>
+                <button
+                  class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  ?disabled=${isUpdating}
+                  @click=${() => {
+                    this.setUpdateOrderStatusStatus('ready');
+                    this.handleUpdateOrderStatusClick(new Event('click'));
+                  }}
+                >
+                  ${this.msg['kitchenQueue.action.markReady']}
                 </button>
               </div>
 
-              <p class="text-sm text-slate-500 dark:text-slate-400">
-                ${m['kitchenQueue.viewKitchenBoard.list.title'] ?? ''}
-              </p>
-
-              <!-- Query list table -->
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm border-collapse">
-                  <thead>
-                    <tr class="border-b border-slate-200 dark:border-slate-700 text-left text-slate-500 dark:text-slate-400">
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.orderId'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.status'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.orderType'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.tableNumber'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.priority'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.priorityReason'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.receivedAt'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.inPreparationAt'] ?? ''}</th>
-                      <th class="py-2 px-3 font-medium">${m['kitchenQueue.field.createdAt'] ?? ''}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${items.length === 0
-                      ? html`<tr><td colspan="9" class="py-6 text-center text-slate-400 dark:text-slate-500">—</td></tr>`
-                      : items.map((item: CafeFlowViewKitchenBoardOutputItem) => html`
-                        <tr class="border-b border-slate-100 dark:border-slate-800 ${item.priority ? 'bg-amber-50 dark:bg-amber-950/30' : ''}">
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.orderId}</td>
-                          <td class="py-2 px-3">
-                            <span class="inline-block px-2 py-0.5 text-xs rounded-full ${this._statusBadgeClass(item.status)}">
-                              ${item.status}
-                            </span>
-                          </td>
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.orderType}</td>
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.tableNumber || '—'}</td>
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.priority ? '⚠' : ''}</td>
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.priorityReason || '—'}</td>
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.receivedAt || '—'}</td>
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.inPreparationAt || '—'}</td>
-                          <td class="py-2 px-3 text-slate-700 dark:text-slate-200">${item.createdAt || '—'}</td>
-                        </tr>
-                      `)}
-                  </tbody>
-                </table>
-              </div>
-
-              ${this.viewKitchenBoardData?.total != null
-                ? html`<p class="text-xs text-slate-400 dark:text-slate-500">${this.viewKitchenBoardData.total}</p>`
-                : null}
+              ${isUpdateError
+                ? html`<p class="text-sm text-[var(--error-color,#FF4D4F)]">
+                    Error updating status.
+                  </p>`
+                : ''}
             </div>
+          </section>
 
-            <!-- Organism: UpdateOrderStatus -->
-            <div class="space-y-3 border-t border-slate-200 dark:border-slate-800 pt-4">
-              <h3 class="text-base font-medium text-slate-600 dark:text-slate-300">
-                ${m['kitchenQueue.updateOrderStatus.title'] ?? ''}
-              </h3>
+          <!-- Section: Summary -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['kitchenQueue.organism.summary.title']}
+            </h2>
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.orderId']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
 
-              <!-- Command form -->
-              <div class="space-y-3">
-                <h4 class="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  ${m['kitchenQueue.updateOrderStatus.form.title'] ?? ''}
-                </h4>
-                <div class="flex flex-wrap items-end gap-3">
-                  <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium text-slate-500 dark:text-slate-400" for="kq-status-select">
-                      ${m['kitchenQueue.field.status'] ?? ''}
-                    </label>
-                    <select
-                      id="kq-status-select"
-                      class="px-3 py-1.5 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      .value=${this.updateOrderStatusStatus}
-                      @change=${(e: Event) => this.handleUpdateOrderStatusStatusChange(e)}
-                    >
-                      <option value="" ?selected=${this.updateOrderStatusStatus === ''}></option>
-                      <option value="registered" ?selected=${this.updateOrderStatusStatus === 'registered'}>registered</option>
-                      <option value="received" ?selected=${this.updateOrderStatusStatus === 'received'}>received</option>
-                      <option value="inPreparation" ?selected=${this.updateOrderStatusStatus === 'inPreparation'}>inPreparation</option>
-                      <option value="ready" ?selected=${this.updateOrderStatusStatus === 'ready'}>ready</option>
-                      <option value="delivered" ?selected=${this.updateOrderStatusStatus === 'delivered'}>delivered</option>
-                    </select>
-                  </div>
-                  <button
-                    type="button"
-                    class="px-4 py-1.5 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    ?disabled=${this.updateOrderStatusState === 'loading' || !this.updateOrderStatusStatus}
-                    @click=${(e: Event) => this.handleUpdateOrderStatusClick(e)}
-                  >
-                    ${m['kitchenQueue.action.updateStatus'] ?? ''}
-                  </button>
-                </div>
-              </div>
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.status']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
 
-              <!-- Summary block -->
-              <div class="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
-                <h4 class="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  ${m['kitchenQueue.summary.title'] ?? ''}
-                </h4>
-                <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.orderId'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.LayoutSumOrderId || '—'}</dd>
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.orderType']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
 
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.status'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.updateOrderStatusStatus || '—'}</dd>
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.tableNumber']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
 
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.orderType'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.LayoutSumOrderType || '—'}</dd>
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.priority']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
 
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.tableNumber'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.LayoutSumTableNumber || '—'}</dd>
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.priorityReason']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
 
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.priority'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.LayoutSumPriority || '—'}</dd>
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.receivedAt']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
 
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.priorityReason'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.LayoutSumPriorityReason || '—'}</dd>
-
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.receivedAt'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.LayoutSumReceivedAt || '—'}</dd>
-
-                  <dt class="text-slate-500 dark:text-slate-400">${m['kitchenQueue.field.inPreparationAt'] ?? ''}</dt>
-                  <dd class="text-slate-700 dark:text-slate-200">${this.LayoutSumInPreparationAt || '—'}</dd>
-                </dl>
-              </div>
-            </div>
+              <dt class="text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['kitchenQueue.field.inPreparationAt']}
+              </dt>
+              <dd class="text-[var(--text-primary-color,#403f3f)]">—</dd>
+            </dl>
           </section>
         </div>
       </div>
     `;
-  }
-
-  private _statusBadgeClass(status: string): string {
-    switch (status) {
-      case 'received':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
-      case 'inPreparation':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300';
-      case 'ready':
-        return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
-      case 'delivered':
-        return 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400';
-      default:
-        return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300';
-    }
   }
 }

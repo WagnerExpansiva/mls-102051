@@ -80,27 +80,113 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec.kitchenQueue.queue",
+      "id": "sec.queueCards",
       "type": "section",
-      "sectionName": "Fila da cozinha — Preparo de pedidos",
-      "titleKey": "kitchenQueue.section.queue.title",
-      "mode": "edit",
+      "sectionName": "queueCards",
+      "titleKey": "kitchenQueue.section.cards.title",
+      "mode": "view",
       "order": 10,
       "organisms": [
         {
-          "id": "org.kitchenQueue.workflowQueue",
+          "id": "org.cardList",
           "type": "list",
-          "organismName": "WorkflowQueue",
-          "titleKey": "kitchenQueue.workflowQueue.title",
-          "purpose": "Mostrar a fila por status e permitir transições rápidas",
+          "organismName": "KitchenQueueCards",
+          "titleKey": "kitchenQueue.organism.cards.title",
+          "purpose": "Exibir fila de pedidos em cartões legíveis",
           "userActions": [
-            "viewKitchenBoard",
+            "viewKitchenBoard"
+          ],
+          "requiredEntities": [
+            "Order",
+            "OrderItem"
+          ],
+          "readsFields": [
+            "orderId",
+            "status",
+            "orderType",
+            "tableNumber",
+            "priority",
+            "receivedAt",
+            "inPreparationAt"
+          ],
+          "writesFields": [],
+          "rulesApplied": [
+            "fifoKitchenQueue",
+            "dashboardCurrentShiftOnly"
+          ],
+          "order": 10,
+          "intentionRefs": [
+            {
+              "id": "int.cards.list",
+              "intent": "queryList",
+              "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+              "order": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec.cardActions",
+      "type": "section",
+      "sectionName": "cardActions",
+      "titleKey": "kitchenQueue.section.actions.title",
+      "mode": "edit",
+      "order": 20,
+      "organisms": [
+        {
+          "id": "org.cardActions",
+          "type": "form",
+          "organismName": "KitchenCardActions",
+          "titleKey": "kitchenQueue.organism.actions.title",
+          "purpose": "Atualizar status do pedido selecionado",
+          "userActions": [
             "updateOrderStatus"
           ],
           "requiredEntities": [
             "Order",
-            "OrderItem",
             "Shift"
+          ],
+          "readsFields": [
+            "status"
+          ],
+          "writesFields": [
+            "status"
+          ],
+          "rulesApplied": [
+            "orderStatusFlow",
+            "inProgressBeforeReady"
+          ],
+          "order": 10,
+          "intentionRefs": [
+            {
+              "id": "int.card.update",
+              "intent": "commandForm",
+              "action": "updateOrderStatus",
+              "submitAction": "updateOrderStatus",
+              "order": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec.cardSummary",
+      "type": "section",
+      "sectionName": "cardSummary",
+      "titleKey": "kitchenQueue.section.summary.title",
+      "mode": "view",
+      "order": 30,
+      "organisms": [
+        {
+          "id": "org.cardSummary",
+          "type": "summary",
+          "organismName": "KitchenCardSummary",
+          "titleKey": "kitchenQueue.organism.summary.title",
+          "purpose": "Revisar detalhes do pedido selecionado",
+          "userActions": [],
+          "requiredEntities": [
+            "Order"
           ],
           "readsFields": [
             "orderId",
@@ -110,37 +196,16 @@ export const definition = {
             "priority",
             "priorityReason",
             "receivedAt",
-            "inPreparationAt",
-            "createdAt"
+            "inPreparationAt"
           ],
-          "writesFields": [
-            "status"
-          ],
-          "rulesApplied": [
-            "fifoKitchenQueue",
-            "dashboardCurrentShiftOnly",
-            "orderStatusFlow",
-            "inProgressBeforeReady"
-          ],
+          "writesFields": [],
+          "rulesApplied": [],
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int.kitchenQueue.workflowQueue.list",
-              "intent": "queryList",
-              "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
-              "order": 10
-            },
-            {
-              "id": "int.kitchenQueue.workflowQueue.transition",
-              "intent": "commandForm",
-              "submitAction": "updateOrderStatus",
-              "order": 20
-            },
-            {
-              "id": "int.kitchenQueue.workflowQueue.summary",
+              "id": "int.card.summary",
               "intent": "summary",
-              "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
-              "order": 30
+              "order": 10
             }
           ]
         }
@@ -148,31 +213,29 @@ export const definition = {
     }
   ],
   "layout": {
-    "id": "page21",
+    "id": "kitchenQueue.page21",
     "type": "page",
     "sections": [
       {
-        "id": "sec.kitchenQueue.queue",
+        "id": "sec.queueCards",
         "type": "section",
-        "sectionName": "Fila da cozinha — Preparo de pedidos",
-        "titleKey": "kitchenQueue.section.queue.title",
-        "mode": "edit",
+        "sectionName": "queueCards",
+        "titleKey": "kitchenQueue.section.cards.title",
+        "mode": "view",
         "order": 10,
         "organisms": [
           {
-            "id": "org.kitchenQueue.workflowQueue",
+            "id": "org.cardList",
             "type": "list",
-            "organismName": "WorkflowQueue",
-            "titleKey": "kitchenQueue.workflowQueue.title",
-            "purpose": "Mostrar a fila por status e permitir transições rápidas",
+            "organismName": "KitchenQueueCards",
+            "titleKey": "kitchenQueue.organism.cards.title",
+            "purpose": "Exibir fila de pedidos em cartões legíveis",
             "userActions": [
-              "viewKitchenBoard",
-              "updateOrderStatus"
+              "viewKitchenBoard"
             ],
             "requiredEntities": [
               "Order",
-              "OrderItem",
-              "Shift"
+              "OrderItem"
             ],
             "readsFields": [
               "orderId",
@@ -180,33 +243,27 @@ export const definition = {
               "orderType",
               "tableNumber",
               "priority",
-              "priorityReason",
               "receivedAt",
-              "inPreparationAt",
-              "createdAt"
+              "inPreparationAt"
             ],
-            "writesFields": [
-              "status"
-            ],
+            "writesFields": [],
             "rulesApplied": [
               "fifoKitchenQueue",
-              "dashboardCurrentShiftOnly",
-              "orderStatusFlow",
-              "inProgressBeforeReady"
+              "dashboardCurrentShiftOnly"
             ],
             "order": 10,
             "intentions": [
               {
-                "id": "int.kitchenQueue.workflowQueue.list",
+                "id": "int.cards.list",
                 "intent": "queryList",
                 "order": 10,
-                "titleKey": "kitchenQueue.workflowQueue.list.title",
-                "source": "viewKitchenBoard",
-                "binding": "ui.kitchenQueue.data.viewKitchenBoard",
+                "titleKey": "kitchenQueue.intent.cards.list.title",
+                "source": "cafeFlow.orderLifecycle.viewKitchenBoard",
+                "binding": "viewKitchenBoard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col.orderId",
+                    "id": "col.card.orderId",
                     "field": "orderId",
                     "labelKey": "kitchenQueue.field.orderId",
                     "order": 10,
@@ -214,7 +271,7 @@ export const definition = {
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col.status",
+                    "id": "col.card.status",
                     "field": "status",
                     "labelKey": "kitchenQueue.field.status",
                     "order": 20,
@@ -222,7 +279,7 @@ export const definition = {
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col.orderType",
+                    "id": "col.card.orderType",
                     "field": "orderType",
                     "labelKey": "kitchenQueue.field.orderType",
                     "order": 30,
@@ -230,7 +287,7 @@ export const definition = {
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col.tableNumber",
+                    "id": "col.card.tableNumber",
                     "field": "tableNumber",
                     "labelKey": "kitchenQueue.field.tableNumber",
                     "order": 40,
@@ -238,7 +295,7 @@ export const definition = {
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col.priority",
+                    "id": "col.card.priority",
                     "field": "priority",
                     "labelKey": "kitchenQueue.field.priority",
                     "order": 50,
@@ -246,39 +303,69 @@ export const definition = {
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col.receivedAt",
+                    "id": "col.card.receivedAt",
                     "field": "receivedAt",
                     "labelKey": "kitchenQueue.field.receivedAt",
                     "order": 60,
                     "required": false,
-                    "format": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   }
                 ],
                 "filters": [],
                 "toolbar": [],
-                "rowActions": [
-                  {
-                    "id": "rowAction.updateOrderStatus",
-                    "action": "updateOrderStatus",
-                    "labelKey": "kitchenQueue.action.startOrFinish",
-                    "order": 10,
-                    "displayHint": "primary",
-                    "actionKey": "updateOrderStatus"
-                  }
-                ],
+                "rowActions": [],
                 "actions": [],
                 "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
-              },
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sec.cardActions",
+        "type": "section",
+        "sectionName": "cardActions",
+        "titleKey": "kitchenQueue.section.actions.title",
+        "mode": "edit",
+        "order": 20,
+        "organisms": [
+          {
+            "id": "org.cardActions",
+            "type": "form",
+            "organismName": "KitchenCardActions",
+            "titleKey": "kitchenQueue.organism.actions.title",
+            "purpose": "Atualizar status do pedido selecionado",
+            "userActions": [
+              "updateOrderStatus"
+            ],
+            "requiredEntities": [
+              "Order",
+              "Shift"
+            ],
+            "readsFields": [
+              "status"
+            ],
+            "writesFields": [
+              "status"
+            ],
+            "rulesApplied": [
+              "orderStatusFlow",
+              "inProgressBeforeReady"
+            ],
+            "order": 10,
+            "intentions": [
               {
-                "id": "int.kitchenQueue.workflowQueue.transition",
+                "id": "int.card.update",
                 "intent": "commandForm",
-                "order": 20,
-                "titleKey": "kitchenQueue.workflowQueue.transition.title",
+                "order": 10,
+                "titleKey": "kitchenQueue.intent.card.update.title",
+                "source": "cafeFlow.orderLifecycle.updateOrderStatus",
+                "binding": "updateOrderStatus",
+                "action": "updateOrderStatus",
                 "submitAction": "updateOrderStatus",
                 "fields": [
                   {
-                    "id": "fld.status",
+                    "id": "fld.card.status",
                     "field": "status",
                     "labelKey": "kitchenQueue.field.status",
                     "order": 10,
@@ -293,86 +380,127 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act.updateOrderStatus",
+                    "id": "act.card.inPreparation",
                     "action": "updateOrderStatus",
-                    "labelKey": "kitchenQueue.action.updateStatus",
+                    "labelKey": "kitchenQueue.action.markInPreparation",
                     "order": 10,
+                    "displayHint": "primary",
+                    "actionKey": "updateOrderStatus"
+                  },
+                  {
+                    "id": "act.card.ready",
+                    "action": "updateOrderStatus",
+                    "labelKey": "kitchenQueue.action.markReady",
+                    "order": 20,
                     "displayHint": "primary",
                     "actionKey": "updateOrderStatus"
                   }
                 ]
-              },
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sec.cardSummary",
+        "type": "section",
+        "sectionName": "cardSummary",
+        "titleKey": "kitchenQueue.section.summary.title",
+        "mode": "view",
+        "order": 30,
+        "organisms": [
+          {
+            "id": "org.cardSummary",
+            "type": "summary",
+            "organismName": "KitchenCardSummary",
+            "titleKey": "kitchenQueue.organism.summary.title",
+            "purpose": "Revisar detalhes do pedido selecionado",
+            "userActions": [],
+            "requiredEntities": [
+              "Order"
+            ],
+            "readsFields": [
+              "orderId",
+              "status",
+              "orderType",
+              "tableNumber",
+              "priority",
+              "priorityReason",
+              "receivedAt",
+              "inPreparationAt"
+            ],
+            "writesFields": [],
+            "rulesApplied": [],
+            "order": 10,
+            "intentions": [
               {
-                "id": "int.kitchenQueue.workflowQueue.summary",
+                "id": "int.card.summary",
                 "intent": "summary",
-                "order": 30,
-                "titleKey": "kitchenQueue.workflowQueue.summary.title",
+                "order": 10,
+                "titleKey": "kitchenQueue.intent.summary.title",
                 "fields": [
                   {
-                    "id": "sum.orderId",
+                    "id": "sum.card.orderId",
                     "field": "orderId",
                     "labelKey": "kitchenQueue.field.orderId",
                     "order": 10,
-                    "required": false,
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                    "required": false
                   },
                   {
-                    "id": "sum.status",
+                    "id": "sum.card.status",
                     "field": "status",
                     "labelKey": "kitchenQueue.field.status",
                     "order": 20,
-                    "required": false,
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                    "required": false
                   },
                   {
-                    "id": "sum.orderType",
+                    "id": "sum.card.orderType",
                     "field": "orderType",
                     "labelKey": "kitchenQueue.field.orderType",
                     "order": 30,
-                    "required": false,
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                    "required": false
                   },
                   {
-                    "id": "sum.tableNumber",
+                    "id": "sum.card.tableNumber",
                     "field": "tableNumber",
                     "labelKey": "kitchenQueue.field.tableNumber",
                     "order": 40,
-                    "required": false,
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                    "required": false
                   },
                   {
-                    "id": "sum.priority",
+                    "id": "sum.card.priority",
                     "field": "priority",
                     "labelKey": "kitchenQueue.field.priority",
                     "order": 50,
-                    "required": false,
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                    "required": false
                   },
                   {
-                    "id": "sum.receivedAt",
+                    "id": "sum.card.priorityReason",
+                    "field": "priorityReason",
+                    "labelKey": "kitchenQueue.field.priorityReason",
+                    "order": 60,
+                    "required": false
+                  },
+                  {
+                    "id": "sum.card.receivedAt",
                     "field": "receivedAt",
                     "labelKey": "kitchenQueue.field.receivedAt",
-                    "order": 60,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                    "order": 70,
+                    "required": false
                   },
                   {
-                    "id": "sum.inPreparationAt",
+                    "id": "sum.card.inPreparationAt",
                     "field": "inPreparationAt",
                     "labelKey": "kitchenQueue.field.inPreparationAt",
-                    "order": 70,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                    "order": 80,
+                    "required": false
                   }
                 ],
                 "columns": [],
                 "filters": [],
                 "toolbar": [],
                 "rowActions": [],
-                "actions": [],
-                "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                "actions": []
               }
             ]
           }
@@ -383,19 +511,19 @@ export const definition = {
   "dataBindings": [
     {
       "id": "bind.viewKitchenBoard",
-      "source": "bffCommand",
+      "source": "command",
       "entity": "Order",
       "command": "viewKitchenBoard",
-      "description": "Carregar fila da cozinha do turno atual",
+      "description": "Listar pedidos da cozinha",
       "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
       "inputStateKeys": []
     },
     {
       "id": "bind.updateOrderStatus",
-      "source": "bffCommand",
+      "source": "command",
       "entity": "Order",
       "command": "updateOrderStatus",
-      "description": "Atualizar status do pedido selecionado",
+      "description": "Atualizar status do pedido",
       "stateKey": "ui.kitchenQueue.output.updateOrderStatus",
       "inputStateKeys": [
         "ui.kitchenQueue.input.updateOrderStatus.status"
@@ -414,7 +542,8 @@ export const pipeline = [
       "_102051_/l2/cafeFlow/web/shared/kitchenQueue.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/kitchenQueue.ts",
       "_102051_/l2/cafeFlow/web/contracts/kitchenQueue.defs.ts",
-      "_102051_/l2/cafeFlow/web/contracts/kitchenQueue.ts"
+      "_102051_/l2/cafeFlow/web/contracts/kitchenQueue.ts",
+      "_102051_/l2/designSystem.ts"
     ],
     "dependsOn": [
       "kitchenQueue__l2_shared"
