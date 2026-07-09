@@ -1,288 +1,315 @@
 /// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page21/menuManagement.ts" enhancement="_102020_/l2/enhancementAura"/>
 
-import { html } from 'lit';
+import { html, type TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { CafeFlowMenuManagementBase } from '/_102051_/l2/cafeFlow/web/shared/menuManagement.js';
+import type { CafeFlowBrowseMenuItemsOutputItem } from '/_102051_/l2/cafeFlow/web/contracts/menuManagement.js';
 
 @customElement('cafe-flow--web--desktop--page21--menu-management-102051')
 export class CafeFlowDesktopPage21MenuManagementPage extends CafeFlowMenuManagementBase {
-  render() {
-    const msg = this.msg as Record<string, string>;
-    const getMsg = (key: string): string => msg[key] ?? '';
-    const items = this.browseMenuItemsData?.items ?? [];
+  render(): TemplateResult {
+    const items: CafeFlowBrowseMenuItemsOutputItem[] = this.browseMenuItemsData?.items ?? [];
 
     return html`
-      <div class="min-h-full bg-slate-50 dark:bg-slate-950">
+      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <header class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-              ${getMsg('menuManagement.section.main.title')}
+
+          <!-- Page header -->
+          <header class="space-y-1">
+            <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['menuManagement.board.title']}
             </h1>
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-              ${this.activeCompanyId
-                ? html`
-                    <span class="inline-flex items-center rounded-md bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                      ${this.activeCompanyId}
-                    </span>
-                  `
-                : html``}
-            </div>
           </header>
 
-          <section class="space-y-4">
-            <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                  ${getMsg('section.board')}
-                </h2>
+          <!-- Section: Board -->
+          <section class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['menuManagement.board.lanes.title']}
+            </h2>
+
+            <!-- i10_context: workflowStatus / business context -->
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color,#E6E6E6)] p-3">
+              <p class="text-sm font-medium text-[var(--text-primary-color,#403f3f)] mb-1">
+                ${this.msg['menuManagement.context.title']}
+              </p>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)] border border-[var(--grey-color,#E6E6E6)]">
+                  ${this.activeCompanyId || '—'}
+                </span>
+              </div>
+            </div>
+
+            <!-- i20_query: queryList -->
+            <div class="space-y-3">
+              <h3 class="text-base font-medium text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['menuManagement.board.query.title']}
+              </h3>
+
+              <!-- Filters -->
+              <div class="flex flex-wrap items-end gap-3">
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs text-[var(--text-primary-color,#403f3f)]">${this.msg['menuManagement.filter.status']}</span>
+                  <select
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    .value="${this.browseMenuItemsStatusFilter}"
+                    @change="${(e: Event) => this.handleBrowseMenuItemsStatusFilterChange(e)}"
+                  >
+                    <option value="">—</option>
+                    <option value="draft" ?selected="${this.browseMenuItemsStatusFilter === 'draft'}">draft</option>
+                    <option value="active" ?selected="${this.browseMenuItemsStatusFilter === 'active'}">active</option>
+                    <option value="inactive" ?selected="${this.browseMenuItemsStatusFilter === 'inactive'}">inactive</option>
+                  </select>
+                </label>
+
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs text-[var(--text-primary-color,#403f3f)]">${this.msg['menuManagement.filter.menuCategory']}</span>
+                  <input
+                    type="text"
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    .value="${this.browseMenuItemsMenuCategoryIdFilter}"
+                    @change="${(e: Event) => this.handleBrowseMenuItemsMenuCategoryIdFilterChange(e)}"
+                  />
+                </label>
+
                 <button
-                  class="inline-flex items-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-100"
-                  type="button"
-                  @click=${this.handleBrowseMenuItemsClick}
+                  class="rounded px-3 py-1 text-sm font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)]"
+                  @click="${() => this.handleBrowseMenuItemsClick()}"
                 >
-                  ${getMsg('action.browseMenuItems')}
+                  ${this.msg['menuManagement.action.refresh']}
                 </button>
               </div>
 
-              <div class="mt-4 grid gap-4 lg:grid-cols-[1.1fr_2fr]">
-                <div class="space-y-4">
-                  <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      ${getMsg('intent.context.badge.title')}
-                    </h3>
-                    <div class="mt-2">
-                      ${this.activeCompanyId
-                        ? html`
-                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
-                              ${this.activeCompanyId}
-                            </span>
-                          `
-                        : html``}
-                    </div>
-                  </div>
-
-                  <div class="rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      ${getMsg('intent.board.filters.title')}
-                    </h3>
-                    <div class="mt-3 space-y-3">
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.statusFilter')}
-                        <select
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          @change=${this.handleBrowseMenuItemsStatusFilterChange}
-                          .value=${this.browseMenuItemsStatusFilter}
-                        >
-                          <option value=""></option>
-                          <option value="draft">draft</option>
-                          <option value="active">active</option>
-                          <option value="inactive">inactive</option>
-                        </select>
-                      </label>
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.menuCategoryIdFilter')}
-                        <select
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          @change=${this.handleBrowseMenuItemsMenuCategoryIdFilterChange}
-                          .value=${this.browseMenuItemsMenuCategoryIdFilter}
-                        >
-                          <option value=""></option>
-                        </select>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                  <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                    ${getMsg('intent.board.title')}
-                  </h3>
-                  <div class="mt-3 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
-                      <thead class="bg-slate-50 dark:bg-slate-950">
-                        <tr>
-                          <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">
-                            ${getMsg('column.name')}
-                          </th>
-                          <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">
-                            ${getMsg('column.menuCategoryId')}
-                          </th>
-                          <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">
-                            ${getMsg('column.price')}
-                          </th>
-                          <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">
-                            ${getMsg('column.itemType')}
-                          </th>
-                          <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">
-                            ${getMsg('column.status')}
-                          </th>
+              <!-- Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                  <thead>
+                    <tr class="border-b border-[var(--grey-color,#E6E6E6)] text-left">
+                      <th class="py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">${this.msg['menuManagement.menuItem.name']}</th>
+                      <th class="py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">${this.msg['menuManagement.menuItem.menuCategoryId']}</th>
+                      <th class="py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">${this.msg['menuManagement.menuItem.price']}</th>
+                      <th class="py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">${this.msg['menuManagement.menuItem.status']}</th>
+                      <th class="py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${items.length === 0
+                      ? html`<tr><td colspan="5" class="py-4 px-3 text-center text-[var(--text-primary-color,#403f3f)] opacity-60">—</td></tr>`
+                      : items.map((item: CafeFlowBrowseMenuItemsOutputItem) => html`
+                        <tr class="border-b border-[var(--grey-color,#E6E6E6)]">
+                          <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">${item.name}</td>
+                          <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">${item.menuCategoryId}</td>
+                          <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">${item.price}</td>
+                          <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">${item.status}</td>
+                          <td class="py-2 px-3">
+                            <button
+                              class="rounded px-2 py-1 text-xs font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)]"
+                              @click="${() => this.handleManageMenuItemClick()}"
+                            >
+                              ${this.msg['menuManagement.action.manage']}
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
-                        ${items.length > 0
-                          ? items.map((item) => html`
-                              <tr>
-                                <td class="px-3 py-2 text-slate-900 dark:text-slate-100">${item.name}</td>
-                                <td class="px-3 py-2 text-slate-600 dark:text-slate-300">
-                                  ${item.menuCategoryId}
-                                </td>
-                                <td class="px-3 py-2 text-slate-600 dark:text-slate-300">
-                                  ${item.price.toFixed(2)}
-                                </td>
-                                <td class="px-3 py-2 text-slate-600 dark:text-slate-300">${item.itemType}</td>
-                                <td class="px-3 py-2 text-slate-600 dark:text-slate-300">${item.status}</td>
-                              </tr>
-                            `)
-                          : html`
-                              <tr>
-                                <td class="px-3 py-4 text-center text-slate-500 dark:text-slate-400" colspan="5">
-                                  ${getMsg('empty.board')}
-                                </td>
-                              </tr>
-                            `}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                      `)}
+                  </tbody>
+                </table>
               </div>
+
+              ${this.browseMenuItemsState === 'loading' ? html`<p class="text-sm text-[var(--text-primary-color,#403f3f)] opacity-60">…</p>` : null}
+              ${this.browseMenuItemsState === 'error' ? html`<p class="text-sm text-[var(--error-color,#FF4D4F)]">error</p>` : null}
+            </div>
+
+            <!-- i30_summary: summary -->
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color,#E6E6E6)] p-3 space-y-2">
+              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['menuManagement.board.summary.title']}
+              </h3>
+              <dl class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.status']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${items.length > 0 ? items[0].status : '—'}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.itemType']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${items.length > 0 ? items[0].itemType : '—'}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.updatedAt']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${items.length > 0 ? items[0].updatedAt : '—'}</dd>
+                </div>
+              </dl>
             </div>
           </section>
 
-          <section class="space-y-4">
-            <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                ${getMsg('section.details')}
-              </h2>
+          <!-- Section: Detail -->
+          <section class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['menuManagement.detail.title']}
+            </h2>
 
-              <div class="mt-4 grid gap-4 lg:grid-cols-[2fr_1fr]">
-                <div class="space-y-4">
-                  <div class="rounded-md border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      ${getMsg('intent.manage.form.title')}
-                    </h3>
-                    <div class="mt-3 grid gap-3">
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.name')}
-                        <input
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          type="text"
-                          .value=${this.manageMenuItemName}
-                          @input=${this.handleManageMenuItemNameChange}
-                        />
-                      </label>
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.description')}
-                        <textarea
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          rows="3"
-                          .value=${this.manageMenuItemDescription}
-                          @input=${this.handleManageMenuItemDescriptionChange}
-                        ></textarea>
-                      </label>
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.menuCategoryId')}
-                        <select
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          .value=${this.manageMenuItemMenuCategoryId}
-                          @change=${this.handleManageMenuItemMenuCategoryIdChange}
-                        >
-                          <option value=""></option>
-                        </select>
-                      </label>
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.price')}
-                        <input
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          type="number"
-                          step="0.01"
-                          .value=${this.manageMenuItemPrice}
-                          @input=${this.handleManageMenuItemPriceChange}
-                        />
-                      </label>
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.itemType')}
-                        <select
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          .value=${this.manageMenuItemItemType}
-                          @change=${this.handleManageMenuItemItemTypeChange}
-                        >
-                          <option value=""></option>
-                          <option value="simple">simple</option>
-                          <option value="variant">variant</option>
-                        </select>
-                      </label>
-                      <label class="block text-xs font-medium text-slate-600 dark:text-slate-300">
-                        ${getMsg('field.status')}
-                        <select
-                          class="mt-1 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                          .value=${this.manageMenuItemStatus}
-                          @change=${this.handleManageMenuItemStatusChange}
-                        >
-                          <option value=""></option>
-                          <option value="draft">draft</option>
-                          <option value="active">active</option>
-                          <option value="inactive">inactive</option>
-                        </select>
-                      </label>
-                    </div>
-                    <div class="mt-4 flex justify-end">
-                      <button
-                        class="inline-flex items-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-100"
-                        type="button"
-                        @click=${this.handleManageMenuItemClick}
-                      >
-                        ${getMsg('action.manageMenuItem')}
-                      </button>
-                    </div>
-                  </div>
+            <!-- i40_status: workflowStatus -->
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color,#E6E6E6)] p-3 space-y-2">
+              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['menuManagement.detail.status.title']}
+              </h3>
+              <dl class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.status']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.manageMenuItemStatus || '—'}</dd>
                 </div>
-
-                <div class="space-y-4">
-                  <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      ${getMsg('intent.manage.status.title')}
-                    </h3>
-                    <dl class="mt-3 space-y-2 text-sm">
-                      <div class="flex items-center justify-between">
-                        <dt class="text-slate-600 dark:text-slate-300">${getMsg('field.status')}</dt>
-                        <dd class="text-slate-900 dark:text-slate-100">${this.manageMenuItemStatus}</dd>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <dt class="text-slate-600 dark:text-slate-300">${getMsg('field.activatedAt')}</dt>
-                        <dd class="text-slate-900 dark:text-slate-100">
-                          ${this.LayoutFieldManageMenuItemActivatedAt}
-                        </dd>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <dt class="text-slate-600 dark:text-slate-300">${getMsg('field.inactivatedAt')}</dt>
-                        <dd class="text-slate-900 dark:text-slate-100">
-                          ${this.LayoutFieldManageMenuItemInactivatedAt}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  <div class="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
-                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      ${getMsg('intent.manage.summary.title')}
-                    </h3>
-                    <dl class="mt-3 space-y-2 text-sm">
-                      <div class="flex items-center justify-between">
-                        <dt class="text-slate-600 dark:text-slate-300">${getMsg('field.updatedAt')}</dt>
-                        <dd class="text-slate-900 dark:text-slate-100">
-                          ${this.LayoutFieldManageMenuItemUpdatedAt}
-                        </dd>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <dt class="text-slate-600 dark:text-slate-300">${getMsg('field.createdAt')}</dt>
-                        <dd class="text-slate-900 dark:text-slate-100"></dd>
-                      </div>
-                    </dl>
-                  </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.activatedAt']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.LayoutWs20ActivatedAt || '—'}</dd>
                 </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.inactivatedAt']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.LayoutWs30InactivatedAt || '—'}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- i50_edit: commandForm -->
+            <div class="space-y-3">
+              <h3 class="text-base font-medium text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['menuManagement.detail.edit.title']}
+              </h3>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- name -->
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-[var(--text-primary-color,#403f3f)]">
+                    ${this.msg['menuManagement.menuItem.name']}
+                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                  </span>
+                  <input
+                    type="text"
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    .value="${this.manageMenuItemName}"
+                    @input="${(e: Event) => this.handleManageMenuItemNameChange(e)}"
+                  />
+                </label>
+
+                <!-- description -->
+                <label class="flex flex-col gap-1 sm:col-span-2">
+                  <span class="text-xs font-medium text-[var(--text-primary-color,#403f3f)]">
+                    ${this.msg['menuManagement.menuItem.description']}
+                  </span>
+                  <textarea
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    rows="3"
+                    .value="${this.manageMenuItemDescription}"
+                    @input="${(e: Event) => this.handleManageMenuItemDescriptionChange(e)}"
+                  ></textarea>
+                </label>
+
+                <!-- menuCategoryId -->
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-[var(--text-primary-color,#403f3f)]">
+                    ${this.msg['menuManagement.menuItem.menuCategoryId']}
+                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                  </span>
+                  <input
+                    type="text"
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    .value="${this.manageMenuItemMenuCategoryId}"
+                    @input="${(e: Event) => this.handleManageMenuItemMenuCategoryIdChange(e)}"
+                  />
+                </label>
+
+                <!-- price -->
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-[var(--text-primary-color,#403f3f)]">
+                    ${this.msg['menuManagement.menuItem.price']}
+                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    .value="${this.manageMenuItemPrice}"
+                    @input="${(e: Event) => this.handleManageMenuItemPriceChange(e)}"
+                  />
+                </label>
+
+                <!-- itemType -->
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-[var(--text-primary-color,#403f3f)]">
+                    ${this.msg['menuManagement.menuItem.itemType']}
+                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                  </span>
+                  <select
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    .value="${this.manageMenuItemItemType}"
+                    @change="${(e: Event) => this.handleManageMenuItemItemTypeChange(e)}"
+                  >
+                    <option value="">—</option>
+                    <option value="simple" ?selected="${this.manageMenuItemItemType === 'simple'}">simple</option>
+                    <option value="variant" ?selected="${this.manageMenuItemItemType === 'variant'}">variant</option>
+                  </select>
+                </label>
+
+                <!-- status -->
+                <label class="flex flex-col gap-1">
+                  <span class="text-xs font-medium text-[var(--text-primary-color,#403f3f)]">
+                    ${this.msg['menuManagement.menuItem.status']}
+                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                  </span>
+                  <select
+                    class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-2 py-1 text-sm text-[var(--text-primary-color,#403f3f)]"
+                    .value="${this.manageMenuItemStatus}"
+                    @change="${(e: Event) => this.handleManageMenuItemStatusChange(e)}"
+                  >
+                    <option value="">—</option>
+                    <option value="draft" ?selected="${this.manageMenuItemStatus === 'draft'}">draft</option>
+                    <option value="active" ?selected="${this.manageMenuItemStatus === 'active'}">active</option>
+                    <option value="inactive" ?selected="${this.manageMenuItemStatus === 'inactive'}">inactive</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button
+                  class="rounded px-4 py-2 text-sm font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  ?disabled="${this.manageMenuItemState === 'loading'}"
+                  @click="${() => this.handleManageMenuItemClick()}"
+                >
+                  ${this.msg['menuManagement.action.save']}
+                </button>
+                ${this.manageMenuItemState === 'loading' ? html`<span class="text-sm text-[var(--text-primary-color,#403f3f)] opacity-60">…</span>` : null}
+                ${this.manageMenuItemState === 'error' ? html`<span class="text-sm text-[var(--error-color,#FF4D4F)]">error</span>` : null}
+                ${this.manageMenuItemState === 'success' ? html`<span class="text-sm text-[var(--success-color,#52C41A)]">✓</span>` : null}
               </div>
             </div>
+
+            <!-- i60_review: summary -->
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color,#E6E6E6)] p-3 space-y-2">
+              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['menuManagement.detail.review.title']}
+              </h3>
+              <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.name']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.manageMenuItemName || '—'}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.menuCategoryId']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.manageMenuItemMenuCategoryId || '—'}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.price']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.manageMenuItemPrice || '—'}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.status']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.manageMenuItemStatus || '—'}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70">${this.msg['menuManagement.menuItem.updatedAt']}</dt>
+                  <dd class="text-[var(--text-primary-color,#403f3f)]">${this.LayoutR50UpdatedAt || '—'}</dd>
+                </div>
+              </dl>
+            </div>
           </section>
+
         </div>
       </div>
     `;

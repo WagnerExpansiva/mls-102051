@@ -96,19 +96,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-order-board",
+      "id": "sec-10",
       "type": "section",
-      "sectionName": "painelPedidos",
+      "sectionName": "orderBoard",
       "titleKey": "posWorkspace.section.orderBoard.title",
       "mode": "view",
       "order": 10,
       "organisms": [
         {
-          "id": "org-view-order-board",
-          "type": "organism",
-          "organismName": "ViewOrderBoard",
-          "titleKey": "posWorkspace.organism.viewOrderBoard.title",
-          "purpose": "Visualizar painel de pedidos",
+          "id": "org-10",
+          "type": "list",
+          "organismName": "OrderBoardCards",
+          "titleKey": "posWorkspace.organism.orderBoard.title",
+          "purpose": "Visualizar painel de pedidos do turno atual em cartões.",
           "userActions": [
             "viewOrderBoard"
           ],
@@ -137,7 +137,7 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int-order-board-query",
+              "id": "int-10",
               "intent": "queryList",
               "stateKey": "ui.posWorkspace.data.viewOrderBoard",
               "action": "viewOrderBoard",
@@ -148,19 +148,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-create-order",
+      "id": "sec-20",
       "type": "section",
-      "sectionName": "lancarPedido",
+      "sectionName": "createOrder",
       "titleKey": "posWorkspace.section.createOrder.title",
       "mode": "edit",
       "order": 20,
       "organisms": [
         {
-          "id": "org-create-order",
-          "type": "organism",
+          "id": "org-20",
+          "type": "form",
           "organismName": "CreateOrder",
           "titleKey": "posWorkspace.organism.createOrder.title",
-          "purpose": "Lançar pedido no POS",
+          "purpose": "Lançar pedido no POS com itens e prioridade.",
           "userActions": [
             "createOrder"
           ],
@@ -194,49 +194,72 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int-create-order-type",
+              "id": "int-20",
               "intent": "commandForm",
-              "order": 10
-            },
-            {
-              "id": "int-create-order-items",
-              "intent": "commandForm",
-              "order": 20
-            },
-            {
-              "id": "int-create-order-priority",
-              "intent": "commandForm",
-              "order": 30
-            },
-            {
-              "id": "int-create-order-summary",
-              "intent": "summary",
-              "order": 40
-            },
-            {
-              "id": "int-create-order-submit",
-              "intent": "actionList",
               "submitAction": "createOrder",
-              "order": 50
+              "order": 10
             }
           ]
         }
       ]
     },
     {
-      "id": "sec-deliver-order",
+      "id": "sec-30",
       "type": "section",
-      "sectionName": "entregarPedido",
-      "titleKey": "posWorkspace.section.deliverOrder.title",
-      "mode": "edit",
+      "sectionName": "reviewSummary",
+      "titleKey": "posWorkspace.section.review.title",
+      "mode": "view",
       "order": 30,
       "organisms": [
         {
-          "id": "org-deliver-order",
-          "type": "organism",
+          "id": "org-30",
+          "type": "summary",
+          "organismName": "OrderReview",
+          "titleKey": "posWorkspace.organism.review.title",
+          "purpose": "Revisar resumo e alertas do pedido lançado.",
+          "userActions": [],
+          "requiredEntities": [
+            "Order",
+            "StockLevel"
+          ],
+          "readsFields": [
+            "orderId",
+            "status",
+            "orderType",
+            "tableNumber",
+            "priority",
+            "priorityReason",
+            "createdAt"
+          ],
+          "writesFields": [],
+          "rulesApplied": [
+            "stockDecrementOnOrderLaunch"
+          ],
+          "order": 10,
+          "intentionRefs": [
+            {
+              "id": "int-30",
+              "intent": "summary",
+              "order": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-40",
+      "type": "section",
+      "sectionName": "deliverOrder",
+      "titleKey": "posWorkspace.section.deliver.title",
+      "mode": "edit",
+      "order": 40,
+      "organisms": [
+        {
+          "id": "org-40",
+          "type": "form",
           "organismName": "DeliverOrder",
-          "titleKey": "posWorkspace.organism.deliverOrder.title",
-          "purpose": "Entregar pedido ao cliente",
+          "titleKey": "posWorkspace.organism.deliver.title",
+          "purpose": "Confirmar entrega do pedido pronto ao cliente.",
           "userActions": [
             "deliverOrder"
           ],
@@ -246,8 +269,6 @@ export const definition = {
           "readsFields": [
             "orderId",
             "status",
-            "orderType",
-            "tableNumber",
             "readyAt"
           ],
           "writesFields": [
@@ -261,15 +282,10 @@ export const definition = {
           "order": 10,
           "intentionRefs": [
             {
-              "id": "int-deliver-order-summary",
-              "intent": "summary",
-              "order": 10
-            },
-            {
-              "id": "int-deliver-order-submit",
-              "intent": "actionList",
+              "id": "int-40",
+              "intent": "commandForm",
               "submitAction": "deliverOrder",
-              "order": 20
+              "order": 10
             }
           ]
         }
@@ -277,23 +293,23 @@ export const definition = {
     }
   ],
   "layout": {
-    "id": "page11",
+    "id": "posWorkspace.page11",
     "type": "page",
     "sections": [
       {
-        "id": "sec-order-board",
+        "id": "sec-10",
         "type": "section",
-        "sectionName": "painelPedidos",
+        "sectionName": "orderBoard",
         "titleKey": "posWorkspace.section.orderBoard.title",
         "mode": "view",
         "order": 10,
         "organisms": [
           {
-            "id": "org-view-order-board",
-            "type": "organism",
-            "organismName": "ViewOrderBoard",
-            "titleKey": "posWorkspace.organism.viewOrderBoard.title",
-            "purpose": "Visualizar painel de pedidos",
+            "id": "org-10",
+            "type": "list",
+            "organismName": "OrderBoardCards",
+            "titleKey": "posWorkspace.organism.orderBoard.title",
+            "purpose": "Visualizar painel de pedidos do turno atual em cartões.",
             "userActions": [
               "viewOrderBoard"
             ],
@@ -322,17 +338,16 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int-order-board-query",
+                "id": "int-10",
                 "intent": "queryList",
                 "order": 10,
-                "titleKey": "posWorkspace.intent.orderBoard.query.title",
+                "titleKey": "posWorkspace.intent.orderBoardCards.title",
                 "binding": "viewOrderBoard",
                 "action": "viewOrderBoard",
-                "displayHint": "cardList",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-order-id",
+                    "id": "col-10",
                     "field": "orderId",
                     "labelKey": "posWorkspace.field.orderId",
                     "order": 10,
@@ -340,7 +355,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-status",
+                    "id": "col-20",
                     "field": "status",
                     "labelKey": "posWorkspace.field.status",
                     "order": 20,
@@ -348,7 +363,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-order-type",
+                    "id": "col-30",
                     "field": "orderType",
                     "labelKey": "posWorkspace.field.orderType",
                     "order": 30,
@@ -356,7 +371,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-table-number",
+                    "id": "col-40",
                     "field": "tableNumber",
                     "labelKey": "posWorkspace.field.tableNumber",
                     "order": 40,
@@ -364,7 +379,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-priority",
+                    "id": "col-50",
                     "field": "priority",
                     "labelKey": "posWorkspace.field.priority",
                     "order": 50,
@@ -372,7 +387,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-ready-at",
+                    "id": "col-60",
                     "field": "readyAt",
                     "labelKey": "posWorkspace.field.readyAt",
                     "order": 60,
@@ -380,7 +395,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col-created-at",
+                    "id": "col-70",
                     "field": "createdAt",
                     "labelKey": "posWorkspace.field.createdAt",
                     "order": 70,
@@ -391,7 +406,7 @@ export const definition = {
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb-refresh-board",
+                    "id": "tb-10",
                     "action": "viewOrderBoard",
                     "labelKey": "posWorkspace.action.refreshBoard",
                     "order": 10,
@@ -408,19 +423,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-create-order",
+        "id": "sec-20",
         "type": "section",
-        "sectionName": "lancarPedido",
+        "sectionName": "createOrder",
         "titleKey": "posWorkspace.section.createOrder.title",
         "mode": "edit",
         "order": 20,
         "organisms": [
           {
-            "id": "org-create-order",
-            "type": "organism",
+            "id": "org-20",
+            "type": "form",
             "organismName": "CreateOrder",
             "titleKey": "posWorkspace.organism.createOrder.title",
-            "purpose": "Lançar pedido no POS",
+            "purpose": "Lançar pedido no POS com itens e prioridade.",
             "userActions": [
               "createOrder"
             ],
@@ -454,15 +469,15 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int-create-order-type",
+                "id": "int-20",
                 "intent": "commandForm",
                 "order": 10,
-                "titleKey": "posWorkspace.intent.createOrder.type.title",
+                "titleKey": "posWorkspace.intent.createOrder.details",
                 "binding": "createOrder",
-                "displayHint": "step",
+                "submitAction": "createOrder",
                 "fields": [
                   {
-                    "id": "fld-order-type",
+                    "id": "fld-10",
                     "field": "orderType",
                     "labelKey": "posWorkspace.field.orderType",
                     "order": 10,
@@ -471,67 +486,37 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.input.createOrder.orderType"
                   },
                   {
-                    "id": "fld-table-number",
+                    "id": "fld-20",
                     "field": "tableNumber",
                     "labelKey": "posWorkspace.field.tableNumber",
                     "order": 20,
                     "required": false,
                     "inputType": "text",
                     "stateKey": "ui.posWorkspace.input.createOrder.tableNumber"
-                  }
-                ],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": []
-              },
-              {
-                "id": "int-create-order-items",
-                "intent": "commandForm",
-                "order": 20,
-                "titleKey": "posWorkspace.intent.createOrder.items.title",
-                "binding": "createOrder",
-                "displayHint": "repeatable",
-                "fields": [
+                  },
                   {
-                    "id": "fld-order-items",
+                    "id": "fld-30",
                     "field": "orderItems",
                     "labelKey": "posWorkspace.field.orderItems",
-                    "order": 10,
+                    "order": 30,
                     "required": true,
                     "inputType": "repeatable",
                     "stateKey": "ui.posWorkspace.input.createOrder.orderItems"
-                  }
-                ],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": []
-              },
-              {
-                "id": "int-create-order-priority",
-                "intent": "commandForm",
-                "order": 30,
-                "titleKey": "posWorkspace.intent.createOrder.priority.title",
-                "binding": "createOrder",
-                "displayHint": "step",
-                "fields": [
+                  },
                   {
-                    "id": "fld-priority",
+                    "id": "fld-40",
                     "field": "priority",
                     "labelKey": "posWorkspace.field.priority",
-                    "order": 10,
+                    "order": 40,
                     "required": false,
                     "inputType": "checkbox",
                     "stateKey": "ui.posWorkspace.input.createOrder.priority"
                   },
                   {
-                    "id": "fld-priority-reason",
+                    "id": "fld-50",
                     "field": "priorityReason",
                     "labelKey": "posWorkspace.field.priorityReason",
-                    "order": 20,
+                    "order": 50,
                     "required": false,
                     "inputType": "text",
                     "stateKey": "ui.posWorkspace.input.createOrder.priorityReason"
@@ -541,38 +526,9 @@ export const definition = {
                 "filters": [],
                 "toolbar": [],
                 "rowActions": [],
-                "actions": []
-              },
-              {
-                "id": "int-create-order-summary",
-                "intent": "summary",
-                "order": 40,
-                "titleKey": "posWorkspace.intent.createOrder.summary.title",
-                "binding": "createOrder",
-                "displayHint": "review",
-                "fields": [],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": []
-              },
-              {
-                "id": "int-create-order-submit",
-                "intent": "actionList",
-                "order": 50,
-                "titleKey": "posWorkspace.intent.createOrder.submit.title",
-                "binding": "createOrder",
-                "submitAction": "createOrder",
-                "displayHint": "primary",
-                "fields": [],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-create-order",
+                    "id": "act-10",
                     "action": "createOrder",
                     "labelKey": "posWorkspace.action.createOrder",
                     "order": 10,
@@ -586,19 +542,119 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-deliver-order",
+        "id": "sec-30",
         "type": "section",
-        "sectionName": "entregarPedido",
-        "titleKey": "posWorkspace.section.deliverOrder.title",
-        "mode": "edit",
+        "sectionName": "reviewSummary",
+        "titleKey": "posWorkspace.section.review.title",
+        "mode": "view",
         "order": 30,
         "organisms": [
           {
-            "id": "org-deliver-order",
-            "type": "organism",
+            "id": "org-30",
+            "type": "summary",
+            "organismName": "OrderReview",
+            "titleKey": "posWorkspace.organism.review.title",
+            "purpose": "Revisar resumo e alertas do pedido lançado.",
+            "userActions": [],
+            "requiredEntities": [
+              "Order",
+              "StockLevel"
+            ],
+            "readsFields": [
+              "orderId",
+              "status",
+              "orderType",
+              "tableNumber",
+              "priority",
+              "priorityReason",
+              "createdAt"
+            ],
+            "writesFields": [],
+            "rulesApplied": [
+              "stockDecrementOnOrderLaunch"
+            ],
+            "order": 10,
+            "intentions": [
+              {
+                "id": "int-30",
+                "intent": "summary",
+                "order": 10,
+                "titleKey": "posWorkspace.intent.reviewSummary.title",
+                "fields": [
+                  {
+                    "id": "fld-60",
+                    "field": "orderId",
+                    "labelKey": "posWorkspace.field.orderId",
+                    "order": 10,
+                    "required": false
+                  },
+                  {
+                    "id": "fld-70",
+                    "field": "status",
+                    "labelKey": "posWorkspace.field.status",
+                    "order": 20,
+                    "required": false
+                  },
+                  {
+                    "id": "fld-80",
+                    "field": "orderType",
+                    "labelKey": "posWorkspace.field.orderType",
+                    "order": 30,
+                    "required": false
+                  },
+                  {
+                    "id": "fld-90",
+                    "field": "tableNumber",
+                    "labelKey": "posWorkspace.field.tableNumber",
+                    "order": 40,
+                    "required": false
+                  },
+                  {
+                    "id": "fld-100",
+                    "field": "priority",
+                    "labelKey": "posWorkspace.field.priority",
+                    "order": 50,
+                    "required": false
+                  },
+                  {
+                    "id": "fld-110",
+                    "field": "priorityReason",
+                    "labelKey": "posWorkspace.field.priorityReason",
+                    "order": 60,
+                    "required": false
+                  },
+                  {
+                    "id": "fld-120",
+                    "field": "createdAt",
+                    "labelKey": "posWorkspace.field.createdAt",
+                    "order": 70,
+                    "required": false
+                  }
+                ],
+                "columns": [],
+                "filters": [],
+                "toolbar": [],
+                "rowActions": [],
+                "actions": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sec-40",
+        "type": "section",
+        "sectionName": "deliverOrder",
+        "titleKey": "posWorkspace.section.deliver.title",
+        "mode": "edit",
+        "order": 40,
+        "organisms": [
+          {
+            "id": "org-40",
+            "type": "form",
             "organismName": "DeliverOrder",
-            "titleKey": "posWorkspace.organism.deliverOrder.title",
-            "purpose": "Entregar pedido ao cliente",
+            "titleKey": "posWorkspace.organism.deliver.title",
+            "purpose": "Confirmar entrega do pedido pronto ao cliente.",
             "userActions": [
               "deliverOrder"
             ],
@@ -608,8 +664,6 @@ export const definition = {
             "readsFields": [
               "orderId",
               "status",
-              "orderType",
-              "tableNumber",
               "readyAt"
             ],
             "writesFields": [
@@ -623,35 +677,48 @@ export const definition = {
             "order": 10,
             "intentions": [
               {
-                "id": "int-deliver-order-summary",
-                "intent": "summary",
+                "id": "int-40",
+                "intent": "commandForm",
                 "order": 10,
-                "titleKey": "posWorkspace.intent.deliverOrder.summary.title",
-                "binding": "deliverOrder",
-                "displayHint": "selectedItem",
-                "fields": [],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": []
-              },
-              {
-                "id": "int-deliver-order-submit",
-                "intent": "actionList",
-                "order": 20,
-                "titleKey": "posWorkspace.intent.deliverOrder.submit.title",
+                "titleKey": "posWorkspace.intent.deliverOrder.title",
                 "binding": "deliverOrder",
                 "submitAction": "deliverOrder",
-                "displayHint": "primary",
-                "fields": [],
+                "fields": [
+                  {
+                    "id": "fld-130",
+                    "field": "orderId",
+                    "labelKey": "posWorkspace.field.orderId",
+                    "order": 10,
+                    "required": false,
+                    "inputType": "text",
+                    "stateKey": "ui.posWorkspace.layout.fld-130"
+                  },
+                  {
+                    "id": "fld-140",
+                    "field": "status",
+                    "labelKey": "posWorkspace.field.status",
+                    "order": 20,
+                    "required": false,
+                    "inputType": "text",
+                    "stateKey": "ui.posWorkspace.layout.fld-140"
+                  },
+                  {
+                    "id": "fld-150",
+                    "field": "readyAt",
+                    "labelKey": "posWorkspace.field.readyAt",
+                    "order": 30,
+                    "required": false,
+                    "inputType": "datetime",
+                    "stateKey": "ui.posWorkspace.layout.fld-150"
+                  }
+                ],
                 "columns": [],
                 "filters": [],
                 "toolbar": [],
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-deliver-order",
+                    "id": "act-20",
                     "action": "deliverOrder",
                     "labelKey": "posWorkspace.action.deliverOrder",
                     "order": 10,
@@ -668,18 +735,20 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "db-view-order-board",
+      "id": "bind-10",
       "source": "bff",
+      "entity": "Order",
       "command": "viewOrderBoard",
-      "description": "Carregar painel de pedidos do turno atual",
+      "description": "Carrega fila de pedidos do turno atual",
       "stateKey": "ui.posWorkspace.data.viewOrderBoard",
       "inputStateKeys": []
     },
     {
-      "id": "db-create-order",
+      "id": "bind-20",
       "source": "bff",
+      "entity": "Order",
       "command": "createOrder",
-      "description": "Lançar pedido no POS",
+      "description": "Cria novo pedido no POS",
       "stateKey": "ui.posWorkspace.output.createOrder",
       "inputStateKeys": [
         "ui.posWorkspace.input.createOrder.orderType",
@@ -690,10 +759,11 @@ export const definition = {
       ]
     },
     {
-      "id": "db-deliver-order",
+      "id": "bind-30",
       "source": "bff",
+      "entity": "Order",
       "command": "deliverOrder",
-      "description": "Registrar entrega do pedido",
+      "description": "Confirma entrega do pedido",
       "stateKey": "ui.posWorkspace.output.deliverOrder",
       "inputStateKeys": []
     }
@@ -710,7 +780,8 @@ export const pipeline = [
       "_102051_/l2/cafeFlow/web/shared/posWorkspace.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/posWorkspace.ts",
       "_102051_/l2/cafeFlow/web/contracts/posWorkspace.defs.ts",
-      "_102051_/l2/cafeFlow/web/contracts/posWorkspace.ts"
+      "_102051_/l2/cafeFlow/web/contracts/posWorkspace.ts",
+      "_102051_/l2/designSystem.ts"
     ],
     "dependsOn": [
       "posWorkspace__l2_shared"

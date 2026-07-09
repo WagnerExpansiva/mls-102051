@@ -76,7 +76,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/menuManagement.defs.ts",
-    "layoutId": "page11"
+    "layoutId": "menuManagement.page11"
   },
   "states": [
     {
@@ -231,26 +231,20 @@ export const definition = {
       "defaultValue": null
     },
     {
-      "stateKey": "ui.menuManagement.layout.fld-activatedAt",
-      "name": "LayoutFldActivatedAt",
+      "stateKey": "ui.menuManagement.layout.ws20_activatedAt",
+      "name": "LayoutWs20ActivatedAt",
       "kind": "layoutState",
       "defaultValue": ""
     },
     {
-      "stateKey": "ui.menuManagement.layout.fld-inactivatedAt",
-      "name": "LayoutFldInactivatedAt",
+      "stateKey": "ui.menuManagement.layout.ws30_inactivatedAt",
+      "name": "LayoutWs30InactivatedAt",
       "kind": "layoutState",
       "defaultValue": ""
     },
     {
-      "stateKey": "ui.menuManagement.layout.fld-updatedAt",
-      "name": "LayoutFldUpdatedAt",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.menuManagement.layout.fld-createdAt",
-      "name": "LayoutFldCreatedAt",
+      "stateKey": "ui.menuManagement.layout.r50_updatedAt",
+      "name": "LayoutR50UpdatedAt",
       "kind": "layoutState",
       "defaultValue": ""
     }
@@ -379,47 +373,38 @@ export const definition = {
     ]
   },
   "i18n": {
-    "page.title": "Gestão de cardápio",
-    "section.queue": "Fila de itens do cardápio",
-    "section.details": "Detalhes do item",
-    "section.context": "Empresa ativa",
-    "org.browse.title": "Consultar itens do cardápio",
-    "org.manage.title": "Gerenciar item do cardápio",
-    "intent.queue.list.title": "Itens do cardápio",
-    "intent.queue.filters.title": "Filtros",
-    "intent.context.badge.title": "Contexto da empresa",
-    "intent.manage.form.title": "Dados do item",
-    "intent.manage.status.title": "Status e disponibilidade",
-    "intent.manage.summary.title": "Resumo do item",
-    "field.statusFilter": "Status",
-    "field.menuCategoryIdFilter": "Categoria",
-    "column.name": "Nome",
-    "column.menuCategoryId": "Categoria",
-    "column.price": "Preço",
-    "column.itemType": "Tipo",
-    "column.status": "Status",
-    "column.updatedAt": "Atualizado em",
-    "action.browseMenuItems": "Atualizar lista",
-    "field.name": "Nome",
-    "field.description": "Descrição",
-    "field.menuCategoryId": "Categoria",
-    "field.price": "Preço de venda",
-    "field.itemType": "Tipo do item",
-    "field.status": "Status",
-    "field.activatedAt": "Ativado em",
-    "field.inactivatedAt": "Inativado em",
-    "field.updatedAt": "Atualizado em",
-    "field.createdAt": "Criado em",
-    "action.manageMenuItem": "Salvar alterações",
-    "empty.queue": "Nenhum item de cardápio encontrado",
-    "section.board": "Pipeline de itens do cardápio",
-    "intent.board.title": "Itens por status",
-    "intent.board.filters.title": "Filtros",
-    "empty.board": "Nenhum item nesta coluna",
-    "section.cards": "Itens do cardápio",
-    "intent.cards.list.title": "Lista de itens",
-    "intent.cards.filters.title": "Filtros",
-    "empty.cards": "Nenhum item encontrado"
+    "menuManagement.queue.title": "Fila de itens do cardápio",
+    "menuManagement.queue.list.title": "Itens do cardápio",
+    "menuManagement.queue.query.title": "Lista de itens",
+    "menuManagement.queue.summary.title": "Resumo do item selecionado",
+    "menuManagement.detail.title": "Detalhes do item",
+    "menuManagement.detail.form.title": "Atualizar item do cardápio",
+    "menuManagement.detail.status.title": "Status atual",
+    "menuManagement.detail.edit.title": "Editar item",
+    "menuManagement.detail.review.title": "Revisão das alterações",
+    "menuManagement.context.title": "Empresa ativa",
+    "menuManagement.menuItem.name": "Nome",
+    "menuManagement.menuItem.description": "Descrição",
+    "menuManagement.menuItem.menuCategoryId": "Categoria",
+    "menuManagement.menuItem.price": "Preço",
+    "menuManagement.menuItem.itemType": "Tipo",
+    "menuManagement.menuItem.status": "Status",
+    "menuManagement.menuItem.activatedAt": "Ativado em",
+    "menuManagement.menuItem.inactivatedAt": "Inativado em",
+    "menuManagement.menuItem.updatedAt": "Atualizado em",
+    "menuManagement.filter.status": "Status",
+    "menuManagement.filter.menuCategory": "Categoria",
+    "menuManagement.action.refresh": "Atualizar lista",
+    "menuManagement.action.manage": "Gerenciar item",
+    "menuManagement.action.save": "Salvar alterações",
+    "menuManagement.board.title": "Pipeline de status",
+    "menuManagement.board.lanes.title": "Itens por status",
+    "menuManagement.board.query.title": "Cartões do cardápio",
+    "menuManagement.board.summary.title": "Resumo do cartão",
+    "menuManagement.cards.title": "Cartões de itens do cardápio",
+    "menuManagement.cards.list.title": "Itens do cardápio",
+    "menuManagement.cards.query.title": "Cartões do cardápio",
+    "menuManagement.cards.summary.title": "Resumo do cartão"
   },
   "automation": {
     "statePrefix": "ui.menuManagement",
@@ -438,10 +423,9 @@ export const definition = {
       "ui.menuManagement.input.manageMenuItem.status",
       "ui.menuManagement.businessContext.activeCompanyId",
       "ui.menuManagement.output.manageMenuItem",
-      "ui.menuManagement.layout.fld-activatedAt",
-      "ui.menuManagement.layout.fld-inactivatedAt",
-      "ui.menuManagement.layout.fld-updatedAt",
-      "ui.menuManagement.layout.fld-createdAt"
+      "ui.menuManagement.layout.ws20_activatedAt",
+      "ui.menuManagement.layout.ws30_inactivatedAt",
+      "ui.menuManagement.layout.r50_updatedAt"
     ],
     "actionIds": [
       "browseMenuItems",

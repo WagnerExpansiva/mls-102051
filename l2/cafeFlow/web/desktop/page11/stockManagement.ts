@@ -6,205 +6,281 @@ import { CafeFlowStockManagementBase } from '/_102051_/l2/cafeFlow/web/shared/st
 
 @customElement('cafe-flow--web--desktop--page11--stock-management-102051')
 export class CafeFlowDesktopPage11StockManagementPage extends CafeFlowStockManagementBase {
-  render() {
-    const m = this.msg;
+  render(): unknown {
     const items = this.browseStockItemsData?.items ?? [];
-    const browseLoading = this.browseStockItemsState === 'loading';
-    const manageLoading = this.manageStockItemState === 'loading';
+    const total = this.browseStockItemsData?.total ?? 0;
 
     return html`
-      <div class="min-h-full bg-slate-50 dark:bg-slate-950">
+      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
           <!-- Page header -->
           <header class="space-y-1">
-            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
-              ${m['stockManagement.section.main.title'] ?? ''}
+            <h1 class="text-2xl font-bold text-[var(--text-primary-color,#0f172a)]">
+              ${this.msg['stockManagement.section.workspace.title']}
             </h1>
           </header>
 
-          <!-- Section: Gestão de estoque e alertas -->
+          <!-- Section: workspace -->
           <section class="space-y-6">
-            <!-- Organism: BrowseStockItems -->
-            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
-                <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-200">
-                  ${m['stockManagement.organism.browseStockItems.title'] ?? ''}
+            <!-- Organism: StockList (queryList) -->
+            <div class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] shadow-sm">
+              <div class="px-5 py-4 border-b border-[var(--grey-color,#e2e8f0)]">
+                <h2 class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]">
+                  ${this.msg['stockManagement.organism.stockList.title']}
                 </h2>
+                <p class="text-sm text-[var(--text-primary-color-lighter,#64748b)] mt-1">
+                  ${this.msg['stockManagement.intent.stockList.title']}
+                </p>
               </div>
 
-              <div class="p-5 space-y-4">
-                <!-- Intention: queryList -->
-                <div class="space-y-3">
-                  <h3 class="text-sm font-medium text-slate-600 dark:text-slate-300">
-                    ${m['stockManagement.intentions.browseStockItems.queryList.title'] ?? ''}
-                  </h3>
-
-                  <!-- Filters + toolbar -->
-                  <div class="flex flex-wrap items-end gap-3">
-                    <div class="flex-1 min-w-[200px]">
-                      <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                        ${m['stockManagement.filters.searchTerm'] ?? ''}
-                      </label>
-                      <input
-                        type="text"
-                        .value="${this.browseStockItemsSearchTerm}"
-                        @input="${(e: Event) => this.handleBrowseStockItemsSearchTermChange(e)}"
-                        class="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="${m['stockManagement.filters.searchTerm'] ?? ''}"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      ?disabled="${browseLoading}"
-                      @click="${() => this.handleBrowseStockItemsClick()}"
-                      class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      ${browseLoading ? '...' : (m['stockManagement.actions.browseStockItems'] ?? '')}
-                    </button>
-                  </div>
-
-                  <!-- Table -->
-                  <div class="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-800">
-                    <table class="w-full text-sm">
-                      <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                        <tr>
-                          <th class="px-4 py-2 text-left font-medium">${m['stockManagement.fields.name'] ?? ''}</th>
-                          <th class="px-4 py-2 text-left font-medium">${m['stockManagement.fields.unit'] ?? ''}</th>
-                          <th class="px-4 py-2 text-left font-medium">${m['stockManagement.fields.minimumLevel'] ?? ''}</th>
-                          <th class="px-4 py-2 text-left font-medium">${m['stockManagement.fields.updatedAt'] ?? ''}</th>
-                          <th class="px-4 py-2 text-left font-medium">${m['stockManagement.fields.createdAt'] ?? ''}</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
-                        ${items.length === 0
-                          ? html`<tr>
-                              <td colspan="5" class="px-4 py-8 text-center text-slate-400 dark:text-slate-500">
-                                ${m['stockManagement.intentions.browseStockItems.queryList.empty'] ?? ''}
-                              </td>
-                            </tr>`
-                          : items.map((item) => {
-                              const isLowStock = false; // Low stock alert would require StockLevel data not available in this query output
-                              return html`<tr class="${isLowStock ? 'bg-amber-50 dark:bg-amber-900/20' : 'bg-white dark:bg-slate-900'}">
-                                <td class="px-4 py-2 text-slate-700 dark:text-slate-200">${item.name}</td>
-                                <td class="px-4 py-2 text-slate-700 dark:text-slate-200">${item.unit}</td>
-                                <td class="px-4 py-2 text-slate-700 dark:text-slate-200">${item.minimumLevel}</td>
-                                <td class="px-4 py-2 text-slate-500 dark:text-slate-400">${item.updatedAt}</td>
-                                <td class="px-4 py-2 text-slate-500 dark:text-slate-400">${item.createdAt}</td>
-                              </tr>`;
-                            })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  ${this.browseStockItemsData?.total !== undefined
-                    ? html`<p class="text-xs text-slate-400 dark:text-slate-500">
-                        ${this.browseStockItemsData.total} ${this.browseStockItemsData.total === 1 ? 'item' : 'itens'}
-                      </p>`
-                    : null}
+              <!-- Toolbar / filters -->
+              <div class="px-5 py-4 flex flex-wrap items-end gap-4 border-b border-[var(--grey-color,#e2e8f0)]">
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >${this.msg['stockManagement.filter.searchTerm.label']}</label
+                  >
+                  <input
+                    type="text"
+                    .value="${this.browseStockItemsSearchTerm}"
+                    @input="${(e: Event) => this.handleBrowseStockItemsSearchTermChange(e)}"
+                    class="px-3 py-2 rounded-md border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] focus:outline-none focus:ring-2 focus:ring-[var(--active-color,#1890ff)]"
+                    placeholder="${this.msg['stockManagement.filter.searchTerm.label']}"
+                  />
                 </div>
+                <button
+                  type="button"
+                  @click="${() => this.handleBrowseStockItemsClick()}"
+                  ?disabled="${this.browseStockItemsState === 'loading'}"
+                  class="px-4 py-2 rounded-md bg-[var(--active-color,#1890ff)] text-white font-medium hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  ${this.browseStockItemsState === 'loading'
+                    ? '…'
+                    : this.msg['stockManagement.action.refreshList']}
+                </button>
               </div>
+
+              <!-- Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-[var(--grey-color,#e2e8f0)] text-left">
+                      <th class="px-5 py-3 font-semibold text-[var(--text-primary-color,#0f172a)]">
+                        ${this.msg['stockManagement.field.name.label']}
+                      </th>
+                      <th class="px-5 py-3 font-semibold text-[var(--text-primary-color,#0f172a)]">
+                        ${this.msg['stockManagement.field.unit.label']}
+                      </th>
+                      <th class="px-5 py-3 font-semibold text-[var(--text-primary-color,#0f172a)]">
+                        ${this.msg['stockManagement.field.minimumLevel.label']}
+                      </th>
+                      <th class="px-5 py-3 font-semibold text-[var(--text-primary-color,#0f172a)]">
+                        ${this.msg['stockManagement.field.updatedAt.label']}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${items.length === 0
+                      ? html`
+                          <tr>
+                            <td
+                              colspan="4"
+                              class="px-5 py-8 text-center text-[var(--text-primary-color-lighter,#64748b)]"
+                            >
+                              ${this.msg['stockManagement.intent.stockList.title']}
+                            </td>
+                          </tr>
+                        `
+                      : items.map(
+                          (item) => html`
+                            <tr
+                              class="border-b border-[var(--grey-color,#e2e8f0)] last:border-0 hover:bg-[var(--bg-primary-color-hover,#f2f2f2)]"
+                            >
+                              <td class="px-5 py-3 text-[var(--text-primary-color,#0f172a)]">
+                                ${item.name}
+                              </td>
+                              <td class="px-5 py-3 text-[var(--text-primary-color,#0f172a)]">
+                                ${item.unit}
+                              </td>
+                              <td class="px-5 py-3 text-[var(--text-primary-color,#0f172a)]">
+                                ${item.minimumLevel}
+                              </td>
+                              <td class="px-5 py-3 text-[var(--text-primary-color-lighter,#64748b)]">
+                                ${item.updatedAt}
+                              </td>
+                            </tr>
+                          `,
+                        )}
+                  </tbody>
+                </table>
+              </div>
+
+              ${total > 0
+                ? html`
+                    <div
+                      class="px-5 py-3 text-sm text-[var(--text-primary-color-lighter,#64748b)] border-t border-[var(--grey-color,#e2e8f0)]"
+                    >
+                      ${total}
+                    </div>
+                  `
+                : null}
             </div>
 
-            <!-- Organism: ManageStockItem -->
-            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
-                <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-200">
-                  ${m['stockManagement.organism.manageStockItem.title'] ?? ''}
+            <!-- Organism: StockItemEditor (commandForm) -->
+            <div
+              class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] shadow-sm"
+            >
+              <div class="px-5 py-4 border-b border-[var(--grey-color,#e2e8f0)]">
+                <h2 class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]">
+                  ${this.msg['stockManagement.organism.stockItemEditor.title']}
                 </h2>
+                <p class="text-sm text-[var(--text-primary-color-lighter,#64748b)] mt-1">
+                  ${this.msg['stockManagement.intent.stockEdit.title']}
+                </p>
               </div>
 
-              <div class="p-5 space-y-6">
-                <!-- Intention: commandForm -->
-                <div class="space-y-4">
-                  <h3 class="text-sm font-medium text-slate-600 dark:text-slate-300">
-                    ${m['stockManagement.intentions.manageStockItem.form.title'] ?? ''}
-                  </h3>
+              <form
+                class="px-5 py-4 space-y-4"
+                @submit="${(e: Event) => {
+                  e.preventDefault();
+                  this.handleManageStockItemClick();
+                }}"
+              >
+                <!-- name -->
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >${this.msg['stockManagement.field.name.label']}</label
+                  >
+                  <input
+                    type="text"
+                    .value="${this.manageStockItemName}"
+                    @input="${(e: Event) => this.handleManageStockItemNameChange(e)}"
+                    class="px-3 py-2 rounded-md border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] focus:outline-none focus:ring-2 focus:ring-[var(--active-color,#1890ff)]"
+                  />
+                </div>
 
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <!-- Field: name -->
-                    <div>
-                      <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                        ${m['stockManagement.fields.name'] ?? ''}<span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        .value="${this.manageStockItemName}"
-                        @input="${(e: Event) => this.handleManageStockItemNameChange(e)}"
-                        class="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+                <!-- unit -->
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >${this.msg['stockManagement.field.unit.label']}</label
+                  >
+                  <select
+                    .value="${this.manageStockItemUnit}"
+                    @change="${(e: Event) => this.handleManageStockItemUnitChange(e)}"
+                    class="px-3 py-2 rounded-md border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] focus:outline-none focus:ring-2 focus:ring-[var(--active-color,#1890ff)]"
+                  >
+                    <option value="" ?selected="${this.manageStockItemUnit === ''}"></option>
+                    <option value="kg" ?selected="${this.manageStockItemUnit === 'kg'}">kg</option>
+                    <option value="liter" ?selected="${this.manageStockItemUnit === 'liter'}">
+                      liter
+                    </option>
+                    <option value="portion" ?selected="${this.manageStockItemUnit === 'portion'}">
+                      portion
+                    </option>
+                    <option value="unit" ?selected="${this.manageStockItemUnit === 'unit'}">
+                      unit
+                    </option>
+                  </select>
+                </div>
 
-                    <!-- Field: unit -->
-                    <div>
-                      <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                        ${m['stockManagement.fields.unit'] ?? ''}<span class="text-red-500">*</span>
-                      </label>
-                      <select
-                        .value="${this.manageStockItemUnit}"
-                        @change="${(e: Event) => this.handleManageStockItemUnitChange(e)}"
-                        class="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="" ?selected="${this.manageStockItemUnit === ''}">--</option>
-                        <option value="kg" ?selected="${this.manageStockItemUnit === 'kg'}">kg</option>
-                        <option value="liter" ?selected="${this.manageStockItemUnit === 'liter'}">liter</option>
-                        <option value="portion" ?selected="${this.manageStockItemUnit === 'portion'}">portion</option>
-                        <option value="unit" ?selected="${this.manageStockItemUnit === 'unit'}">unit</option>
-                      </select>
-                    </div>
+                <!-- minimumLevel -->
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >${this.msg['stockManagement.field.minimumLevel.label']}</label
+                  >
+                  <input
+                    type="number"
+                    .value="${this.manageStockItemMinimumLevel}"
+                    @input="${(e: Event) => this.handleManageStockItemMinimumLevelChange(e)}"
+                    class="px-3 py-2 rounded-md border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] focus:outline-none focus:ring-2 focus:ring-[var(--active-color,#1890ff)]"
+                  />
+                </div>
 
-                    <!-- Field: minimumLevel -->
-                    <div>
-                      <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                        ${m['stockManagement.fields.minimumLevel'] ?? ''}<span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        .value="${this.manageStockItemMinimumLevel}"
-                        @input="${(e: Event) => this.handleManageStockItemMinimumLevelChange(e)}"
-                        class="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
+                <!-- Submit -->
+                <div class="flex items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    ?disabled="${this.manageStockItemState === 'loading'}"
+                    class="px-4 py-2 rounded-md bg-[var(--active-color,#1890ff)] text-white font-medium hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    ${this.manageStockItemState === 'loading'
+                      ? '…'
+                      : this.msg['stockManagement.action.save']}
+                  </button>
+                  ${this.manageStockItemState === 'error'
+                    ? html`<span class="text-sm text-[var(--error-color,#FF4D4F)]">⚠</span>`
+                    : null}
+                  ${this.manageStockItemState === 'success'
+                    ? html`<span class="text-sm text-[var(--success-color,#52C41A)]">✓</span>`
+                    : null}
+                </div>
+              </form>
+            </div>
 
-                  <!-- Action: submit -->
-                  <div class="flex justify-end">
-                    <button
-                      type="button"
-                      ?disabled="${manageLoading}"
-                      @click="${() => this.handleManageStockItemClick()}"
-                      class="px-5 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            <!-- Organism: StockSummary (summary) -->
+            <div
+              class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] shadow-sm"
+            >
+              <div class="px-5 py-4 border-b border-[var(--grey-color,#e2e8f0)]">
+                <h2 class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]">
+                  ${this.msg['stockManagement.organism.stockSummary.title']}
+                </h2>
+                <p class="text-sm text-[var(--text-primary-color-lighter,#64748b)] mt-1">
+                  ${this.msg['stockManagement.intent.stockSummary.title']}
+                </p>
+              </div>
+
+              ${items.length > 0
+                ? html`
+                    <dl class="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+                      <div class="flex flex-col gap-1">
+                        <dt
+                          class="text-sm font-medium text-[var(--text-primary-color-lighter,#64748b)]"
+                        >
+                          ${this.msg['stockManagement.field.name.label']}
+                        </dt>
+                        <dd class="text-sm text-[var(--text-primary-color,#0f172a)]">
+                          ${items[0].name}
+                        </dd>
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <dt
+                          class="text-sm font-medium text-[var(--text-primary-color-lighter,#64748b)]"
+                        >
+                          ${this.msg['stockManagement.field.unit.label']}
+                        </dt>
+                        <dd class="text-sm text-[var(--text-primary-color,#0f172a)]">
+                          ${items[0].unit}
+                        </dd>
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <dt
+                          class="text-sm font-medium text-[var(--text-primary-color-lighter,#64748b)]"
+                        >
+                          ${this.msg['stockManagement.field.minimumLevel.label']}
+                        </dt>
+                        <dd class="text-sm text-[var(--text-primary-color,#0f172a)]">
+                          ${items[0].minimumLevel}
+                        </dd>
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <dt
+                          class="text-sm font-medium text-[var(--text-primary-color-lighter,#64748b)]"
+                        >
+                          ${this.msg['stockManagement.field.updatedAt.label']}
+                        </dt>
+                        <dd class="text-sm text-[var(--text-primary-color-lighter,#64748b)]">
+                          ${items[0].updatedAt}
+                        </dd>
+                      </div>
+                    </dl>
+                  `
+                : html`
+                    <div
+                      class="px-5 py-8 text-center text-sm text-[var(--text-primary-color-lighter,#64748b)]"
                     >
-                      ${manageLoading ? '...' : (m['stockManagement.actions.manageStockItem'] ?? '')}
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Intention: summary -->
-                <div class="space-y-3 border-t border-slate-200 dark:border-slate-800 pt-4">
-                  <h3 class="text-sm font-medium text-slate-600 dark:text-slate-300">
-                    ${m['stockManagement.intentions.manageStockItem.summary.title'] ?? ''}
-                  </h3>
-
-                  <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="flex justify-between px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800/50">
-                      <dt class="text-xs text-slate-500 dark:text-slate-400">${m['stockManagement.fields.name'] ?? ''}</dt>
-                      <dd class="text-sm text-slate-700 dark:text-slate-200">${this.manageStockItemName || '—'}</dd>
+                      ${this.msg['stockManagement.intent.stockSummary.title']}
                     </div>
-                    <div class="flex justify-between px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800/50">
-                      <dt class="text-xs text-slate-500 dark:text-slate-400">${m['stockManagement.fields.unit'] ?? ''}</dt>
-                      <dd class="text-sm text-slate-700 dark:text-slate-200">${this.manageStockItemUnit || '—'}</dd>
-                    </div>
-                    <div class="flex justify-between px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800/50">
-                      <dt class="text-xs text-slate-500 dark:text-slate-400">${m['stockManagement.fields.minimumLevel'] ?? ''}</dt>
-                      <dd class="text-sm text-slate-700 dark:text-slate-200">${this.manageStockItemMinimumLevel || '—'}</dd>
-                    </div>
-                    <div class="flex justify-between px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800/50">
-                      <dt class="text-xs text-slate-500 dark:text-slate-400">${m['stockManagement.fields.updatedAt'] ?? ''}</dt>
-                      <dd class="text-sm text-slate-700 dark:text-slate-200">${this.LayoutSummaryManageStockItemUpdatedAt || '—'}</dd>
-                    </div>
-                  </dl>
-                </div>
-              </div>
+                  `}
             </div>
           </section>
         </div>

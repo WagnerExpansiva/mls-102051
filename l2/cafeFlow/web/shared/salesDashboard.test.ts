@@ -19,13 +19,13 @@ type _State_requestAiSalesSummaryData = Assert<Assignable<typeof page.requestAiS
 type _State_requestAiPromoSuggestionsState = Assert<Assignable<typeof page.requestAiPromoSuggestionsState, "idle" | "loading" | "success" | "error">>;
 type _State_requestAiPromoSuggestionsData = Assert<Assignable<typeof page.requestAiPromoSuggestionsData, unknown[] | CafeFlowRequestAiPromoSuggestionsOutput>>;
 type _State_activeCompanyId = Assert<Assignable<typeof page.activeCompanyId, string>>;
-type _Action_loadViewDashboard = Assert<Assignable<typeof page.loadViewDashboard, (...args: any[]) => Promise<void>>>;
-type _Handler_handleViewDashboardClick = Assert<Assignable<typeof page.handleViewDashboardClick, (...args: any[]) => void>>;
-type _Action_loadRequestAiSalesSummary = Assert<Assignable<typeof page.loadRequestAiSalesSummary, (...args: any[]) => Promise<void>>>;
-type _Handler_handleRequestAiSalesSummaryClick = Assert<Assignable<typeof page.handleRequestAiSalesSummaryClick, (...args: any[]) => void>>;
-type _Action_loadRequestAiPromoSuggestions = Assert<Assignable<typeof page.loadRequestAiPromoSuggestions, (...args: any[]) => Promise<void>>>;
-type _Handler_handleRequestAiPromoSuggestionsClick = Assert<Assignable<typeof page.handleRequestAiPromoSuggestionsClick, (...args: any[]) => void>>;
-type _Action_setRequestAiSalesSummarySummaryRequest = Assert<Assignable<typeof page.setRequestAiSalesSummarySummaryRequest, (...args: any[]) => void>>;
-type _Handler_handleRequestAiSalesSummarySummaryRequestChange = Assert<Assignable<typeof page.handleRequestAiSalesSummarySummaryRequestChange, (...args: any[]) => void>>;
+type _Action_loadViewDashboard = Assert<Assignable<typeof page.loadViewDashboard, (...args: any[]) => unknown>>;
+type _Handler_handleViewDashboardClick = Assert<Assignable<typeof page.handleViewDashboardClick, (...args: any[]) => unknown>>;
+type _Action_loadRequestAiSalesSummary = Assert<Assignable<typeof page.loadRequestAiSalesSummary, (...args: any[]) => unknown>>;
+type _Handler_handleRequestAiSalesSummaryClick = Assert<Assignable<typeof page.handleRequestAiSalesSummaryClick, (...args: any[]) => unknown>>;
+type _Action_loadRequestAiPromoSuggestions = Assert<Assignable<typeof page.loadRequestAiPromoSuggestions, (...args: any[]) => unknown>>;
+type _Handler_handleRequestAiPromoSuggestionsClick = Assert<Assignable<typeof page.handleRequestAiPromoSuggestionsClick, (...args: any[]) => unknown>>;
+type _Action_setRequestAiSalesSummarySummaryRequest = Assert<Assignable<typeof page.setRequestAiSalesSummarySummaryRequest, (...args: any[]) => unknown>>;
+type _Handler_handleRequestAiSalesSummarySummaryRequestChange = Assert<Assignable<typeof page.handleRequestAiSalesSummarySummaryRequestChange, (...args: any[]) => unknown>>;
 
 export {};

@@ -76,7 +76,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.defs.ts",
-    "layoutId": "page11"
+    "layoutId": "kitchenQueue.page11"
   },
   "states": [
     {
@@ -202,11 +202,15 @@ export const definition = {
     ]
   },
   "i18n": {
-    "kitchenQueue.section.queue.title": "Fila da cozinha",
-    "kitchenQueue.queueCards.title": "Fila de pedidos da cozinha",
-    "kitchenQueue.queueCards.list.title": "Pedidos em fila",
-    "kitchenQueue.queueCards.transition.title": "Atualizar status do pedido",
-    "kitchenQueue.queueCards.summary.title": "Resumo do pedido selecionado",
+    "kitchenQueue.section.board.title": "Fila da cozinha",
+    "kitchenQueue.organism.board.title": "Painel da cozinha",
+    "kitchenQueue.intent.board.list.title": "Pedidos por status",
+    "kitchenQueue.section.transition.title": "Transição de status",
+    "kitchenQueue.organism.update.title": "Atualizar status do pedido",
+    "kitchenQueue.intent.update.title": "Avançar status do pedido",
+    "kitchenQueue.section.summary.title": "Resumo do pedido",
+    "kitchenQueue.organism.summary.title": "Resumo do pedido selecionado",
+    "kitchenQueue.intent.summary.title": "Detalhes do pedido",
     "kitchenQueue.field.orderId": "Pedido",
     "kitchenQueue.field.status": "Status",
     "kitchenQueue.field.orderType": "Tipo",
@@ -215,17 +219,17 @@ export const definition = {
     "kitchenQueue.field.priorityReason": "Motivo da prioridade",
     "kitchenQueue.field.receivedAt": "Recebido em",
     "kitchenQueue.field.inPreparationAt": "Em preparo desde",
-    "kitchenQueue.field.createdAt": "Criado em",
-    "kitchenQueue.action.startOrFinish": "Atualizar status",
-    "kitchenQueue.action.updateStatus": "Confirmar status",
-    "kitchenQueue.workflowQueue.title": "Fila operacional por status",
-    "kitchenQueue.workflowQueue.list.title": "Fila ativa",
-    "kitchenQueue.workflowQueue.transition.title": "Transição de status",
-    "kitchenQueue.workflowQueue.summary.title": "Detalhes do pedido",
-    "kitchenQueue.kanbanBoard.title": "Pipeline de preparo",
-    "kitchenQueue.kanbanBoard.lanes.title": "Pedidos por status",
-    "kitchenQueue.kanbanBoard.transition.title": "Mover pedido de status",
-    "kitchenQueue.kanbanBoard.summary.title": "Resumo do pedido"
+    "kitchenQueue.action.markInPreparation": "Iniciar preparo",
+    "kitchenQueue.action.markReady": "Marcar como pronto",
+    "kitchenQueue.section.cards.title": "Fila em cartões",
+    "kitchenQueue.organism.cards.title": "Pedidos da cozinha",
+    "kitchenQueue.intent.cards.list.title": "Pedidos do turno",
+    "kitchenQueue.section.actions.title": "Ações do pedido",
+    "kitchenQueue.organism.actions.title": "Atualizar status",
+    "kitchenQueue.intent.card.update.title": "Avançar status",
+    "kitchenQueue.section.queue.title": "Fila de trabalho",
+    "kitchenQueue.organism.queue.title": "Pedidos em fila",
+    "kitchenQueue.intent.queue.list.title": "Fila atual"
   },
   "automation": {
     "statePrefix": "ui.kitchenQueue",

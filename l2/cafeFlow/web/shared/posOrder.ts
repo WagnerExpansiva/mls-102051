@@ -4,7 +4,7 @@ import { CollabLitElement } from '/_102029_/l2/collabLitElement.js';
 import { property } from 'lit/decorators.js';
 import { execBff, type BffClientOptions } from '/_102029_/l2/bffClient.js';
 import { runBlockingUiAction } from '/_102029_/l2/interactionRuntime.js';
-import { getState, setState, subscribe, unsubscribe } from '/_102029_/l2/collabState.js';  
+import { getState, setState, subscribe, unsubscribe } from '/_102029_/l2/collabState.js';
 import type {
   CafeFlowCreateOrderInput,
   CafeFlowCreateOrderOutput,
@@ -44,59 +44,51 @@ const messages: { [key: string]: MessageType } = { pt: message_pt };
 /// **collab_i18n_end**
 
 export class CafeFlowPosOrderBase extends CollabLitElement {
-  @property({ type: String }) status: string = "";
+
+  @property({ type: String }) status: string = '';
 
   @property({ type: String }) createOrderState: "idle" | "loading" | "success" | "error" = "idle";
-  @property({ type: String }) createOrderOrderType: string = "";
-  @property({ type: String }) createOrderTableNumber: string = "";
-  @property({ type: String }) createOrderPriority: string = "";
-  @property({ type: String }) createOrderPriorityReason: string = "";
+
+  @property({ type: String }) createOrderOrderType: string = '';
+
+  @property({ type: String }) createOrderTableNumber: string = '';
+
+  @property({ type: String }) createOrderPriority: string = '';
+
+  @property({ type: String }) createOrderPriorityReason: string = '';
 
   @property({ type: String }) viewOrderBoardState: "idle" | "loading" | "success" | "error" = "idle";
-  @property({ type: String }) viewOrderBoardStatusFilter: string = "";
+
+  @property({ type: String }) viewOrderBoardStatusFilter: string = '';
+
   @property({ type: Object }) viewOrderBoardData: CafeFlowViewOrderBoardOutput = { items: [], total: 0 };
 
   @property({ type: String }) deliverOrderState: "idle" | "loading" | "success" | "error" = "idle";
 
-  @property({ type: String }) activeCompanyId: string = "";
+  @property({ type: String }) activeCompanyId: string = '';
 
-  @property({ type: String }) LayoutFieldCreateOrderOrderId: string = "";
-  @property({ type: String }) LayoutFieldCreateOrderStatus: string = "";
-  @property({ type: String }) LayoutFieldCreateOrderCreatedAt: string = "";
-  @property({ type: String }) LayoutFieldDeliverOrderOrderId: string = "";
-  @property({ type: String }) LayoutFieldDeliverOrderStatus: string = "";
-  @property({ type: String }) LayoutFieldDeliverOrderDeliveredAt: string = "";
-  @property({ type: String }) LayoutFieldDeliverOrderOrderType: string = "";
-  @property({ type: String }) LayoutFieldDeliverOrderTableNumber: string = "";
+  @property({ type: String }) LayoutFieldCreateOrderOrderId: string = '';
+  @property({ type: String }) LayoutFieldCreateOrderStatus: string = '';
+  @property({ type: String }) LayoutFieldCreateOrderCreatedAt: string = '';
+
+  @property({ type: String }) LayoutFieldDeliverOrderOrderId: string = '';
+  @property({ type: String }) LayoutFieldDeliverOrderStatus: string = '';
+  @property({ type: String }) LayoutFieldDeliverOrderDeliveredAt: string = '';
+  @property({ type: String }) LayoutFieldDeliverOrderOrderType: string = '';
+  @property({ type: String }) LayoutFieldDeliverOrderTableNumber: string = '';
+
+  private subscribedKeys: string[] = [];
 
   protected get msg(): MessageType {
     const lang: string = this.getMessageKey(messages);
     return messages[lang] || message_pt;
   }
 
-  connectedCallback(): void {
-    super.connectedCallback();
-
-    const savedCompanyId = getState("ui.posOrder.businessContext.activeCompanyId") as string | undefined;
-    if (savedCompanyId) {
-      this.activeCompanyId = savedCompanyId;
-    }
-
-    subscribe("ui.posOrder.businessContext.activeCompanyId", this);
-
-    this.loadViewOrderBoard();
-  }
-
-  disconnectedCallback(): void {
-    unsubscribe("ui.posOrder.businessContext.activeCompanyId", this);
-    super.disconnectedCallback();
-  }
-
-  // --- State setters ---
+  // ── State setters ──────────────────────────────────────────────
 
   setCreateOrderOrderType(value: string): void {
     this.createOrderOrderType = value;
-    setState("ui.posOrder.input.createOrder.orderType", value);
+    setState('ui.posOrder.input.createOrder.orderType', value);
     this.requestUpdate();
   }
 
@@ -107,43 +99,40 @@ export class CafeFlowPosOrderBase extends CollabLitElement {
 
   setCreateOrderTableNumber(value: string): void {
     this.createOrderTableNumber = value;
-    setState("ui.posOrder.input.createOrder.tableNumber", value);
+    setState('ui.posOrder.input.createOrder.tableNumber', value);
     this.requestUpdate();
   }
 
   handleCreateOrderTableNumberChange(e: Event): void {
-    const target = e.target as HTMLInputElement;
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
     this.setCreateOrderTableNumber(target.value);
   }
 
   setCreateOrderPriority(value: string): void {
     this.createOrderPriority = value;
-    setState("ui.posOrder.input.createOrder.priority", value);
+    setState('ui.posOrder.input.createOrder.priority', value);
     this.requestUpdate();
   }
 
   handleCreateOrderPriorityChange(e: Event): void {
-    const target = e.target as HTMLInputElement;
-    const value = target.type === "checkbox"
-      ? (target.checked ? "true" : "false")
-      : target.value;
-    this.setCreateOrderPriority(value);
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    this.setCreateOrderPriority(target.value);
   }
 
   setCreateOrderPriorityReason(value: string): void {
     this.createOrderPriorityReason = value;
-    setState("ui.posOrder.input.createOrder.priorityReason", value);
+    setState('ui.posOrder.input.createOrder.priorityReason', value);
     this.requestUpdate();
   }
 
   handleCreateOrderPriorityReasonChange(e: Event): void {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
     this.setCreateOrderPriorityReason(target.value);
   }
 
   setViewOrderBoardStatusFilter(value: string): void {
     this.viewOrderBoardStatusFilter = value;
-    setState("ui.posOrder.input.viewOrderBoard.statusFilter", value);
+    setState('ui.posOrder.input.viewOrderBoard.statusFilter', value);
     this.requestUpdate();
   }
 
@@ -152,135 +141,155 @@ export class CafeFlowPosOrderBase extends CollabLitElement {
     this.setViewOrderBoardStatusFilter(target.value);
   }
 
-  // --- Query action: viewOrderBoard ---
+  // ── Query / Command actions ────────────────────────────────────
 
-  async loadViewOrderBoard(): Promise<boolean> {
-    this.viewOrderBoardState = "loading";
-    setState("ui.posOrder.action.viewOrderBoard.status", "loading");
+  async loadViewOrderBoard(): Promise<void> {
+    this.viewOrderBoardState = 'loading';
+    setState('ui.posOrder.action.viewOrderBoard.status', 'loading');
     this.requestUpdate();
 
-    const params: CafeFlowViewOrderBoardInput = {
-      statusFilter: (this.viewOrderBoardStatusFilter || undefined) as CafeFlowViewOrderBoardInput["statusFilter"],
-    };
-
-    const response = await execBff<CafeFlowViewOrderBoardOutput>(
-      "cafeFlow.orderLifecycle.viewOrderBoard",
-      params,
-      { mode: "silent" }
-    );
-
-    if (!response.ok) {
-      this.viewOrderBoardState = "error";
-      setState("ui.posOrder.action.viewOrderBoard.status", "error");
-      this.requestUpdate();
-      return false;
+    const params: CafeFlowViewOrderBoardInput = {};
+    if (this.viewOrderBoardStatusFilter) {
+      params.statusFilter = this.viewOrderBoardStatusFilter as CafeFlowViewOrderBoardInput['statusFilter'];
     }
 
-    const data: CafeFlowViewOrderBoardOutput = response.data ?? { items: [], total: 0 };
-    this.viewOrderBoardData = data;
-    setState("ui.posOrder.data.viewOrderBoard", data);
-    this.viewOrderBoardState = "success";
-    setState("ui.posOrder.action.viewOrderBoard.status", "success");
+    const options: BffClientOptions = { mode: 'silent' };
+    const response = await execBff<CafeFlowViewOrderBoardOutput>(
+      'cafeFlow.orderLifecycle.viewOrderBoard',
+      params,
+      options,
+    );
+
+    if (response.ok) {
+      const data = response.data ?? { items: [], total: 0 };
+      this.viewOrderBoardData = data;
+      setState('ui.posOrder.data.viewOrderBoard', data);
+      this.viewOrderBoardState = 'success';
+      setState('ui.posOrder.action.viewOrderBoard.status', 'success');
+    } else {
+      this.viewOrderBoardState = 'error';
+      setState('ui.posOrder.action.viewOrderBoard.status', 'error');
+      if (response.error) {
+        console.error('[posOrder] viewOrderBoard error:', response.error.message);
+      }
+    }
     this.requestUpdate();
-    return true;
   }
 
-  handleViewOrderBoardClick(): void {
+  handleViewOrderBoardClick(e: Event): void {
+    e.preventDefault();
     this.loadViewOrderBoard();
   }
 
-  // --- Command action: createOrder ---
-
-  async createOrder(signal?: AbortSignal): Promise<void> {
-    this.createOrderState = "loading";
-    setState("ui.posOrder.action.createOrder.status", "loading");
+  async createOrder(): Promise<void> {
+    this.createOrderState = 'loading';
+    setState('ui.posOrder.action.createOrder.status', 'loading');
     this.requestUpdate();
 
     const params: CafeFlowCreateOrderInput = {
       orderType: this.createOrderOrderType as "table" | "takeout",
-      tableNumber: this.createOrderTableNumber || undefined,
-      priority: this.createOrderPriority === "true" ? true : undefined,
-      priorityReason: this.createOrderPriorityReason || undefined, 
     };
-
-    const options: BffClientOptions = { mode: "blocking" };
-    if (signal) {
-      options.signal = signal;
+    if (this.createOrderTableNumber) {
+      params.tableNumber = this.createOrderTableNumber;
+    }
+    if (this.createOrderPriority) {
+      params.priority = this.createOrderPriority === 'true' || this.createOrderPriority === 'true';
+    }
+    if (this.createOrderPriorityReason) {
+      params.priorityReason = this.createOrderPriorityReason;
     }
 
+    const options: BffClientOptions = { mode: 'blocking' };
     const response = await execBff<CafeFlowCreateOrderOutput>(
-      "cafeFlow.orderLifecycle.createOrder",
+      'cafeFlow.orderLifecycle.createOrder',
       params,
-      options
+      options,
     );
 
-    if (!response.ok) {
-      this.createOrderState = "error";
-      setState("ui.posOrder.action.createOrder.status", "error");
-      this.requestUpdate();
-      return;
-    }
-
-    // Refresh: viewOrderBoard
-    const refreshOk = await this.loadViewOrderBoard();
-    if (refreshOk) {
-      this.createOrderState = "success";
-      setState("ui.posOrder.action.createOrder.status", "success");
+    if (response.ok) {
+      // Refresh viewOrderBoard after successful create
+      await this.loadViewOrderBoard();
+      this.createOrderState = 'success';
+      setState('ui.posOrder.action.createOrder.status', 'success');
     } else {
-      this.createOrderState = "error";
-      setState("ui.posOrder.action.createOrder.status", "error");
+      this.createOrderState = 'error';
+      setState('ui.posOrder.action.createOrder.status', 'error');
+      if (response.error) {
+        console.error('[posOrder] createOrder error:', response.error.message);
+      }
     }
     this.requestUpdate();
   }
 
-  handleCreateOrderClick(): void {
-    runBlockingUiAction(async (signal: AbortSignal) => {
-      await this.createOrder(signal);
-    }, { mode: "blocking" });
+  handleCreateOrderClick(e: Event): void {
+    e.preventDefault();
+    runBlockingUiAction(async (_signal: AbortSignal) => {
+      await this.createOrder();
+    }, { mode: 'blocking' });
   }
 
-  // --- Command action: deliverOrder ---
-
-  async deliverOrder(orderId?: string, signal?: AbortSignal): Promise<void> {
-    this.deliverOrderState = "loading";
-    setState("ui.posOrder.action.deliverOrder.status", "loading");
+  async deliverOrder(): Promise<void> {
+    this.deliverOrderState = 'loading';
+    setState('ui.posOrder.action.deliverOrder.status', 'loading');
     this.requestUpdate();
 
-    const params: CafeFlowDeliverOrderInput = orderId ? { orderId } : {};
+    // TODO: deliverOrder has no inputStateKeys in definition; orderId may need to be sourced from layout state
+    const params: CafeFlowDeliverOrderInput = {};
 
-    const options: BffClientOptions = { mode: "blocking" };
-    if (signal) {
-      options.signal = signal;
-    }
-
+    const options: BffClientOptions = { mode: 'blocking' };
     const response = await execBff<CafeFlowDeliverOrderOutput>(
-      "cafeFlow.orderLifecycle.deliverOrder",
+      'cafeFlow.orderLifecycle.deliverOrder',
       params,
-      options
+      options,
     );
 
-    if (!response.ok) {
-      this.deliverOrderState = "error";
-      setState("ui.posOrder.action.deliverOrder.status", "error");
-      this.requestUpdate();
-      return;
-    }
-
-    // Refresh: viewOrderBoard
-    const refreshOk = await this.loadViewOrderBoard();
-    if (refreshOk) {
-      this.deliverOrderState = "success";
-      setState("ui.posOrder.action.deliverOrder.status", "success");
+    if (response.ok) {
+      // Refresh viewOrderBoard after successful deliver
+      await this.loadViewOrderBoard();
+      this.deliverOrderState = 'success';
+      setState('ui.posOrder.action.deliverOrder.status', 'success');
     } else {
-      this.deliverOrderState = "error";
-      setState("ui.posOrder.action.deliverOrder.status", "error");
+      this.deliverOrderState = 'error';
+      setState('ui.posOrder.action.deliverOrder.status', 'error');
+      if (response.error) {
+        console.error('[posOrder] deliverOrder error:', response.error.message);
+      }
     }
     this.requestUpdate();
   }
 
-  handleDeliverOrderClick(orderId?: string): void {
-    runBlockingUiAction(async (signal: AbortSignal) => {
-      await this.deliverOrder(orderId, signal);
-    }, { mode: "blocking" });
+  handleDeliverOrderClick(e: Event): void {
+    e.preventDefault();
+    runBlockingUiAction(async (_signal: AbortSignal) => {
+      await this.deliverOrder();
+    }, { mode: 'blocking' });
+  }
+
+  // ── Lifecycle ──────────────────────────────────────────────────
+
+  connectedCallback(): void {
+    super.connectedCallback();
+
+    // Initialize from shared state where useful
+    const savedActiveCompanyId = getState('ui.posOrder.businessContext.activeCompanyId') as string | undefined;
+    if (savedActiveCompanyId !== undefined && savedActiveCompanyId !== null) {
+      this.activeCompanyId = savedActiveCompanyId;
+    }
+
+    // Subscribe to business context
+    const ctxKey = 'ui.posOrder.businessContext.activeCompanyId';
+    subscribe(ctxKey, this);
+    this.subscribedKeys.push(ctxKey);
+
+    // Run initial loads
+    this.loadViewOrderBoard();
+  }
+
+  disconnectedCallback(): void {
+    for (const key of this.subscribedKeys) {
+      unsubscribe(key, this);
+    }
+    this.subscribedKeys = [];
+    super.disconnectedCallback();
   }
 }

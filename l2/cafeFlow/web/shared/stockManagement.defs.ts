@@ -65,7 +65,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/stockManagement.defs.ts",
-    "layoutId": "page11"
+    "layoutId": "stockManagement.page11"
   },
   "states": [
     {
@@ -249,19 +249,38 @@ export const definition = {
     ]
   },
   "i18n": {
-    "stockManagement.section.main.title": "Gestão de estoque e alertas",
-    "stockManagement.browseStockItems.title": "Itens de estoque e alertas",
-    "stockManagement.browseStockItems.list.title": "Lista de itens de estoque",
-    "stockManagement.browseStockItems.searchTerm.label": "Buscar por nome",
-    "stockManagement.manageStockItem.title": "Atualizar item de estoque",
-    "stockManagement.manageStockItem.form.title": "Editar dados do item",
-    "stockManagement.manageStockItem.submit.label": "Salvar alterações",
-    "stockManagement.summary.title": "Resumo do item",
-    "stockManagement.summary.detail.title": "Detalhes atuais do item",
-    "stockManagement.stockItem.name.label": "Nome do ingrediente",
-    "stockManagement.stockItem.unit.label": "Unidade de medida",
-    "stockManagement.stockItem.minimumLevel.label": "Limite mínimo",
-    "stockManagement.stockItem.updatedAt.label": "Última atualização"
+    "stockManagement.section.workspace.title": "Gestão de estoque e alertas",
+    "stockManagement.organism.stockList.title": "Itens de estoque",
+    "stockManagement.intent.stockList.title": "Lista de itens e alertas",
+    "stockManagement.filter.searchTerm.label": "Buscar por nome",
+    "stockManagement.field.name.label": "Ingrediente",
+    "stockManagement.field.unit.label": "Unidade",
+    "stockManagement.field.minimumLevel.label": "Limite mínimo",
+    "stockManagement.field.updatedAt.label": "Atualizado em",
+    "stockManagement.action.refreshList": "Atualizar lista",
+    "stockManagement.organism.stockItemEditor.title": "Editar item",
+    "stockManagement.intent.stockEdit.title": "Atualizar item de estoque",
+    "stockManagement.action.save": "Salvar alterações",
+    "stockManagement.organism.stockSummary.title": "Resumo do item",
+    "stockManagement.intent.stockSummary.title": "Resumo e alerta",
+    "stockManagement.section.queue.title": "Fila de itens",
+    "stockManagement.organism.stockQueue.title": "Itens com alerta",
+    "stockManagement.intent.queueList.title": "Fila de estoque",
+    "stockManagement.section.actionPanel.title": "Painel do item",
+    "stockManagement.organism.selectedStatus.title": "Detalhes do item",
+    "stockManagement.intent.queueSummary.title": "Resumo do item selecionado",
+    "stockManagement.organism.stockQueueEditor.title": "Editar item selecionado",
+    "stockManagement.intent.queueEdit.title": "Atualizar item",
+    "stockManagement.section.visual.title": "Visão visual do estoque",
+    "stockManagement.organism.visualBoard.title": "Painel visual de itens",
+    "stockManagement.intent.visualBoard.title": "Mapa de alertas",
+    "stockManagement.organism.fallbackList.title": "Lista de itens",
+    "stockManagement.intent.fallbackList.title": "Lista acessível",
+    "stockManagement.section.detailPanel.title": "Detalhes do item",
+    "stockManagement.organism.visualSummary.title": "Resumo do item",
+    "stockManagement.intent.visualSummary.title": "Detalhes selecionados",
+    "stockManagement.organism.visualEditor.title": "Editar item",
+    "stockManagement.intent.visualEdit.title": "Atualizar item selecionado"
   },
   "automation": {
     "statePrefix": "ui.stockManagement",

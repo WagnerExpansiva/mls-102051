@@ -6,57 +6,68 @@ import { execBff, type BffClientOptions } from '/_102029_/l2/bffClient.js';
 import { getState, setState, subscribe, unsubscribe } from '/_102029_/l2/collabState.js';
 import type {
   CafeFlowViewDashboardOutput,
+  CafeFlowViewDashboardOutputItem,
   CafeFlowRequestAiSalesSummaryOutput,
+  CafeFlowRequestAiSalesSummaryOutputItem,
   CafeFlowRequestAiPromoSuggestionsOutput,
+  CafeFlowRequestAiPromoSuggestionsOutputItem,
 } from '/_102051_/l2/cafeFlow/web/contracts/managerDashboard.js';
 
 /// **collab_i18n_start**
 const message_pt = {
-  "managerDashboard.section.dashboard.title": "Dashboard e assistente IA",
-  "managerDashboard.organism.viewDashboard.title": "Dashboard do dia",
-  "managerDashboard.organism.requestAiSalesSummary.title": "Resumo de vendas por IA",
-  "managerDashboard.organism.requestAiPromoSuggestions.title": "Sugestões de promoção por IA",
-  "managerDashboard.intention.viewDashboard.list.title": "Pedidos do turno atual",
-  "managerDashboard.intention.requestAiSalesSummary.list.title": "Resumo de vendas do dia",
-  "managerDashboard.intention.requestAiPromoSuggestions.list.title": "Sugestões de promoção",
-  "managerDashboard.field.status": "Status",
-  "managerDashboard.field.orderType": "Tipo do pedido",
+  "managerDashboard.section.overview.title": "Visão do dia",
+  "managerDashboard.organism.viewDashboard.title": "Dashboard do turno",
+  "managerDashboard.intent.dashboardStatus.title": "Status dos pedidos do turno",
+  "managerDashboard.intent.dashboardStatus.empty": "Nenhum pedido no turno atual",
+  "managerDashboard.field.status": "Status do pedido",
+  "managerDashboard.field.orderType": "Tipo de pedido",
   "managerDashboard.field.createdAt": "Criado em",
-  "managerDashboard.field.shiftId": "Turno",
   "managerDashboard.field.deliveredAt": "Entregue em",
-  "managerDashboard.field.orderId": "Pedido",
-  "managerDashboard.action.viewDashboard": "Atualizar dashboard",
+  "managerDashboard.field.shiftId": "Turno",
+  "managerDashboard.action.refreshDashboard": "Atualizar dashboard",
+  "managerDashboard.section.aiAssistant.title": "Assistente IA",
+  "managerDashboard.organism.aiSalesSummary.title": "Resumo de vendas por IA",
+  "managerDashboard.intent.aiSalesAction.title": "Solicitar resumo de vendas",
+  "managerDashboard.intent.aiSalesAction.empty": "Resumo ainda não solicitado",
   "managerDashboard.action.requestAiSalesSummary": "Gerar resumo de vendas",
-  "managerDashboard.action.requestAiPromoSuggestions": "Gerar sugestões de promoção"
+  "managerDashboard.intent.aiSalesResult.title": "Resumo de vendas gerado",
+  "managerDashboard.intent.aiSalesResult.empty": "Nenhum resumo disponível",
+  "managerDashboard.field.orderId": "Pedido",
+  "managerDashboard.organism.aiPromoSuggestions.title": "Sugestões de promoção por IA",
+  "managerDashboard.intent.aiPromoAction.title": "Solicitar sugestões de promoção",
+  "managerDashboard.intent.aiPromoAction.empty": "Sugestões ainda não solicitadas",
+  "managerDashboard.action.requestAiPromoSuggestions": "Gerar sugestões de promoção",
+  "managerDashboard.intent.aiPromoResult.title": "Sugestões de promoção geradas",
+  "managerDashboard.intent.aiPromoResult.empty": "Nenhuma sugestão disponível"
 };
 type MessageType = typeof message_pt;
 const messages: { [key: string]: MessageType } = { pt: message_pt };
 /// **collab_i18n_end**
 
+const STATE_KEYS = [
+  'ui.managerDashboard.status',
+  'ui.managerDashboard.action.viewDashboard.status',
+  'ui.managerDashboard.data.viewDashboard',
+  'ui.managerDashboard.action.requestAiSalesSummary.status',
+  'ui.managerDashboard.data.requestAiSalesSummary',
+  'ui.managerDashboard.action.requestAiPromoSuggestions.status',
+  'ui.managerDashboard.data.requestAiPromoSuggestions',
+];
+
 export class CafeFlowManagerDashboardBase extends CollabLitElement {
+  @property({ type: String }) status: string = '';
 
-  @property({ type: String })
-  status: string = '';
+  @property({ type: String }) viewDashboardState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
 
-  @property({ type: String })
-  viewDashboardState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
+  @property({ type: Array }) viewDashboardData: CafeFlowViewDashboardOutputItem[] = [];
 
-  @property({ type: Array })
-  viewDashboardData: CafeFlowViewDashboardOutput = [];
+  @property({ type: String }) requestAiSalesSummaryState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
 
-  @property({ type: String })
-  requestAiSalesSummaryState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
+  @property({ type: Array }) requestAiSalesSummaryData: CafeFlowRequestAiSalesSummaryOutputItem[] = [];
 
-  @property({ type: Array })
-  requestAiSalesSummaryData: CafeFlowRequestAiSalesSummaryOutput = [];
+  @property({ type: String }) requestAiPromoSuggestionsState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
 
-  @property({ type: String })
-  requestAiPromoSuggestionsState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
-
-  @property({ type: Array })
-  requestAiPromoSuggestionsData: CafeFlowRequestAiPromoSuggestionsOutput = [];
-
-  private subscribedKeys: string[] = [];
+  @property({ type: Array }) requestAiPromoSuggestionsData: CafeFlowRequestAiPromoSuggestionsOutputItem[] = [];
 
   protected get msg(): MessageType {
     const lang: string = this.getMessageKey(messages);
@@ -66,48 +77,23 @@ export class CafeFlowManagerDashboardBase extends CollabLitElement {
   connectedCallback(): void {
     super.connectedCallback();
 
-    const statusFromState = getState('ui.managerDashboard.status') as string | undefined;
-    if (statusFromState !== undefined && statusFromState !== null) {
-      this.status = statusFromState;
-    } else {
-      this.status = '';
-      setState('ui.managerDashboard.status', '');
-    }
+    this.status = (getState('ui.managerDashboard.status') as string) ?? '';
+    this.viewDashboardState = (getState('ui.managerDashboard.action.viewDashboard.status') as 'idle' | 'loading' | 'success' | 'error') ?? 'idle';
+    this.viewDashboardData = (getState('ui.managerDashboard.data.viewDashboard') as CafeFlowViewDashboardOutputItem[]) ?? [];
+    this.requestAiSalesSummaryState = (getState('ui.managerDashboard.action.requestAiSalesSummary.status') as 'idle' | 'loading' | 'success' | 'error') ?? 'idle';
+    this.requestAiSalesSummaryData = (getState('ui.managerDashboard.data.requestAiSalesSummary') as CafeFlowRequestAiSalesSummaryOutputItem[]) ?? [];
+    this.requestAiPromoSuggestionsState = (getState('ui.managerDashboard.action.requestAiPromoSuggestions.status') as 'idle' | 'loading' | 'success' | 'error') ?? 'idle';
+    this.requestAiPromoSuggestionsData = (getState('ui.managerDashboard.data.requestAiPromoSuggestions') as CafeFlowRequestAiPromoSuggestionsOutputItem[]) ?? [];
 
-    const viewDashboardDataFromState = getState('ui.managerDashboard.data.viewDashboard') as CafeFlowViewDashboardOutput | undefined;
-    if (viewDashboardDataFromState !== undefined && viewDashboardDataFromState !== null) {
-      this.viewDashboardData = viewDashboardDataFromState;
-    }
+    subscribe(STATE_KEYS, this);
 
-    const requestAiSalesSummaryDataFromState = getState('ui.managerDashboard.data.requestAiSalesSummary') as CafeFlowRequestAiSalesSummaryOutput | undefined;
-    if (requestAiSalesSummaryDataFromState !== undefined && requestAiSalesSummaryDataFromState !== null) {
-      this.requestAiSalesSummaryData = requestAiSalesSummaryDataFromState;
-    }
-
-    const requestAiPromoSuggestionsDataFromState = getState('ui.managerDashboard.data.requestAiPromoSuggestions') as CafeFlowRequestAiPromoSuggestionsOutput | undefined;
-    if (requestAiPromoSuggestionsDataFromState !== undefined && requestAiPromoSuggestionsDataFromState !== null) {
-      this.requestAiPromoSuggestionsData = requestAiPromoSuggestionsDataFromState;
-    }
-
-    const sharedKeys = [
-      'ui.managerDashboard.status',
-      'ui.managerDashboard.data.viewDashboard',
-      'ui.managerDashboard.data.requestAiSalesSummary',
-      'ui.managerDashboard.data.requestAiPromoSuggestions',
-    ];
-    subscribe(sharedKeys, this);
-    this.subscribedKeys = sharedKeys;
-
-    this.loadViewDashboard();
-    this.loadRequestAiSalesSummary();
-    this.loadRequestAiPromoSuggestions();
+    void this.loadViewDashboard();
+    void this.loadRequestAiSalesSummary();
+    void this.loadRequestAiPromoSuggestions();
   }
 
   disconnectedCallback(): void {
-    if (this.subscribedKeys.length > 0) {
-      unsubscribe(this.subscribedKeys, this);
-      this.subscribedKeys = [];
-    }
+    unsubscribe(STATE_KEYS, this);
     super.disconnectedCallback();
   }
 
@@ -123,7 +109,7 @@ export class CafeFlowManagerDashboardBase extends CollabLitElement {
     );
 
     if (response.ok) {
-      const data = response.data ?? [];
+      const data: CafeFlowViewDashboardOutputItem[] = response.data ?? [];
       this.viewDashboardData = data;
       setState('ui.managerDashboard.data.viewDashboard', data);
       this.viewDashboardState = 'success';
@@ -137,8 +123,8 @@ export class CafeFlowManagerDashboardBase extends CollabLitElement {
     }
   }
 
-  handleViewDashboardClick(_e: Event): void {
-    this.loadViewDashboard();
+  handleViewDashboardClick(): void {
+    void this.loadViewDashboard();
   }
 
   async loadRequestAiSalesSummary(): Promise<void> {
@@ -153,7 +139,7 @@ export class CafeFlowManagerDashboardBase extends CollabLitElement {
     );
 
     if (response.ok) {
-      const data = response.data ?? [];
+      const data: CafeFlowRequestAiSalesSummaryOutputItem[] = response.data ?? [];
       this.requestAiSalesSummaryData = data;
       setState('ui.managerDashboard.data.requestAiSalesSummary', data);
       this.requestAiSalesSummaryState = 'success';
@@ -167,8 +153,8 @@ export class CafeFlowManagerDashboardBase extends CollabLitElement {
     }
   }
 
-  handleRequestAiSalesSummaryClick(_e: Event): void {
-    this.loadRequestAiSalesSummary();
+  handleRequestAiSalesSummaryClick(): void {
+    void this.loadRequestAiSalesSummary();
   }
 
   async loadRequestAiPromoSuggestions(): Promise<void> {
@@ -183,7 +169,7 @@ export class CafeFlowManagerDashboardBase extends CollabLitElement {
     );
 
     if (response.ok) {
-      const data = response.data ?? [];
+      const data: CafeFlowRequestAiPromoSuggestionsOutputItem[] = response.data ?? [];
       this.requestAiPromoSuggestionsData = data;
       setState('ui.managerDashboard.data.requestAiPromoSuggestions', data);
       this.requestAiPromoSuggestionsState = 'success';
@@ -197,7 +183,7 @@ export class CafeFlowManagerDashboardBase extends CollabLitElement {
     }
   }
 
-  handleRequestAiPromoSuggestionsClick(_e: Event): void {
-    this.loadRequestAiPromoSuggestions();
+  handleRequestAiPromoSuggestionsClick(): void {
+    void this.loadRequestAiPromoSuggestions();
   }
 }

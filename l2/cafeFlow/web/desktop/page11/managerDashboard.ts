@@ -1,193 +1,255 @@
 /// <mls fileReference="_102051_/l2/cafeFlow/web/desktop/page11/managerDashboard.ts" enhancement="_102020_/l2/enhancementAura"/>
 
-import { html, type TemplateResult } from 'lit';
+import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { CafeFlowManagerDashboardBase } from '/_102051_/l2/cafeFlow/web/shared/managerDashboard.js';
+import type {
+  CafeFlowViewDashboardOutputItem,
+  CafeFlowRequestAiSalesSummaryOutputItem,
+  CafeFlowRequestAiPromoSuggestionsOutputItem,
+} from '/_102051_/l2/cafeFlow/web/contracts/managerDashboard.js';
 
 @customElement('cafe-flow--web--desktop--page11--manager-dashboard-102051')
 export class CafeFlowDesktopPage11ManagerDashboardPage extends CafeFlowManagerDashboardBase {
-  render(): TemplateResult {
+  render() {
     return html`
-      <div class="min-h-full bg-slate-50 dark:bg-slate-950">
+      <div class="min-h-full bg-[var(--bg-secondary-color-lighter,#f9f9f9)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
-            ${this.msg['managerDashboard.section.dashboard.title'] ?? ''}
-          </h1>
 
-          ${this.renderViewDashboard()}
-          ${this.renderRequestAiSalesSummary()}
-          ${this.renderRequestAiPromoSuggestions()}
+          <!-- Section: Dashboard Overview -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]">
+              ${this.msg['managerDashboard.section.overview.title']}
+            </h2>
+
+            <!-- Organism: ViewDashboard -->
+            <div class="space-y-3">
+              <h3 class="text-sm font-medium text-[var(--text-primary-color,#0f172a)]">
+                ${this.msg['managerDashboard.organism.viewDashboard.title']}
+              </h3>
+
+              <!-- Intention: workflowStatus -->
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-xs font-medium text-[var(--text-primary-color-darker,#64748b)]">
+                    ${this.msg['managerDashboard.intent.dashboardStatus.title']}
+                  </h4>
+                  <button
+                    class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                    ?disabled=${this.viewDashboardState === 'loading'}
+                    @click=${() => this.handleViewDashboardClick()}
+                  >
+                    ${this.msg['managerDashboard.action.refreshDashboard']}
+                  </button>
+                </div>
+
+                ${this.viewDashboardData.length === 0
+                  ? html`<p class="text-sm text-[var(--text-primary-color-darker,#64748b)]">
+                      ${this.msg['managerDashboard.intent.dashboardStatus.empty']}
+                    </p>`
+                  : html`
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-sm">
+                        <thead>
+                          <tr
+                            class="border-b border-[var(--grey-color,#e2e8f0)] text-left text-[var(--text-primary-color-darker,#64748b)]"
+                          >
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.status']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.orderType']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.createdAt']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.deliveredAt']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.shiftId']}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${this.viewDashboardData.map(
+                            (item: CafeFlowViewDashboardOutputItem) => html`
+                              <tr
+                                class="border-b border-[var(--grey-color,#e2e8f0)] text-[var(--text-primary-color,#0f172a)]"
+                              >
+                                <td class="py-2 pr-4">${item.status}</td>
+                                <td class="py-2 pr-4">${item.orderType}</td>
+                                <td class="py-2 pr-4">${item.createdAt}</td>
+                                <td class="py-2 pr-4">${item.deliveredAt}</td>
+                                <td class="py-2 pr-4">${item.shiftId}</td>
+                              </tr>
+                            `,
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  `}
+              </div>
+            </div>
+          </section>
+
+          <!-- Section: AI Assistant -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]">
+              ${this.msg['managerDashboard.section.aiAssistant.title']}
+            </h2>
+
+            <!-- Organism: AI Sales Summary -->
+            <div class="space-y-3 border border-[var(--grey-color,#e2e8f0)] rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]">
+                ${this.msg['managerDashboard.organism.aiSalesSummary.title']}
+              </h3>
+
+              <!-- Intention: actionList -->
+              <div class="space-y-2">
+                <h4 class="text-xs font-medium text-[var(--text-primary-color-darker,#64748b)]">
+                  ${this.msg['managerDashboard.intent.aiSalesAction.title']}
+                </h4>
+                <button
+                  class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  ?disabled=${this.requestAiSalesSummaryState === 'loading'}
+                  @click=${() => this.handleRequestAiSalesSummaryClick()}
+                >
+                  ${this.msg['managerDashboard.action.requestAiSalesSummary']}
+                </button>
+              </div>
+
+              <!-- Intention: queryList -->
+              <div class="space-y-2">
+                <h4 class="text-xs font-medium text-[var(--text-primary-color-darker,#64748b)]">
+                  ${this.msg['managerDashboard.intent.aiSalesResult.title']}
+                </h4>
+                ${this.requestAiSalesSummaryData.length === 0
+                  ? html`<p class="text-sm text-[var(--text-primary-color-darker,#64748b)]">
+                      ${this.msg['managerDashboard.intent.aiSalesResult.empty']}
+                    </p>`
+                  : html`
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-sm">
+                        <thead>
+                          <tr
+                            class="border-b border-[var(--grey-color,#e2e8f0)] text-left text-[var(--text-primary-color-darker,#64748b)]"
+                          >
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.orderId']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.status']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.orderType']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.createdAt']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.deliveredAt']}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${this.requestAiSalesSummaryData.map(
+                            (item: CafeFlowRequestAiSalesSummaryOutputItem) => html`
+                              <tr
+                                class="border-b border-[var(--grey-color,#e2e8f0)] text-[var(--text-primary-color,#0f172a)]"
+                              >
+                                <td class="py-2 pr-4">${item.orderId}</td>
+                                <td class="py-2 pr-4">${item.status}</td>
+                                <td class="py-2 pr-4">${item.orderType}</td>
+                                <td class="py-2 pr-4">${item.createdAt}</td>
+                                <td class="py-2 pr-4">${item.deliveredAt}</td>
+                              </tr>
+                            `,
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  `}
+              </div>
+            </div>
+
+            <!-- Organism: AI Promo Suggestions -->
+            <div class="space-y-3 border border-[var(--grey-color,#e2e8f0)] rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]">
+                ${this.msg['managerDashboard.organism.aiPromoSuggestions.title']}
+              </h3>
+
+              <!-- Intention: actionList -->
+              <div class="space-y-2">
+                <h4 class="text-xs font-medium text-[var(--text-primary-color-darker,#64748b)]">
+                  ${this.msg['managerDashboard.intent.aiPromoAction.title']}
+                </h4>
+                <button
+                  class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  ?disabled=${this.requestAiPromoSuggestionsState === 'loading'}
+                  @click=${() => this.handleRequestAiPromoSuggestionsClick()}
+                >
+                  ${this.msg['managerDashboard.action.requestAiPromoSuggestions']}
+                </button>
+              </div>
+
+              <!-- Intention: queryList -->
+              <div class="space-y-2">
+                <h4 class="text-xs font-medium text-[var(--text-primary-color-darker,#64748b)]">
+                  ${this.msg['managerDashboard.intent.aiPromoResult.title']}
+                </h4>
+                ${this.requestAiPromoSuggestionsData.length === 0
+                  ? html`<p class="text-sm text-[var(--text-primary-color-darker,#64748b)]">
+                      ${this.msg['managerDashboard.intent.aiPromoResult.empty']}
+                    </p>`
+                  : html`
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-sm">
+                        <thead>
+                          <tr
+                            class="border-b border-[var(--grey-color,#e2e8f0)] text-left text-[var(--text-primary-color-darker,#64748b)]"
+                          >
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.orderId']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.orderType']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.status']}
+                            </th>
+                            <th class="py-2 pr-4 font-medium">
+                              ${this.msg['managerDashboard.field.createdAt']}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${this.requestAiPromoSuggestionsData.map(
+                            (item: CafeFlowRequestAiPromoSuggestionsOutputItem) => html`
+                              <tr
+                                class="border-b border-[var(--grey-color,#e2e8f0)] text-[var(--text-primary-color,#0f172a)]"
+                              >
+                                <td class="py-2 pr-4">${item.orderId}</td>
+                                <td class="py-2 pr-4">${item.orderType}</td>
+                                <td class="py-2 pr-4">${item.status}</td>
+                                <td class="py-2 pr-4">${item.createdAt}</td>
+                              </tr>
+                            `,
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  `}
+              </div>
+            </div>
+          </section>
+
         </div>
       </div>
-    `;
-  }
-
-  private renderViewDashboard(): TemplateResult {
-    const rows = this.viewDashboardData ?? [];
-    const loading = this.viewDashboardState === 'loading';
-
-    return html`
-      <section class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-200">
-            ${this.msg['managerDashboard.organism.viewDashboard.title'] ?? ''}
-          </h2>
-          <button
-            class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            ?disabled=${loading}
-            @click=${(e: Event) => this.handleViewDashboardClick(e)}
-          >
-            ${this.msg['managerDashboard.action.viewDashboard'] ?? ''}
-          </button>
-        </div>
-
-        <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          ${this.msg['managerDashboard.intention.viewDashboard.list.title'] ?? ''}
-        </h3>
-
-        ${rows.length === 0
-          ? html`<p class="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
-              ${loading ? '...' : '—'}
-            </p>`
-          : html`
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm text-left">
-                <thead class="text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.status'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.orderType'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.createdAt'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.shiftId'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.deliveredAt'] ?? ''}</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                  ${rows.map((item) => html`
-                    <tr class="text-slate-700 dark:text-slate-300">
-                      <td class="px-3 py-2">${item.status}</td>
-                      <td class="px-3 py-2">${item.orderType}</td>
-                      <td class="px-3 py-2">${item.createdAt}</td>
-                      <td class="px-3 py-2">${item.shiftId}</td>
-                      <td class="px-3 py-2">${item.deliveredAt}</td>
-                    </tr>
-                  `)}
-                </tbody>
-              </table>
-            </div>
-          `}
-      </section>
-    `;
-  }
-
-  private renderRequestAiSalesSummary(): TemplateResult {
-    const rows = this.requestAiSalesSummaryData ?? [];
-    const loading = this.requestAiSalesSummaryState === 'loading';
-
-    return html`
-      <section class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-200">
-            ${this.msg['managerDashboard.organism.requestAiSalesSummary.title'] ?? ''}
-          </h2>
-          <button
-            class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            ?disabled=${loading}
-            @click=${(e: Event) => this.handleRequestAiSalesSummaryClick(e)}
-          >
-            ${this.msg['managerDashboard.action.requestAiSalesSummary'] ?? ''}
-          </button>
-        </div>
-
-        <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          ${this.msg['managerDashboard.intention.requestAiSalesSummary.list.title'] ?? ''}
-        </h3>
-
-        ${rows.length === 0
-          ? html`<p class="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
-              ${loading ? '...' : '—'}
-            </p>`
-          : html`
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm text-left">
-                <thead class="text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.orderId'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.status'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.orderType'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.createdAt'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.deliveredAt'] ?? ''}</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                  ${rows.map((item) => html`
-                    <tr class="text-slate-700 dark:text-slate-300">
-                      <td class="px-3 py-2">${item.orderId}</td>
-                      <td class="px-3 py-2">${item.status}</td>
-                      <td class="px-3 py-2">${item.orderType}</td>
-                      <td class="px-3 py-2">${item.createdAt}</td>
-                      <td class="px-3 py-2">${item.deliveredAt}</td>
-                    </tr>
-                  `)}
-                </tbody>
-              </table>
-            </div>
-          `}
-      </section>
-    `;
-  }
-
-  private renderRequestAiPromoSuggestions(): TemplateResult {
-    const rows = this.requestAiPromoSuggestionsData ?? [];
-    const loading = this.requestAiPromoSuggestionsState === 'loading';
-
-    return html`
-      <section class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-4 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-200">
-            ${this.msg['managerDashboard.organism.requestAiPromoSuggestions.title'] ?? ''}
-          </h2>
-          <button
-            class="px-3 py-1.5 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            ?disabled=${loading}
-            @click=${(e: Event) => this.handleRequestAiPromoSuggestionsClick(e)}
-          >
-            ${this.msg['managerDashboard.action.requestAiPromoSuggestions'] ?? ''}
-          </button>
-        </div>
-
-        <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          ${this.msg['managerDashboard.intention.requestAiPromoSuggestions.list.title'] ?? ''}
-        </h3>
-
-        ${rows.length === 0
-          ? html`<p class="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
-              ${loading ? '...' : '—'}
-            </p>`
-          : html`
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm text-left">
-                <thead class="text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.orderId'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.orderType'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.status'] ?? ''}</th>
-                    <th class="px-3 py-2">${this.msg['managerDashboard.field.createdAt'] ?? ''}</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                  ${rows.map((item) => html`
-                    <tr class="text-slate-700 dark:text-slate-300">
-                      <td class="px-3 py-2">${item.orderId}</td>
-                      <td class="px-3 py-2">${item.orderType}</td>
-                      <td class="px-3 py-2">${item.status}</td>
-                      <td class="px-3 py-2">${item.createdAt}</td>
-                    </tr>
-                  `)}
-                </tbody>
-              </table>
-            </div>
-          `}
-      </section>
     `;
   }
 }
