@@ -4,6 +4,7 @@ import { CollabLitElement } from '/_102029_/l2/collabLitElement.js';
 import { property } from 'lit/decorators.js';
 import { execBff, type BffClientOptions } from '/_102029_/l2/bffClient.js';
 import { getState, setState, subscribe, unsubscribe } from '/_102029_/l2/collabState.js';
+
 import type {
   CafeFlowViewDashboardOutput,
   CafeFlowViewDashboardOutputItem,
@@ -50,21 +51,13 @@ const messages: { [key: string]: MessageType } = { pt: message_pt };
 
 export class CafeFlowSalesDashboardBase extends CollabLitElement {
   @property({ type: String }) status: string = "";
-
   @property({ type: String }) viewDashboardState: "idle" | "loading" | "success" | "error" = "idle";
-
   @property({ type: Array }) viewDashboardData: CafeFlowViewDashboardOutputItem[] = [];
-
   @property({ type: String }) requestAiSalesSummaryState: "idle" | "loading" | "success" | "error" = "idle";
-
   @property({ type: String }) requestAiSalesSummarySummaryRequest: string = "";
-
   @property({ type: Array }) requestAiSalesSummaryData: CafeFlowRequestAiSalesSummaryOutputItem[] = [];
-
   @property({ type: String }) requestAiPromoSuggestionsState: "idle" | "loading" | "success" | "error" = "idle";
-
   @property({ type: Array }) requestAiPromoSuggestionsData: CafeFlowRequestAiPromoSuggestionsOutputItem[] = [];
-
   @property({ type: String }) activeCompanyId: string = "";
 
   protected get msg(): MessageType {
@@ -219,9 +212,8 @@ export class CafeFlowSalesDashboardBase extends CollabLitElement {
   }
 
   handleRequestAiSalesSummarySummaryRequestChange(e: Event): void {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement | null;
     if (!target) return;
-    const value: string = target.value ?? "";
-    this.setRequestAiSalesSummarySummaryRequest(value);
+    this.setRequestAiSalesSummarySummaryRequest(target.value);
   }
 }

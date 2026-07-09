@@ -94,7 +94,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/posWorkspace.defs.ts",
-    "layoutId": "page11"
+    "layoutId": "posWorkspace.page11"
   },
   "states": [
     {
@@ -223,6 +223,42 @@ export const definition = {
       "name": "OutputDeliverOrder",
       "kind": "commandOutput",
       "defaultValue": null
+    },
+    {
+      "stateKey": "ui.posWorkspace.layout.fld-130",
+      "name": "LayoutFld130",
+      "kind": "layoutState",
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.posWorkspace.layout.fld-140",
+      "name": "LayoutFld140",
+      "kind": "layoutState",
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.posWorkspace.layout.fld-150",
+      "name": "LayoutFld150",
+      "kind": "layoutState",
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.posWorkspace.layout.fld-60",
+      "name": "LayoutFld60",
+      "kind": "layoutState",
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.posWorkspace.layout.fld-70",
+      "name": "LayoutFld70",
+      "kind": "layoutState",
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.posWorkspace.layout.fld-80",
+      "name": "LayoutFld80",
+      "kind": "layoutState",
+      "defaultValue": ""
     }
   ],
   "actions": [
@@ -333,37 +369,35 @@ export const definition = {
   },
   "i18n": {
     "posWorkspace.section.orderBoard.title": "Painel de pedidos",
-    "posWorkspace.organism.viewOrderBoard.title": "Painel de pedidos do turno",
-    "posWorkspace.intent.orderBoard.query.title": "Pedidos do turno atual",
+    "posWorkspace.organism.orderBoard.title": "Pedidos do turno",
+    "posWorkspace.intent.orderBoardCards.title": "Fila de pedidos",
     "posWorkspace.action.refreshBoard": "Atualizar painel",
     "posWorkspace.section.createOrder.title": "Lançar pedido",
     "posWorkspace.organism.createOrder.title": "Novo pedido",
-    "posWorkspace.intent.createOrder.type.title": "Tipo do pedido",
-    "posWorkspace.intent.createOrder.items.title": "Itens do pedido",
-    "posWorkspace.intent.createOrder.priority.title": "Prioridade",
-    "posWorkspace.intent.createOrder.summary.title": "Revisão do pedido",
-    "posWorkspace.intent.createOrder.submit.title": "Confirmar pedido",
-    "posWorkspace.action.createOrder": "Confirmar e enviar à cozinha",
-    "posWorkspace.section.deliverOrder.title": "Entregar pedido",
-    "posWorkspace.organism.deliverOrder.title": "Entrega ao cliente",
-    "posWorkspace.intent.deliverOrder.summary.title": "Pedido pronto selecionado",
-    "posWorkspace.intent.deliverOrder.submit.title": "Registrar entrega",
+    "posWorkspace.intent.createOrder.details": "Detalhes do pedido",
+    "posWorkspace.action.createOrder": "Confirmar pedido",
+    "posWorkspace.section.review.title": "Revisão do pedido",
+    "posWorkspace.organism.review.title": "Resumo e alertas",
+    "posWorkspace.intent.reviewSummary.title": "Resumo do lançamento",
+    "posWorkspace.section.deliver.title": "Entrega do pedido",
+    "posWorkspace.organism.deliver.title": "Confirmar entrega",
+    "posWorkspace.intent.deliverOrder.title": "Entregar pedido",
     "posWorkspace.action.deliverOrder": "Marcar como entregue",
     "posWorkspace.field.orderId": "Pedido",
     "posWorkspace.field.status": "Status",
-    "posWorkspace.field.orderType": "Tipo",
+    "posWorkspace.field.orderType": "Tipo do pedido",
     "posWorkspace.field.tableNumber": "Mesa",
     "posWorkspace.field.priority": "Prioridade",
     "posWorkspace.field.priorityReason": "Justificativa da prioridade",
-    "posWorkspace.field.readyAt": "Pronto às",
+    "posWorkspace.field.readyAt": "Pronto em",
     "posWorkspace.field.createdAt": "Criado em",
     "posWorkspace.field.orderItems": "Itens do pedido",
-    "posWorkspace.section.kanbanBoard.title": "Fluxo de pedidos por status",
-    "posWorkspace.organism.kanbanBoard.title": "Kanban do turno",
-    "posWorkspace.intent.kanban.query.title": "Pedidos em andamento",
-    "posWorkspace.section.queue.title": "Fila de pedidos do turno",
-    "posWorkspace.organism.queueBoard.title": "Fila por status",
-    "posWorkspace.intent.queue.query.title": "Pedidos em atendimento"
+    "posWorkspace.section.pipeline.title": "Pipeline de pedidos",
+    "posWorkspace.organism.kanban.title": "Pedidos por status",
+    "posWorkspace.intent.kanban.title": "Pedidos em fluxo",
+    "posWorkspace.section.queue.title": "Fila de pedidos",
+    "posWorkspace.organism.queue.title": "Pedidos em andamento",
+    "posWorkspace.intent.queue.title": "Fila do turno"
   },
   "automation": {
     "statePrefix": "ui.posWorkspace",
@@ -379,7 +413,13 @@ export const definition = {
       "ui.posWorkspace.data.viewOrderBoard",
       "ui.posWorkspace.action.deliverOrder.status",
       "ui.posWorkspace.output.createOrder",
-      "ui.posWorkspace.output.deliverOrder"
+      "ui.posWorkspace.output.deliverOrder",
+      "ui.posWorkspace.layout.fld-130",
+      "ui.posWorkspace.layout.fld-140",
+      "ui.posWorkspace.layout.fld-150",
+      "ui.posWorkspace.layout.fld-60",
+      "ui.posWorkspace.layout.fld-70",
+      "ui.posWorkspace.layout.fld-80"
     ],
     "actionIds": [
       "createOrder",

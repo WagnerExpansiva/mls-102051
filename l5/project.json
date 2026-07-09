@@ -47,6 +47,17 @@
       }
     }
   ],
+  "layouts": {
+    "1": {
+      "name": "Default"
+    },
+    "2": {
+      "name": "Ux 2"
+    },
+    "3": {
+      "name": "Ux 3"
+    }
+  },
   "dependencies": [
     {
       "projectId": "102034",
