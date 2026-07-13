@@ -51,14 +51,14 @@ export const viewShiftClosingReportUsecase = {
             "type": "number",
             "required": true,
             "ofEntity": "ShiftClosingReport",
-            "description": "Total apurado do turno para conferência do gerente."
+            "description": "Total apurado do turno — soma da receita registrada no fechamento (regra shiftClosingRecordsRevenue)."
           },
           {
             "name": "paidOrderCount",
             "type": "number",
             "required": true,
             "ofEntity": "ShiftClosingReport",
-            "description": "Quantidade de pedidos pagos consolidados no período do turno."
+            "description": "Quantidade de pedidos pagos consolidados no período do turno (regra shiftClosingConsolidatesPaidOrders)."
           },
           {
             "name": "createdAt",
@@ -85,13 +85,12 @@ export const viewShiftClosingReportUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Load the ShiftClosingReport from the ShiftClosingReport port using shiftId as the lookup key (getById on ShiftClosingReport.shiftId).",
-          "2. If no ShiftClosingReport is found for the given shiftId, throw a NOT_FOUND error indicating that no closing report exists for the specified shift.",
-          "3. Load the Shift from the Shift port using the same shiftId to verify the shift exists and is in 'closed' status.",
-          "4. If the Shift is not found or its status is not 'closed', throw a VALIDATION error indicating the shift must be closed before its closing report can be viewed.",
-          "5. Apply rule 'shiftClosingRecordsRevenue': verify that the report.totalApurado is consistent with the shift's recorded revenue (shift.totalApurado). If they diverge, include a warning detail in the response metadata but still return the report data — the rule is an assertion of data integrity, not a blocking condition for a view operation.",
-          "6. Apply rule 'shiftClosingConsolidatesPaidOrders': verify that report.paidOrderCount is a non-negative integer representing only paid orders consolidated within the shift period. If the value is negative or non-integer, throw a DATA_INTEGRITY error referencing the rule id.",
-          "7. Return the ShiftClosingReport fields: shiftClosingReportId, shiftId, totalApurado, paidOrderCount, createdAt, updatedAt."
+          "1. Receber shiftId do parâmetro de rota (entrada pública obrigatória).",
+          "2. Carregar o Shift pelo shiftId através da porta Shift (getById) para validar que o turno existe e está com status 'closed'. Se o turno não existir, retornar erro de validação informando que o turno não foi encontrado. Se o turno não estiver fechado, retornar erro de validação informando que o relatório de fechamento só está disponível para turnos fechados.",
+          "3. Carregar o ShiftClosingReport pelo shiftId através da porta ShiftClosingReport (getById usando o campo chave shiftId). Se nenhum relatório for encontrado para o shiftId, retornar resultado vazio (não há relatório de fechamento para este turno).",
+          "4. Aplicar a regra shiftClosingRecordsRevenue: verificar que o campo totalApurado do relatório está presente e é um valor monetário válido (>= 0). Se o totalApurado for nulo ou negativo, registrar inconsistência e retornar erro de validação.",
+          "5. Aplicar a regra shiftClosingConsolidatesPaidOrders: verificar que o campo paidOrderCount do relatório está presente e é um inteiro válido (>= 0). Se o paidOrderCount for nulo ou negativo, registrar inconsistência e retornar erro de validação.",
+          "6. Retornar a projeção do relatório contendo: shiftClosingReportId, shiftId, totalApurado, paidOrderCount, createdAt, updatedAt — exclusivamente para o turno identificado pelo shiftId informado, sem incluir pedidos não pagos ou de outros turnos."
         ]
       }
     ],

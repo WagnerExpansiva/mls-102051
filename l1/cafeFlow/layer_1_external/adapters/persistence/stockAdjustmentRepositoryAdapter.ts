@@ -1,6 +1,6 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/stockAdjustmentRepositoryAdapter.ts" enhancement="_blank"/>
-import type { RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { IStockAdjustmentRepository, StockAdjustmentListFilter } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockAdjustmentRepository.js';
+import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
+import type { IStockAdjustmentRepository, ProductId, AdjustmentReason } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockAdjustmentRepository.js';
 import type { StockAdjustment, StockAdjustmentStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockAdjustment.js';
 
 interface StockAdjustmentRow {
@@ -65,25 +65,34 @@ export function createStockAdjustmentRepositoryAdapter(ctx: RequestContext): ISt
       await repo.insert({ record: toRow(record) });
     },
 
-    async list(filter?: StockAdjustmentListFilter): Promise<StockAdjustment[]> {
-      const where: Partial<StockAdjustmentRow> = {};
-      if (filter?.stockItemId) where.stock_item_id = filter.stockItemId;
-      if (filter?.status) where.status = filter.status;
-      const rows = await (await getTable()).findMany({
-        where,
+    async listByProductId(productId: ProductId): Promise<StockAdjustment[]> {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        where: { stock_item_id: productId },
         orderBy: { field: 'created_at', direction: 'desc' },
       });
       return rows.map(toDomain);
     },
 
     async listByPeriod(start: Date, end: Date): Promise<StockAdjustment[]> {
-      const startIso = start.toISOString();
-      const endIso = end.toISOString();
-      const rows = await (await getTable()).findMany({
+      const repo = await getTable();
+      const rows = await repo.findMany({
         orderBy: { field: 'created_at', direction: 'asc' },
       });
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
       return rows
         .filter((row) => row.created_at >= startIso && row.created_at <= endIso)
+        .map(toDomain);
+    },
+
+    async listByReason(reason: AdjustmentReason): Promise<StockAdjustment[]> {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        orderBy: { field: 'created_at', direction: 'desc' },
+      });
+      return rows
+        .filter((row) => parseDetails(row).reason === reason)
         .map(toDomain);
     },
   };

@@ -22,43 +22,53 @@ export const requestAiSalesSummaryUsecase = {
     "functions": [
       {
         "functionName": "requestAiSalesSummary",
-        "inputTypeName": "RequestAiSalesSummaryInput",
-        "outputTypeName": "RequestAiSalesSummaryOutput",
+        "inputTypeName": "AiSalesSummaryInput",
+        "outputTypeName": "AiSalesSummaryOutput",
         "input": [],
         "output": [
           {
             "name": "shiftId",
             "type": "string",
             "required": true,
-            "description": "ID do turno atualmente aberto usado como filtro",
-            "ofEntity": "Shift"
+            "description": "ID of the currently open shift used to scope the summary"
+          },
+          {
+            "name": "shiftOpenedAt",
+            "type": "string",
+            "required": true,
+            "description": "Timestamp when the current shift was opened"
+          },
+          {
+            "name": "totalOrders",
+            "type": "number",
+            "required": true,
+            "description": "Total count of orders placed during the current open shift"
+          },
+          {
+            "name": "totalRevenue",
+            "type": "number",
+            "required": true,
+            "description": "Sum of revenue across all orders in the current shift"
           },
           {
             "name": "orders",
             "type": "array",
+            "ofEntity": "Order",
             "required": true,
-            "description": "Lista de pedidos do turno corrente com orderId, status, orderType, createdAt, deliveredAt",
-            "ofEntity": "Order"
+            "description": "Orders from the current shift projected as {orderId, status, orderType, createdAt, deliveredAt}"
           },
           {
             "name": "topSellers",
             "type": "array",
             "required": true,
-            "description": "Itens mais vendidos calculados a partir dos pedidos do dia corrente (menuItemId, totalQuantity, totalRevenue)",
-            "ofEntity": "OrderItem"
+            "description": "Top-selling items aggregated from day orders: {menuItemId, totalQuantity, totalRevenue} sorted by totalQuantity descending"
           },
           {
             "name": "stockLevels",
             "type": "array",
+            "ofEntity": "StockLevel",
             "required": true,
-            "description": "Níveis de estoque atuais para o resumo de IA (stockItemId, currentQuantity, minimumLevel, unit)",
-            "ofEntity": "StockLevel"
-          },
-          {
-            "name": "summaryText",
-            "type": "string",
-            "required": true,
-            "description": "Resumo textual consolidado para consumo do assistente IA"
+            "description": "Current stock levels projected as {stockItemId, currentQuantity, minimumLevel, unit} for AI consumption"
           }
         ],
         "ports": [
@@ -73,15 +83,21 @@ export const requestAiSalesSummaryUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolver actorId a partir de ctx.sessionContext.actorId (source=actorSession). Se ausente, lançar erro de autorização.",
-          "2. Consultar a porta Shift para obter o único Shift com status='open' (rule dashboardCurrentShiftOnly). Se não houver turno aberto, lançar erro 'Nenhum turno aberto encontrado'. Extrair shiftId do turno aberto — este valor NÃO é entrada do usuário, é resolvido internamente (source=activeLifecycleInstance).",
-          "3. Consultar a porta Order filtrando por shiftId=shiftId obtido no passo 2, retornando orderId, status, orderType, createdAt, deliveredAt para todos os pedidos do turno corrente.",
-          "4. Para cada pedido retornado, coletar os OrderItem associados (via orderId) e agregar por menuItemId somando quantity e calculando receita total (quantity * unitPrice) para produzir topSellers (rule topSellersFromDayOrders).",
-          "5. Consultar a porta StockLevel para obter todos os níveis de estoque atuais (stockItemId, currentQuantity, minimumLevel, unit).",
-          "6. Consolidar orders, topSellers e stockLevels em um resumo estruturado (summaryText) que o assistente IA consome — apenas dados agregados de pedidos e estoque do domínio, sem fontes externas (rule aiConsumesDomainData).",
-          "7. Retornar shiftId, orders, topSellers, stockLevels e summaryText. Não permitir consulta de períodos históricos ou múltiplos turnos (rule dashboardCurrentShiftOnly)."
+          "1. Resolve the active lifecycle instance: query the Shift port for the single Shift with status='open' (rule: dashboardCurrentShiftOnly). If no open shift is found, return an empty summary with shiftId=null, zero counts, and empty arrays — never expose historical or multi-shift data.",
+          "2. Extract the resolved shiftId and shiftOpenedAt from the open Shift record.",
+          "3. Load all Orders for the resolved shiftId via the Order port (list filtered by shiftId). Each Order aggregate includes its embedded OrderItem collection.",
+          "4. Project each Order to {orderId, status, orderType, createdAt, deliveredAt} for the orders output array.",
+          "5. Aggregate OrderItems across all loaded Orders: group by menuItemId, sum quantity into totalQuantity and sum (quantity * unitPrice) into totalRevenue. Sort descending by totalQuantity to produce topSellers (rule: topSellersFromDayOrders).",
+          "6. Compute totalOrders as the count of loaded Orders and totalRevenue as the sum of all OrderItem subtotals.",
+          "7. Load all StockLevel records via the StockLevel port and project each to {stockItemId, currentQuantity, minimumLevel, unit} for the stockLevels output array.",
+          "8. Assemble and return the AiSalesSummaryOutput containing only domain-sourced data — no external APIs, no historical periods, no multi-shift consolidation (rule: aiConsumesDomainData)."
         ]
       }
+    ],
+    "rulesApplied": [
+      "dashboardCurrentShiftOnly",
+      "aiConsumesDomainData",
+      "topSellersFromDayOrders"
     ],
     "mdmRefs": []
   }
@@ -110,6 +126,11 @@ export const pipeline = [
       "_102021_/l2/agentChangeBackend/skills/architecture.md",
       "_102021_/l2/agentChangeBackend/skills/applicationUsecase.md",
       "_102034_.d.ts"
+    ],
+    "rulesApplied": [
+      "dashboardCurrentShiftOnly",
+      "aiConsumesDomainData",
+      "topSellersFromDayOrders"
     ],
     "agent": "agentCbMaterialize"
   }

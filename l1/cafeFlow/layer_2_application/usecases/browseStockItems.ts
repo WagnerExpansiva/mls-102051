@@ -2,131 +2,106 @@
 import type { RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
 import { resolveRepository } from '/_102034_/l1/server/layer_2_application/repositoryRegistry.js';
 import type { IStockLevelRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.js';
-import type { StockLevel, StockLevelUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
-import { isLowStockAlert } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import type { StockLevel, StockUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import { isLowStock } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+
+export interface StockItem {
+  stockItemId: string;
+  name: string;
+  unit: StockUnit;
+  minimumLevel: number;
+  createdAt: string;
+  updatedAt: string;
+  currentQuantity: number;
+  lowStockAlert: boolean;
+}
 
 export interface BrowseStockItemsInput {
   searchTerm?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface StockItemBrowseResult {
-  stockItemId: string;
-  name: string;
-  unit: StockLevelUnit;
-  minimumLevel: number;
-  currentQuantity: number;
-  lowStockAlert: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface BrowseStockItemsOutput {
-  items: StockItemBrowseResult[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
+  items: StockItem[];
+  total: number;
 }
 
 export async function browseStockItems(
   ctx: RequestContext,
   input: BrowseStockItemsInput,
 ): Promise<BrowseStockItemsOutput> {
-  // Step 1: Resolve actorId from session context for authorization context
-  const _actorId = ctx.sessionContext.actorSession.actorId;
-
-  // Step 2: List StockItems from MDM, applying optional searchTerm filter on name
-  const listResult = await ctx.mdm.collection.listByType({
-    type: 'cafeFlow.StockItem',
-    name: input.searchTerm,
-  });
-
-  const stockItemIndexes = listResult.items;
-
-  if (stockItemIndexes.length === 0) {
-    return {
-      items: [],
-      totalCount: 0,
-      page: input.page ?? 1,
-      pageSize: input.pageSize ?? 0,
-    };
+  // Step 1: Resolve actorId from session for manager authorization
+  const actorId = ctx.sessionContext.actorSession.actorId;
+  if (!actorId) {
+    return { items: [], total: 0 };
   }
 
-  // Step 3: Collect all stockItemIds from the MDM listing
-  const stockItemIds = stockItemIndexes.map((item) => item.mdmId);
+  // Step 2: List all StockItems from MDM
+  const listResult = await ctx.mdm.collection.listByType({ type: 'cafeFlow.StockItem' });
 
-  // Fetch full entity details to access module-specific fields (unit, minimumLevel)
-  const entities = await ctx.mdm.collection.getMany({ mdmIds: stockItemIds });
+  // Step 3: Filter by searchTerm if provided (case-insensitive on name)
+  let filteredIndex = listResult.items;
+  if (input.searchTerm && input.searchTerm.trim().length > 0) {
+    const term = input.searchTerm.trim().toLowerCase();
+    filteredIndex = filteredIndex.filter((item) =>
+      item.name.toLowerCase().includes(term),
+    );
+  }
 
-  // Step 4: Query StockLevels in batch via port — list all and join in memory
-  // (avoids individual calls in loop; the port has no batch-by-ids method)
-  const stockLevelPort = resolveRepository<IStockLevelRepository>(ctx, 'StockLevel');
-  const allStockLevels = await stockLevelPort.list();
+  // Step 4: Sort by name ascending
+  filteredIndex = [...filteredIndex].sort((a, b) => a.name.localeCompare(b.name));
 
-  // Build lookup map: stockItemId -> StockLevel
-  const stockLevelMap = new Map<string, StockLevel>();
+  if (filteredIndex.length === 0) {
+    return { items: [], total: 0 };
+  }
+
+  // Step 5: Fetch full MDM details for filtered items (batch) and all StockLevels (batch)
+  const mdmIds = filteredIndex.map((item) => item.mdmId);
+  const entities = await ctx.mdm.collection.getMany({ mdmIds });
+  const entityMap = new Map(entities.map((e) => [e.mdmId, e]));
+
+  const stockLevels = resolveRepository<IStockLevelRepository>(ctx, 'StockLevel');
+  const allStockLevels = await stockLevels.list();
+  const stockLevelByItemId = new Map<string, StockLevel>();
   for (const sl of allStockLevels) {
-    stockLevelMap.set(sl.stockItemId, sl);
+    stockLevelByItemId.set(sl.stockItemId, sl);
   }
 
-  // Step 5 & 6: Join in memory and apply lowStockAlertCalculation rule
-  const results: StockItemBrowseResult[] = entities.map((entity) => {
-    const details = entity.details as unknown as Record<string, unknown>;
-    const cafeFlow = (details['cafeFlow'] ?? {}) as unknown as Record<string, unknown>;
+  // Steps 6-7: Build output items with lowStockAlertCalculation
+  const items: StockItem[] = filteredIndex
+    .filter((idx) => entityMap.has(idx.mdmId))
+    .map((idx) => {
+      const entity = entityMap.get(idx.mdmId)!;
+      const details = entity.details as unknown as Record<string, unknown>;
+      const cafeFlowDetails =
+        (details['cafeFlow'] as Record<string, unknown> | undefined) ?? {};
 
-    const stockLevel = stockLevelMap.get(entity.mdmId);
-    const currentQuantity = stockLevel?.currentQuantity ?? 0;
+      const unit =
+        (cafeFlowDetails['unit'] as StockUnit | undefined) ??
+        (details['unit'] as StockUnit | undefined) ??
+        'unit';
+      const minimumLevel =
+        (cafeFlowDetails['minimumLevel'] as number | undefined) ??
+        (details['minimumLevel'] as number | undefined) ??
+        0;
 
-    // minimumLevel and unit: prefer StockItem MDM details, fall back to StockLevel
-    const minimumLevel =
-      (cafeFlow['minimumLevel'] as number | undefined) ??
-      stockLevel?.minimumLevel ??
-      0;
-    const unit =
-      (cafeFlow['unit'] as StockLevelUnit | undefined) ??
-      stockLevel?.unit ??
-      'unit';
+      const stockLevel = stockLevelByItemId.get(idx.mdmId);
+      const currentQuantity = stockLevel?.currentQuantity ?? 0;
 
-    // lowStockAlertCalculation: StockLevel.currentQuantity <= StockItem.minimumLevel
-    // Items without StockLevel: lowStockAlert = false, currentQuantity = 0
-    const lowStockAlert = stockLevel
-      ? isLowStockAlert({ currentQuantity: stockLevel.currentQuantity, minimumLevel })
-      : false;
+      // Rule lowStockAlertCalculation: use domain invariant isLowStock
+      const lowStockAlert = isLowStock({ currentQuantity, minimumLevel });
 
-    return {
-      stockItemId: entity.mdmId,
-      name: entity.index.name,
-      unit,
-      minimumLevel,
-      currentQuantity,
-      lowStockAlert,
-      createdAt: entity.index.createdAt,
-      updatedAt: entity.index.updatedAt,
-    };
-  });
+      return {
+        stockItemId: idx.mdmId,
+        name: idx.name,
+        unit,
+        minimumLevel,
+        createdAt: idx.createdAt,
+        updatedAt: idx.updatedAt,
+        currentQuantity,
+        lowStockAlert,
+      };
+    });
 
-  // Step 7: Sort by name ascending
-  results.sort((a, b) => a.name.localeCompare(b.name));
-
-  // Step 8: Apply optional pagination
-  const totalCount = results.length;
-  const requestedPage = input.page ?? 1;
-  const requestedPageSize = input.pageSize ?? totalCount;
-
-  let pagedItems: StockItemBrowseResult[];
-  if (input.page !== undefined && input.pageSize !== undefined) {
-    const offset = (requestedPage - 1) * requestedPageSize;
-    pagedItems = results.slice(offset, offset + requestedPageSize);
-  } else {
-    pagedItems = results;
-  }
-
-  // Step 9: Return paginated result
-  return {
-    items: pagedItems,
-    totalCount,
-    page: requestedPage,
-    pageSize: requestedPageSize,
-  };
+  // Step 8: Return result
+  return { items, total: items.length };
 }

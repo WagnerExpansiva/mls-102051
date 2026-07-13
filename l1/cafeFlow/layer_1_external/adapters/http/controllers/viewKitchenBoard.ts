@@ -2,15 +2,13 @@
 import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
 import { viewKitchenBoard, type ViewKitchenBoardInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/viewKitchenBoard.js';
 
-export const cafeFlowViewKitchenBoardHandler: BffHandler = async ({ request, ctx }) => {
-  const input = (request.params ?? {}) as ViewKitchenBoardInput;
-
-  // shiftId is resolved from the active lifecycle instance (current open Shift),
-  // not from public boundary input — no manual validation required.
-  // statusFilter is optional with a systemDefault applied by the usecase.
-
+export const cafeFlowViewKitchenBoardHandler: BffHandler = async ({ ctx }) => {
+  // Both shiftId (activeLifecycleInstance) and statusFilter (systemDefault) are resolved
+  // inside the usecase from ctx/ports — they are NOT public client inputs.
+  // ViewKitchenBoardInput is an empty interface; no boundary validation needed.
+  const input: ViewKitchenBoardInput = {};
   const result = await viewKitchenBoard(ctx, input);
-  return ok(result.orders);
+  return ok(result);
 };
 
 export const routes: ControllerRoute[] = [

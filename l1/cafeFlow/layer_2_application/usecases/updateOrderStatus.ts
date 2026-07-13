@@ -3,16 +3,12 @@ import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_contr
 import { resolveRepository } from '/_102034_/l1/server/layer_2_application/repositoryRegistry.js';
 import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.js';
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
-import type { IStockConsumptionRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.js';
 import type { Order, OrderStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
 import { canTransitionOrder } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
-import type { StockConsumption } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.js';
 
 export interface UpdateOrderStatusInput {
   orderId: string;
   status: string;
-  inPreparationAt?: string;
-  readyAt?: string;
 }
 
 export interface UpdateOrderStatusOutput {
@@ -21,100 +17,112 @@ export interface UpdateOrderStatusOutput {
   updatedAt: string;
 }
 
+/**
+ * Allowed target statuses for this usecase (kitchen flow).
+ */
+const ALLOWED_TARGETS: OrderStatus[] = ['inPreparation', 'ready'];
+
 export async function updateOrderStatus(
   ctx: RequestContext,
   input: UpdateOrderStatusInput,
 ): Promise<UpdateOrderStatusOutput> {
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
   const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
-  const stockConsumptions = resolveRepository<IStockConsumptionRepository>(ctx, 'StockConsumption');
 
-  // Step 1: Resolve the active shift (status='open')
-  const openShifts = await shifts.listOpenShifts();
+  // Step 1 — resolve the single open shift
+  const openShifts = await shifts.list({ status: 'open' });
   if (openShifts.length === 0) {
     throw new AppError(
-      'CONFLICT',
-      'No open shift found. Cannot update order status without an active shift.',
-      409,
-      { ruleId: 'orderStatusFlow' },
+      'VALIDATION_ERROR',
+      'No active shift found. Cannot update order status without an open shift.',
+      400,
+      { ruleId: 'noActiveShift' },
     );
   }
   const activeShift = openShifts[0];
 
-  // Step 2: Load the order by orderId
+  // Step 2 — load the order
   const order = await orders.getById(input.orderId);
+  if (!order) {
+    throw new AppError('NOT_FOUND', `Order not found: ${input.orderId}`, 404, {
+      orderId: input.orderId,
+    });
+  }
 
-  // Step 3: Validate that the order belongs to the active shift
+  // Step 3 — validate the order belongs to the active shift
   if (order.shiftId !== activeShift.shiftId) {
     throw new AppError(
-      'CONFLICT',
-      'Order does not belong to the currently open shift.',
-      409,
-      { orderId: input.orderId, orderShiftId: order.shiftId, activeShiftId: activeShift.shiftId },
+      'VALIDATION_ERROR',
+      'ORDER_NOT_IN_ACTIVE_SHIFT: the order does not belong to the currently open shift.',
+      400,
+      { ruleId: 'ORDER_NOT_IN_ACTIVE_SHIFT', orderShiftId: order.shiftId, activeShiftId: activeShift.shiftId },
     );
   }
 
-  // Step 4 & 5: Apply orderStatusFlow and inProgressBeforeReady rules
-  const newStatus = input.status as OrderStatus;
+  // Step 4 — apply transition rules (orderStatusFlow + inProgressBeforeReady)
+  const targetStatus = input.status as OrderStatus;
   const currentStatus = order.status;
 
-  // orderStatusFlow: transitions must follow received → inPreparation → ready without skips
-  if (!canTransitionOrder(currentStatus, newStatus)) {
+  if (!ALLOWED_TARGETS.includes(targetStatus)) {
     throw new AppError(
-      'CONFLICT',
-      `orderStatusFlow: invalid status transition from "${currentStatus}" to "${newStatus}".`,
-      409,
-      { ruleId: 'orderStatusFlow', from: currentStatus, to: newStatus },
+      'VALIDATION_ERROR',
+      `INVALID_STATUS_TRANSITION: orderStatusFlow — target status "${targetStatus}" is not allowed by this operation.`,
+      400,
+      { ruleId: 'orderStatusFlow', currentStatus, targetStatus },
     );
   }
 
-  // inProgressBeforeReady: order can only be marked 'ready' if current status is 'inPreparation'
-  if (newStatus === 'ready' && currentStatus !== 'inPreparation') {
+  if (targetStatus === 'inPreparation' && currentStatus !== 'received') {
     throw new AppError(
-      'CONFLICT',
-      'inProgressBeforeReady: order must be inPreparation before it can be marked ready.',
-      409,
-      { ruleId: 'inProgressBeforeReady', currentStatus },
+      'VALIDATION_ERROR',
+      `INVALID_STATUS_TRANSITION: orderStatusFlow — can only move to "inPreparation" from "received" (current: "${currentStatus}").`,
+      400,
+      { ruleId: 'orderStatusFlow', currentStatus, targetStatus },
     );
   }
 
-  // Step 6: Set timestamps
+  if (targetStatus === 'ready' && currentStatus !== 'inPreparation') {
+    throw new AppError(
+      'VALIDATION_ERROR',
+      `INVALID_STATUS_TRANSITION: inProgressBeforeReady — can only move to "ready" from "inPreparation" (current: "${currentStatus}").`,
+      400,
+      { ruleId: 'inProgressBeforeReady', currentStatus, targetStatus },
+    );
+  }
+
+  // Double-check via domain invariant
+  if (!canTransitionOrder(currentStatus, targetStatus)) {
+    throw new AppError(
+      'VALIDATION_ERROR',
+      `INVALID_STATUS_TRANSITION: orderStatusFlow — transition from "${currentStatus}" to "${targetStatus}" is not permitted.`,
+      400,
+      { ruleId: 'orderStatusFlow', currentStatus, targetStatus },
+    );
+  }
+
+  // Step 5 — set timestamps
   const now = ctx.clock.nowIso();
+
+  // Step 6 — mutate the order in memory
   const updatedOrder: Order = {
     ...order,
-    status: newStatus,
-    inPreparationAt:
-      newStatus === 'inPreparation'
-        ? (input.inPreparationAt ?? now)
-        : order.inPreparationAt,
-    readyAt:
-      newStatus === 'ready'
-        ? (input.readyAt ?? now)
-        : order.readyAt,
+    status: targetStatus,
+    inPreparationAt: targetStatus === 'inPreparation' ? now : order.inPreparationAt,
+    readyAt: targetStatus === 'ready' ? now : order.readyAt,
     updatedAt: now,
   };
 
-  // Step 7 & 8: Save order and emit StockConsumption audit event within the same transaction
+  // Step 7 — save inside a transaction
   await ctx.data.runInTransaction(async () => {
     await orders.save(updatedOrder);
-
-    // Emit append-only StockConsumption audit records for each order item
-    for (const item of updatedOrder.items) {
-      const consumption: StockConsumption = {
-        stockConsumptionId: ctx.idGenerator.newId(),
-        stockItemId: item.menuItemId,
-        orderId: updatedOrder.orderId,
-        quantity: item.quantity,
-        status: 'posted',
-        createdAt: now,
-        voidedAt: null,
-        voidReason: null,
-      };
-      await stockConsumptions.append(consumption);
-    }
+    // Step 8 — StockConsumption event gap:
+    // The StockConsumption port is declared at the usecase level but is NOT in the
+    // function's ports list ['Order','Shift']. The event cannot be appended without
+    // resolving the port. This is a modeling gap — skip the event write until the
+    // StockConsumption port is added to the function's ports.
   });
 
-  // Step 9: Return the updated order status info
+  // Step 9 — return result
   return {
     orderId: updatedOrder.orderId,
     status: updatedOrder.status,

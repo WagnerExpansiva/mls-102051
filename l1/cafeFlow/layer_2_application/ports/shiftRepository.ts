@@ -2,16 +2,18 @@
 import type { Shift, ShiftStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
 
 export type ShiftId = string;
+export type EmployeeId = string;
 
-export interface ShiftListFilter {
+export interface ShiftFilter {
   status?: ShiftStatus;
-  openedBy?: string;
+  openedBy?: EmployeeId;
 }
 
 export interface IShiftRepository {
-  getById(id: ShiftId): Promise<Shift>;
-  list(filter?: ShiftListFilter): Promise<Shift[]>;
+  getById(shiftId: ShiftId): Promise<Shift>;
+  list(filter?: ShiftFilter): Promise<Shift[]>;
   save(shift: Shift): Promise<void>;
-  listOpenShifts(): Promise<Shift[]>;
-  listByPeriod(start: Date, end: Date): Promise<Shift[]>;
+  findByEmployeeId(employeeId: EmployeeId): Promise<Shift[]>;
+  findOpenShiftByEmployeeId(employeeId: EmployeeId): Promise<Shift | null>;
+  findByPeriod(start: Date, end: Date): Promise<Shift[]>;
 }

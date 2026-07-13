@@ -3,11 +3,15 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { viewShiftClosingReport, type ViewShiftClosingReportInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/viewShiftClosingReport.js';
 
 export const cafeFlowViewShiftClosingReportHandler: BffHandler = async ({ request, ctx }) => {
-  const input = request.params as ViewShiftClosingReportInput;
+  const params = (request.params ?? {}) as Partial<ViewShiftClosingReportInput>;
 
-  if (!input || !input.shiftId) {
+  if (!params.shiftId) {
     throw new AppError('VALIDATION_ERROR', 'shiftId is required', 400, { field: 'shiftId' });
   }
+
+  const input: ViewShiftClosingReportInput = {
+    shiftId: params.shiftId,
+  };
 
   const result = await viewShiftClosingReport(ctx, input);
 

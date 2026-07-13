@@ -23,10 +23,10 @@ export const stockAdjustmentRepositoryPort = {
         ]
       },
       {
-        "name": "list",
+        "name": "listByProductId",
         "returns": "StockAdjustment[]",
         "params": [
-          "filter: StockAdjustmentListFilter"
+          "productId: ProductId"
         ]
       },
       {
@@ -35,6 +35,13 @@ export const stockAdjustmentRepositoryPort = {
         "params": [
           "start: Date",
           "end: Date"
+        ]
+      },
+      {
+        "name": "listByReason",
+        "returns": "StockAdjustment[]",
+        "params": [
+          "reason: AdjustmentReason"
         ]
       }
     ]

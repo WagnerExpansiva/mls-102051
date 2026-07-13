@@ -46,13 +46,13 @@ export const deliverOrderUsecase = {
           },
           {
             "name": "deliveredAt",
-            "type": "string",
+            "type": "datetime",
             "required": true,
             "ofEntity": "Order"
           },
           {
             "name": "updatedAt",
-            "type": "string",
+            "type": "datetime",
             "required": true,
             "ofEntity": "Order"
           }
@@ -67,14 +67,15 @@ export const deliverOrderUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Load the Order aggregate by orderId via OrderPort.getById(orderId).",
-          "2. Apply rule 'readyBeforeDelivered': verify order.status === 'ready'. If not, throw a validation error with rule id 'readyBeforeDelivered' — only orders in 'ready' status can be delivered.",
-          "3. Apply rule 'orderStatusFlow': confirm the transition 'ready' -> 'delivered' is a valid forward transition in the order status enum sequence.",
-          "4. Resolve deliveredAt = ctx.clock.now() and updatedAt = ctx.clock.now() (systemDefault — not user input).",
-          "5. Mutate the Order: set status = 'delivered', deliveredAt = resolved timestamp, updatedAt = resolved timestamp.",
-          "6. Save the Order aggregate via OrderPort.save(order) inside the same transaction.",
-          "7. Append a StockConsumption audit event via StockConsumptionPort inside the same transaction, recording the delivery transition for the order.",
-          "8. Return { orderId, status, deliveredAt, updatedAt }."
+          "1. Load the Order aggregate by orderId via OrderPort.getById(orderId). If not found, throw a not-found error.",
+          "2. Apply rule 'readyBeforeDelivered': verify order.status === 'ready'. If status is any other value, throw a validation error with ruleId 'readyBeforeDelivered' stating the order must be in 'ready' status before delivery.",
+          "3. Apply rule 'orderStatusFlow': confirm the transition 'ready' -> 'delivered' is the next valid step in the status enum sequence. If not, throw a validation error with ruleId 'orderStatusFlow'.",
+          "4. Set order.status = 'delivered'.",
+          "5. Set order.deliveredAt = ctx.clock.now() (systemDefault resolution — never accepted from client input).",
+          "6. Set order.updatedAt = ctx.clock.now() (systemDefault resolution — never accepted from client input).",
+          "7. Save the Order aggregate via OrderPort.save(order) inside the same transaction.",
+          "8. Build a StockConsumption audit event record for this delivery and append it via StockConsumptionPort inside the same transaction (persisted=true, purpose=audit).",
+          "9. Return { orderId, status, deliveredAt, updatedAt }."
         ]
       }
     ],

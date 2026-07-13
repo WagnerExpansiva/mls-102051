@@ -12,17 +12,16 @@ export const orderRepositoryAdapter = {
     "planId": ""
   },
   "data": {
-    "className": "OrderRepositoryAdapter",
+    "className": "OrderRepository",
     "entityId": "Order",
     "portRef": "IOrderRepository",
     "tableRef": "orders",
     "mdmReads": [],
     "notes": [
-      "Domain Order <-> orders row via ctx.data.moduleData",
-      "Real columns snake_case: order_id, shift_id, status, order_type, created_at",
-      "details JSONB: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt",
-      "Embedded OrderItem[] mapped to/from details.orderItems",
-      "No MDM refs"
+      "Real columns (snake_case): order_id, shift_id, status, order_type, created_at.",
+      "Details JSONB fields: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt.",
+      "Embedded OrderItem[] stored inside details JSONB (e.g., details.orderItems).",
+      "Uses ctx.data.moduleData.orders for CRUD."
     ]
   }
 } as const;

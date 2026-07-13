@@ -17,27 +17,27 @@ export const shiftTableDefinition = {
     "columns": [
       {
         "name": "shift_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "Primary key"
+        "description": "PK – unique shift identifier"
       },
       {
         "name": "status",
-        "type": "VARCHAR",
+        "type": "text",
         "nullable": false,
-        "description": "Shift status"
+        "description": "Shift lifecycle status"
       },
       {
         "name": "created_at",
-        "type": "TIMESTAMP",
+        "type": "timestamp",
         "nullable": false,
         "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
-        "type": "JSONB",
+        "type": "jsonb",
         "nullable": true,
-        "description": "openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt"
+        "description": "Details JSONB: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt"
       }
     ],
     "primaryKey": [

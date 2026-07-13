@@ -1,8 +1,8 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/usecases/manageMenuItem.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { MdmEntityUpdateInput } from '/_102034_/l1/mdm/layer_3_usecases/mdmFacade.js';
+import type { MdmDetailRecord } from '/_102034_/l1/mdm/module.js';
 
-export interface UpdateMenuItemInput {
+export interface ManageMenuItemInput {
   menuItemId: string;
   name: string;
   description?: string;
@@ -12,7 +12,7 @@ export interface UpdateMenuItemInput {
   status: string;
 }
 
-export interface UpdateMenuItemOutput {
+export interface ManageMenuItemOutput {
   menuItemId: string;
   name: string;
   description?: string;
@@ -25,96 +25,131 @@ export interface UpdateMenuItemOutput {
   updatedAt: string;
 }
 
-export async function updateMenuItem(
+/**
+ * Manage (update) an existing MenuItem MDM record.
+ *
+ * Rules applied inline:
+ * - simpleItemsOnly: only itemType === 'simple' is allowed in this phase.
+ * - menuItemRequiresIngredient: when transitioning to 'active', the item must have
+ *   at least one related entity (ingredient) linked via MDM relationships.
+ *
+ * MODELING GAP: MenuItemIngredient is neither a declared MDM entity type nor a
+ * runtime port. The relatedOfMany call is the closest available proxy to check
+ * for linked ingredients.
+ */
+export async function manageMenuItem(
   ctx: RequestContext,
-  input: UpdateMenuItemInput,
-): Promise<UpdateMenuItemOutput> {
-  // Rule: simpleItemsOnly — only 'simple' item type is allowed in this phase
-  if (input.itemType !== 'simple') {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'simpleItemsOnly: apenas itens do tipo "simple" são permitidos nesta fase.',
-      400,
-      { ruleId: 'simpleItemsOnly', itemType: input.itemType },
-    );
-  }
+  input: ManageMenuItemInput,
+): Promise<ManageMenuItemOutput> {
+  return ctx.data.runInTransaction(async () => {
+    const now = ctx.clock.nowIso();
 
-  // Load existing MenuItem via MDM
-  const existing = await ctx.mdm.entity.get({ mdmId: input.menuItemId });
-  const existingDetails = existing.details as unknown as Record<string, unknown>;
-  const existingCafeFlow = (existingDetails['cafeFlow'] ?? {}) as Record<string, unknown>;
-  const currentStatus = String(existingCafeFlow['status'] ?? '');
+    // Step 2: Load the current MenuItem via MDM facade
+    const existing = await ctx.mdm.entity.get({ mdmId: input.menuItemId });
+    const existingDetails = existing.details as unknown as Record<string, unknown>;
+    const currentStatusRaw = String(existingDetails.status ?? '');
+    const currentStatus = currentStatusRaw.toLowerCase();
+    const currentActivatedAt =
+      (existingDetails.activatedAt as string | null | undefined) ?? null;
+    const currentInactivatedAt =
+      (existingDetails.inactivatedAt as string | null | undefined) ?? null;
 
-  const now = ctx.clock.nowIso();
-
-  let activatedAt = (existingCafeFlow['activatedAt'] as string | undefined) ?? undefined;
-  let inactivatedAt = (existingCafeFlow['inactivatedAt'] as string | undefined) ?? undefined;
-
-  // Rule: menuItemRequiresIngredient — cannot activate a menu item without ingredients
-  if (input.status === 'active' && currentStatus !== 'active') {
-    const ingredientList = await ctx.mdm.collection.listByType({
-      type: 'cafeFlow.MenuItemIngredient',
-    });
-    const ingredientIds = new Set(ingredientList.items.map((item) => item.mdmId));
-
-    const related = await ctx.mdm.collection.relatedOfMany({
-      mdmIds: [input.menuItemId],
-    });
-    const relatedRefs = related[input.menuItemId] ?? [];
-    const hasIngredients = relatedRefs.some((ref) => ingredientIds.has(ref.mdmId));
-
-    if (!hasIngredients) {
+    // Step 3: simpleItemsOnly rule
+    if (input.itemType !== 'simple') {
       throw new AppError(
         'VALIDATION_ERROR',
-        'menuItemRequiresIngredient: não é possível ativar um item do cardápio sem ingredientes vinculados.',
+        'simpleItemsOnly: apenas itens do tipo "simple" são permitidos nesta fase.',
         400,
-        { ruleId: 'menuItemRequiresIngredient', menuItemId: input.menuItemId },
+        { ruleId: 'simpleItemsOnly', itemType: input.itemType },
       );
     }
-    activatedAt = now;
-  }
 
-  // Track inactivation timestamp on transition to 'inactive'
-  if (input.status === 'inactive' && currentStatus !== 'inactive') {
-    inactivatedAt = now;
-  }
+    // Step 4: Validate menuCategoryId references an existing, non-inactive MenuCategory
+    const category = await ctx.mdm.entity.get({ mdmId: input.menuCategoryId });
+    const categoryDetails = category.details as unknown as Record<string, unknown>;
+    if (String(categoryDetails.status).toLowerCase() === 'inactive') {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        `MenuCategory inativa: ${input.menuCategoryId}`,
+        400,
+        { menuCategoryId: input.menuCategoryId },
+      );
+    }
 
-  // Resolve description: use input if provided, otherwise preserve existing
-  const descriptionValue =
-    input.description !== undefined
-      ? input.description
-      : (existingCafeFlow['description'] as string | null | undefined) ?? null;
+    // Step 5: menuItemRequiresIngredient — only when transitioning to 'active'
+    const transitioningToActive =
+      (currentStatus === 'draft' || currentStatus === 'inactive') &&
+      input.status === 'active';
 
-  // Build cafeFlow namespace patch preserving existing fields
-  const cafeFlowPatch: Record<string, unknown> = {
-    ...existingCafeFlow,
-    description: descriptionValue,
-    menuCategoryId: input.menuCategoryId,
-    price: input.price,
-    itemType: input.itemType,
-    status: input.status,
-    activatedAt: activatedAt ?? null,
-    inactivatedAt: inactivatedAt ?? null,
-    updatedAt: now,
-  };
+    if (transitioningToActive) {
+      const relatedMap = await ctx.mdm.collection.relatedOfMany({
+        mdmIds: [input.menuItemId],
+      });
+      const relatedEntries = relatedMap[input.menuItemId] ?? [];
+      if (relatedEntries.length === 0) {
+        throw new AppError(
+          'VALIDATION_ERROR',
+          'menuItemRequiresIngredient: o item do cardápio precisa ter ao menos um ingrediente vinculado antes de ser ativado.',
+          400,
+          { ruleId: 'menuItemRequiresIngredient', menuItemId: input.menuItemId },
+        );
+      }
+    }
 
-  // Persist via MDM facade
-  await ctx.mdm.entity.update({
-    mdmId: input.menuItemId,
-    expectedVersion: existing.version,
-    patch: { name: input.name, cafeFlow: cafeFlowPatch } as unknown as MdmEntityUpdateInput['patch'],
+    // Steps 6-8: Compute timestamps based on status transitions
+    let activatedAt: string | null = currentActivatedAt;
+    let inactivatedAt: string | null = currentInactivatedAt;
+
+    if (transitioningToActive) {
+      activatedAt = now;
+    }
+
+    if (currentStatus === 'active' && input.status === 'inactive') {
+      inactivatedAt = now;
+    }
+
+    const updatedAt = now;
+
+    // Step 9: Persist the updated MenuItem via MDM facade
+    const patch: Record<string, unknown> = {
+      name: input.name,
+      description: input.description ?? null,
+      menuCategoryId: input.menuCategoryId,
+      price: input.price,
+      itemType: input.itemType,
+      status: input.status,
+      activatedAt,
+      inactivatedAt,
+      updatedAt,
+    };
+
+    await ctx.mdm.entity.update({
+      mdmId: input.menuItemId,
+      expectedVersion: existing.version,
+      patch: patch as unknown as Partial<MdmDetailRecord>,
+    });
+
+    // Step 10: Return the updated MenuItem fields
+    const output: ManageMenuItemOutput = {
+      menuItemId: input.menuItemId,
+      name: input.name,
+      menuCategoryId: input.menuCategoryId,
+      price: input.price,
+      itemType: input.itemType,
+      status: input.status,
+      updatedAt,
+    };
+
+    if (input.description !== undefined) {
+      output.description = input.description;
+    }
+    if (activatedAt !== null) {
+      output.activatedAt = activatedAt;
+    }
+    if (inactivatedAt !== null) {
+      output.inactivatedAt = inactivatedAt;
+    }
+
+    return output;
   });
-
-  return {
-    menuItemId: input.menuItemId,
-    name: input.name,
-    description: descriptionValue ?? undefined,
-    menuCategoryId: input.menuCategoryId,
-    price: input.price,
-    itemType: input.itemType,
-    status: input.status,
-    activatedAt: activatedAt ?? undefined,
-    inactivatedAt: inactivatedAt ?? undefined,
-    updatedAt: now,
-  };
 }

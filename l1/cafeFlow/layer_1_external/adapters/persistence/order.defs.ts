@@ -17,39 +17,39 @@ export const orderTableDefinition = {
     "columns": [
       {
         "name": "order_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "Primary key"
+        "description": "PK – unique order identifier"
       },
       {
         "name": "shift_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
         "description": "FK to shift"
       },
       {
         "name": "status",
-        "type": "VARCHAR",
+        "type": "text",
         "nullable": false,
-        "description": "Order status"
+        "description": "Order lifecycle status"
       },
       {
         "name": "order_type",
-        "type": "VARCHAR",
+        "type": "text",
         "nullable": false,
-        "description": "Order type"
+        "description": "Order type (e.g. dine-in, takeaway)"
       },
       {
         "name": "created_at",
-        "type": "TIMESTAMP",
+        "type": "timestamp",
         "nullable": false,
         "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
-        "type": "JSONB",
+        "type": "jsonb",
         "nullable": true,
-        "description": "tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + child collection OrderItem"
+        "description": "Details JSONB: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + child collection OrderItem"
       }
     ],
     "primaryKey": [
@@ -71,7 +71,7 @@ export const orderTableDefinition = {
         "unique": false
       },
       {
-        "indexName": "idx_order_type",
+        "indexName": "idx_order_order_type",
         "columns": [
           "order_type"
         ],

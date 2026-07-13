@@ -1,18 +1,20 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.ts" enhancement="_blank"/>
-import type {
-  StockConsumption,
-  StockConsumptionStatus,
-} from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.js';
+import type { StockConsumption } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.js';
 
-export interface StockConsumptionListFilter {
-  stockItemId?: string;
-  orderId?: string;
-  status?: StockConsumptionStatus;
-}
-
+/**
+ * Append-only event port for StockConsumption records.
+ * Once a consumption is recorded it is immutable — no save/update/delete.
+ */
 export interface IStockConsumptionRepository {
-  append(record: StockConsumption): Promise<void>;
-  list(filter: StockConsumptionListFilter): Promise<StockConsumption[]>;
+  /** Record a new stock consumption event. Returns the persisted record. */
+  append(record: StockConsumption): Promise<StockConsumption>;
+
+  /** List all consumption events for a given order (the "owner"). */
   listByOwnerId(orderId: string): Promise<StockConsumption[]>;
+
+  /** List all consumption events within a date range (inclusive). */
   listByPeriod(start: Date, end: Date): Promise<StockConsumption[]>;
+
+  /** List all consumption events for a given product / stock item. */
+  listByProductId(productId: string): Promise<StockConsumption[]>;
 }

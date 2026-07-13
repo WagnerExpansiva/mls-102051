@@ -30,34 +30,38 @@ export const viewDashboardUsecase = {
             "name": "shiftId",
             "type": "string",
             "required": true,
-            "description": "ID do turno atualmente aberto usado para filtrar os dados",
+            "description": "ID of the currently open shift used to scope all dashboard data",
             "ofEntity": "Shift"
           },
           {
             "name": "totalSales",
             "type": "number",
             "required": true,
-            "description": "Total de vendas do turno atual somando todos os pedidos"
+            "description": "Sum of all order totals (unitPrice * quantity per OrderItem) for orders in the current shift"
+          },
+          {
+            "name": "orderCount",
+            "type": "number",
+            "required": true,
+            "description": "Number of orders registered in the current shift"
           },
           {
             "name": "orders",
-            "type": "array",
+            "type": "OrderSummary[]",
             "required": true,
-            "description": "Lista de pedidos do turno atual com status, tipo, data de criação e data de entrega",
-            "ofEntity": "Order"
+            "description": "List of order summaries for the current shift including status, orderType, createdAt, and deliveredAt"
           },
           {
             "name": "topSellers",
-            "type": "array",
+            "type": "TopSeller[]",
             "required": true,
-            "description": "Itens mais vendidos calculados a partir dos OrderItem dos pedidos do turno atual"
+            "description": "Items ranked by total quantity sold, computed only from OrderItems of the current shift orders (rule topSellersFromDayOrders)"
           },
           {
             "name": "lowStockAlerts",
-            "type": "array",
+            "type": "LowStockAlert[]",
             "required": true,
-            "description": "Alertas de estoque baixo para itens cujo StockLevel está abaixo do mínimo",
-            "ofEntity": "StockLevel"
+            "description": "Stock items whose currentQuantity is below minimumLevel, flagged as low-stock alerts"
           }
         ],
         "ports": [
@@ -71,13 +75,14 @@ export const viewDashboardUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Extrair actorId de ctx.sessionContext.actorId para autorização do gerente",
-          "2. Consultar a porta Shift para localizar o único Shift com status='open' (regra dashboardCurrentShiftOnly); se nenhum turno aberto existir, retornar erro de validação",
-          "3. Usar o shiftId do turno aberto para filtrar todos os pedidos via porta Order (listar pedidos cujo shiftId corresponda ao turno atual)",
-          "4. Calcular totalSales somando o valor de todos os pedidos do turno atual",
-          "5. Para cada pedido do turno, coletar os OrderItem e agregar por menuItemId somando quantity (regra topSellersFromDayOrders); ordenar por quantidade descendente para obter topSellers",
-          "6. Consultar a porta StockLevel para todos os itens de estoque e filtrar aqueles cujo currentQuantity < minimumLevel para compor lowStockAlerts",
-          "7. Montar e retornar o objeto de dashboard com shiftId, totalSales, orders, topSellers e lowStockAlerts"
+          "1. Resolve the currently open Shift by querying the Shift port for status='open' (activeLifecycleInstance resolution). If no open shift exists, return an empty dashboard with shiftId=null, totalSales=0, orderCount=0, empty orders/topSellers/lowStockAlerts (rule dashboardCurrentShiftOnly).",
+          "2. Extract actorId from ctx.sessionContext for authorization context (actorSession resolution). The actor must be an authenticated manager; if sessionContext is missing, throw an authorization error.",
+          "3. Load all Orders for the resolved shiftId via the Order port (list by shiftId). Each Order aggregate includes its embedded OrderItem collection.",
+          "4. Build the orders summary list projecting orderId, status, orderType, createdAt, shiftId, deliveredAt for each order.",
+          "5. Compute totalSales by iterating all OrderItems across all loaded orders and summing (unitPrice * quantity).",
+          "6. Compute topSellers by aggregating OrderItems grouped by menuItemId: sum quantity per menuItemId and sum (unitPrice * quantity) as totalRevenue. Sort descending by totalQuantity. This applies rule topSellersFromDayOrders — only OrderItems from the current shift orders are considered, never historical data.",
+          "7. Query the StockLevel port for all stock level records. Filter those where currentQuantity < minimumLevel to build lowStockAlerts with stockItemId, currentQuantity, minimumLevel, and unit.",
+          "8. Assemble and return the dashboard output: shiftId, totalSales, orderCount, orders, topSellers, lowStockAlerts. No historical periods or multi-shift consolidation is permitted (rule dashboardCurrentShiftOnly)."
         ]
       }
     ],

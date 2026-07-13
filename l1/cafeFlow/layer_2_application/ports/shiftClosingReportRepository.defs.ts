@@ -19,14 +19,14 @@ export const shiftClosingReportRepositoryPort = {
         "name": "getById",
         "returns": "ShiftClosingReport",
         "params": [
-          "id: ShiftClosingReportId"
+          "reportId: ShiftClosingReportId"
         ]
       },
       {
         "name": "list",
         "returns": "ShiftClosingReport[]",
         "params": [
-          "filter: ShiftClosingReportListFilter"
+          "filter: ShiftClosingReportFilter"
         ]
       },
       {
@@ -37,10 +37,18 @@ export const shiftClosingReportRepositoryPort = {
         ]
       },
       {
-        "name": "listByShiftId",
-        "returns": "ShiftClosingReport[]",
+        "name": "findByShiftId",
+        "returns": "ShiftClosingReport | null",
         "params": [
           "shiftId: ShiftId"
+        ]
+      },
+      {
+        "name": "findByPeriod",
+        "returns": "ShiftClosingReport[]",
+        "params": [
+          "start: Date",
+          "end: Date"
         ]
       }
     ]

@@ -17,39 +17,39 @@ export const stockConsumptionTableDefinition = {
     "columns": [
       {
         "name": "stock_consumption_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "Primary key"
+        "description": "PK – unique consumption identifier"
       },
       {
         "name": "stock_item_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "FK to stock item"
+        "description": "FK to stock item (owner)"
       },
       {
         "name": "order_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
         "description": "FK to order"
       },
       {
         "name": "status",
-        "type": "VARCHAR",
+        "type": "text",
         "nullable": false,
         "description": "Consumption status"
       },
       {
         "name": "created_at",
-        "type": "TIMESTAMP",
+        "type": "timestamp",
         "nullable": false,
         "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
-        "type": "JSONB",
+        "type": "jsonb",
         "nullable": true,
-        "description": "quantity, voidedAt, voidReason"
+        "description": "Details JSONB: quantity, voidedAt, voidReason"
       }
     ],
     "primaryKey": [

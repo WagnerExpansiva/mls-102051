@@ -26,8 +26,8 @@ export const openShiftUsecase = {
             "name": "notes",
             "type": "string",
             "required": false,
-            "description": "Observações gerais opcionais sobre o turno, informadas pelo gerente ao abrir.",
-            "ofEntity": "Shift"
+            "ofEntity": "Shift",
+            "description": "Observações gerais opcionais sobre o turno, informadas pelo gerente ao abrir."
           }
         ],
         "output": [
@@ -35,29 +35,29 @@ export const openShiftUsecase = {
             "name": "shiftId",
             "type": "string",
             "required": true,
-            "description": "Identificador único do turno criado.",
-            "ofEntity": "Shift"
+            "ofEntity": "Shift",
+            "description": "Identificador único do turno criado."
           },
           {
             "name": "status",
             "type": "string",
             "required": true,
-            "description": "Situação do turno após abertura ('open').",
-            "ofEntity": "Shift"
+            "ofEntity": "Shift",
+            "description": "Situação do turno, sempre 'open' após a criação."
           },
           {
             "name": "openedAt",
             "type": "string",
             "required": true,
-            "description": "Data e hora de abertura do turno.",
-            "ofEntity": "Shift"
+            "ofEntity": "Shift",
+            "description": "Data e hora de abertura do turno."
           },
           {
             "name": "openedBy",
             "type": "string",
             "required": true,
-            "description": "Identificador do gerente que abriu o turno.",
-            "ofEntity": "Shift"
+            "ofEntity": "Shift",
+            "description": "Identificador do gerente que abriu o turno."
           }
         ],
         "ports": [
@@ -68,12 +68,14 @@ export const openShiftUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Resolve system defaults: generate shiftId via ctx.idGenerator, set status='open', openedAt=ctx.clock.now(), createdAt=ctx.clock.now(), updatedAt=ctx.clock.now().",
-          "2. Resolve openedBy from ctx.sessionContext.actorId (the authenticated manager).",
-          "3. Apply rule singleOpenShift: query the Shift port for any existing Shift with status='open'. If one exists, reject the operation with a validation error referencing rule 'singleOpenShift'.",
-          "4. Build the Shift aggregate with shiftId, status='open', openedAt, openedBy, notes (if provided), createdAt, updatedAt; leave closedAt, closedBy and totalApurado null.",
-          "5. Persist the Shift via the Shift port inside a single transaction (ctx.data transaction wrapper).",
-          "6. Return shiftId, status, openedAt, openedBy."
+          "1. Resolve o identificador do gerente autenticado a partir de ctx.sessionContext.actorId (originRef: actorSession.actorId).",
+          "2. Gera um novo UUID para shiftId via ctx.idGenerator.",
+          "3. Obtém o timestamp atual do servidor via ctx.clock.now() para openedAt, createdAt e updatedAt.",
+          "4. Consulta a porta Shift (list/find) para verificar se já existe algum Shift com status igual a 'open'.",
+          "5. Aplica a regra singleOpenShift: se existir um Shift com status 'open', lança erro de validação com a regra 'singleOpenShift' impedindo a criação de um novo turno.",
+          "6. Se não houver Shift aberto, constrói o novo Shift com shiftId gerado, status='open', openedAt=now, openedBy=actorId, notes (se fornecido), createdAt=now, updatedAt=now, e campos closedAt, closedBy, totalApurado como nulos.",
+          "7. Persiste o novo Shift através da porta Shift dentro de uma transação única (ctx.data).",
+          "8. Retorna shiftId, status, openedAt e openedBy do turno recém-criado."
         ]
       }
     ],

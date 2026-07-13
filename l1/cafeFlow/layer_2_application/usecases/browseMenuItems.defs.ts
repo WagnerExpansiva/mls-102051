@@ -24,75 +24,30 @@ export const browseMenuItemsUsecase = {
             "name": "statusFilter",
             "type": "string",
             "required": false,
+            "ofEntity": "MenuItem",
             "description": "Filtro opcional por status do item (draft, active, inactive)"
           },
           {
             "name": "menuCategoryIdFilter",
             "type": "string",
             "required": false,
+            "ofEntity": "MenuItem",
             "description": "Filtro opcional por categoria do item (menuCategoryId)"
           }
         ],
         "output": [
           {
-            "name": "menuItemId",
-            "type": "string",
+            "name": "items",
+            "type": "array",
             "required": true,
-            "ofEntity": "MenuItem"
+            "ofEntity": "MenuItem",
+            "description": "Lista de itens do cardápio com campos projetados: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt"
           },
           {
-            "name": "name",
-            "type": "string",
-            "required": true,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "description",
-            "type": "string",
-            "required": false,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "menuCategoryId",
-            "type": "string",
-            "required": true,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "price",
+            "name": "total",
             "type": "number",
             "required": true,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "itemType",
-            "type": "string",
-            "required": true,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "status",
-            "type": "string",
-            "required": true,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "activatedAt",
-            "type": "string",
-            "required": false,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "createdAt",
-            "type": "string",
-            "required": true,
-            "ofEntity": "MenuItem"
-          },
-          {
-            "name": "updatedAt",
-            "type": "string",
-            "required": true,
-            "ofEntity": "MenuItem"
+            "description": "Total de itens retornados na lista"
           }
         ],
         "ports": [],
@@ -101,13 +56,14 @@ export const browseMenuItemsUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolve activeCompanyId from ctx.sessionContext.activeCompanyId (businessContext scope).",
-          "2. Retrieve MenuCategory MDM records scoped to the active company via ctx.mdm.collection.listByType({ type: 'MenuCategory' }) and filter by company relationship to build the set of allowed menuCategoryIds.",
-          "3. Retrieve MenuItem MDM records via ctx.mdm.collection.listByType({ type: 'MenuItem' }) and filter to only those whose menuCategoryId is in the allowed set from step 2.",
-          "4. Apply rule simpleItemsOnly: keep only items where itemType === 'simple'; variant items are excluded from the listing because only simple items are supported.",
-          "5. If statusFilter is provided, filter the result set to items whose status matches the given value (draft, active, or inactive).",
-          "6. If menuCategoryIdFilter is provided, further filter the result set to items whose menuCategoryId matches the given value.",
-          "7. Project each remaining MenuItem to the output shape (menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt) and return the collection."
+          "1. Resolver activeCompanyId a partir de ctx.sessionContext.businessContext.activeCompanyId para escopo da consulta",
+          "2. MODELING GAP: MenuItem nao possui campo companyId em seu modelo de entidade; registrar a lacuna e NAO aplicar filtro por empresa ativa (evitar matching contra campo inexistente)",
+          "3. Listar entidades MDM do tipo MenuItem via ctx.mdm.collection.listByType({ type: 'MenuItem' })",
+          "4. Aplicar filtro opcional statusFilter: se informado, manter apenas itens cujo status corresponde ao valor",
+          "5. Aplicar filtro opcional menuCategoryIdFilter: se informado, manter apenas itens cujo menuCategoryId corresponde ao valor",
+          "6. Aplicar regra simpleItemsOnly: listar todos os itens (simple e variant) como entradas separadas, sem expansao ou agrupamento de variantes — cada item aparece individualmente na lista",
+          "7. Projetar campos de saida (menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt) para cada item",
+          "8. Retornar { items, total } com a lista filtrada e projetada"
         ]
       }
     ],

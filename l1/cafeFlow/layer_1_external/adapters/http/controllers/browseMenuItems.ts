@@ -3,22 +3,17 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { browseMenuItems, type BrowseMenuItemsInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/browseMenuItems.js';
 
 export const cafeFlowBrowseMenuItemsHandler: BffHandler = async ({ request, ctx }) => {
-  const input = (request.params ?? {}) as BrowseMenuItemsInput;
+  const params = (request.params ?? {}) as Partial<BrowseMenuItemsInput>;
 
-  if (input.statusFilter !== undefined && input.statusFilter !== null) {
-    const validStatuses = ['draft', 'active', 'inactive'];
-    if (!validStatuses.includes(input.statusFilter.toLowerCase())) {
-      throw new AppError(
-        'VALIDATION_ERROR',
-        'statusFilter must be one of: draft, active, inactive',
-        400,
-        { field: 'statusFilter' },
-      );
-    }
-  }
+  // Only genuine client inputs: statusFilter and menuCategoryIdFilter (both optional).
+  // activeCompanyId is resolved from ctx.sessionContext inside the usecase — not a client field.
+  const input: BrowseMenuItemsInput = {
+    statusFilter: params.statusFilter,
+    menuCategoryIdFilter: params.menuCategoryIdFilter,
+  };
 
   const result = await browseMenuItems(ctx, input);
-  return ok(result.items);
+  return ok(result);
 };
 
 export const routes: ControllerRoute[] = [

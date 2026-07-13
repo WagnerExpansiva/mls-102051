@@ -16,9 +16,9 @@ export const manageStockItemUsecase = {
     "ports": [],
     "functions": [
       {
-        "functionName": "manageStockItem",
-        "inputTypeName": "ManageStockItemInput",
-        "outputTypeName": "ManageStockItemOutput",
+        "functionName": "updateStockItem",
+        "inputTypeName": "UpdateStockItemInput",
+        "outputTypeName": "UpdateStockItemOutput",
         "input": [
           {
             "name": "stockItemId",
@@ -54,31 +54,36 @@ export const manageStockItemUsecase = {
             "name": "stockItemId",
             "type": "string",
             "required": true,
-            "ofEntity": "StockItem"
+            "ofEntity": "StockItem",
+            "description": "Identificador do item de estoque atualizado."
           },
           {
             "name": "name",
             "type": "string",
             "required": true,
-            "ofEntity": "StockItem"
+            "ofEntity": "StockItem",
+            "description": "Nome atualizado do item de estoque."
           },
           {
             "name": "unit",
             "type": "string",
             "required": true,
-            "ofEntity": "StockItem"
+            "ofEntity": "StockItem",
+            "description": "Unidade de medida atualizada."
           },
           {
             "name": "minimumLevel",
             "type": "number",
             "required": true,
-            "ofEntity": "StockItem"
+            "ofEntity": "StockItem",
+            "description": "Limite mínimo atualizado usado no cálculo de alerta de estoque baixo."
           },
           {
             "name": "updatedAt",
             "type": "string",
             "required": true,
-            "ofEntity": "StockItem"
+            "ofEntity": "StockItem",
+            "description": "Timestamp da última atualização atribuído pelo sistema."
           }
         ],
         "ports": [],
@@ -87,13 +92,13 @@ export const manageStockItemUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Validate that name is a non-empty string.",
-          "2. Validate that unit is one of the allowed enum values: kg, liter, portion, unit.",
-          "3. Apply rule lowStockAlertCalculation: validate that minimumLevel is a non-negative number (>= 0); if negative, reject with rule id in error details.",
-          "4. Load the existing StockItem by stockItemId via ctx.mdm.entity.get({ mdmId: stockItemId }) to confirm it exists; throw NotFound if missing.",
-          "5. Resolve updatedAt from ctx.clock.now() (systemDefault) — do not accept it as user input.",
-          "6. Update the StockItem via ctx.mdm.entity.update({ mdmId: stockItemId, details: { name, unit, minimumLevel, updatedAt } }) inside a single transaction (ctx.data transaction wrapper).",
-          "7. Return the updated StockItem projection: stockItemId, name, unit, minimumLevel, updatedAt."
+          "1. Validar campos de entrada: name não vazio, unit pertence ao enum [kg, liter, portion, unit], minimumLevel é um número não-negativo (regra lowStockAlertCalculation — o alerta de estoque baixo compara minimumLevel com a quantidade atual em StockLevel, portanto minimumLevel deve ser >= 0).",
+          "2. Carregar o StockItem existente via ctx.mdm.entity.get({ mdmId: stockItemId }) para confirmar que o registro existe.",
+          "3. Se o StockItem não for encontrado, retornar erro de validação informando que o item não existe.",
+          "4. Aplicar a regra lowStockAlertCalculation: validar que o novo minimumLevel é coerente — se minimumLevel for negativo, bloquear a operação com detalhe da regra 'lowStockAlertCalculation'.",
+          "5. Obter o timestamp atual do sistema via ctx.clock.now() e atribuir a updatedAt (systemDefault — não é input público).",
+          "6. Atualizar o StockItem via ctx.mdm.entity.update({ mdmId: stockItemId, details: { name, unit, minimumLevel, updatedAt } }) dentro da transação.",
+          "7. Retornar os campos atualizados: stockItemId, name, unit, minimumLevel, updatedAt."
         ]
       }
     ],

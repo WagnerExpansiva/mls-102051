@@ -52,13 +52,13 @@ export const shiftClosingReportDomainEntity = {
       }
     ],
     "statusEnum": [],
-    "valueObjects": [],
     "invariants": [
-      "shiftId must reference a shift whose status is 'closed'",
-      "totalApurado must be greater than or equal to zero",
-      "paidOrderCount must be greater than or equal to zero",
-      "There is at most one ShiftClosingReport per shiftId"
-    ]
+      "shiftId deve referenciar um turno com status 'closed'",
+      "totalApurado deve ser maior ou igual a zero",
+      "paidOrderCount deve ser maior ou igual a zero",
+      "Existe apenas um ShiftClosingReport por shiftId"
+    ],
+    "valueObjects": []
   }
 } as const;
 

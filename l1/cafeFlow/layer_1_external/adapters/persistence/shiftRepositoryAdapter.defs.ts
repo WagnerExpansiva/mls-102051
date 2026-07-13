@@ -12,16 +12,15 @@ export const shiftRepositoryAdapter = {
     "planId": ""
   },
   "data": {
-    "className": "ShiftRepositoryAdapter",
+    "className": "ShiftRepository",
     "entityId": "Shift",
     "portRef": "IShiftRepository",
     "tableRef": "shifts",
     "mdmReads": [],
     "notes": [
-      "Domain Shift <-> shifts row via ctx.data.moduleData",
-      "Real columns snake_case: shift_id, status, created_at",
-      "details JSONB: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt",
-      "No embedded members or MDM refs"
+      "Real columns (snake_case): shift_id, status, created_at.",
+      "Details JSONB fields: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt.",
+      "Uses ctx.data.moduleData.shifts for CRUD."
     ]
   }
 } as const;

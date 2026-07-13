@@ -8,7 +8,6 @@ export const cafeFlowUpdateOrderStatusHandler: BffHandler = async ({ request, ct
   if (!params.orderId) {
     throw new AppError('VALIDATION_ERROR', 'orderId is required', 400, { field: 'orderId' });
   }
-
   if (!params.status) {
     throw new AppError('VALIDATION_ERROR', 'status is required', 400, { field: 'status' });
   }
@@ -16,8 +15,6 @@ export const cafeFlowUpdateOrderStatusHandler: BffHandler = async ({ request, ct
   const input: UpdateOrderStatusInput = {
     orderId: params.orderId,
     status: params.status,
-    inPreparationAt: params.inPreparationAt,
-    readyAt: params.readyAt,
   };
 
   const result = await updateOrderStatus(ctx, input);

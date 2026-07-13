@@ -3,11 +3,14 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { openShift, type OpenShiftInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/openShift.js';
 
 export const cafeFlowOpenShiftHandler: BffHandler = async ({ request, ctx }) => {
-  const input = (request.params ?? {}) as OpenShiftInput;
+  const params = (request.params ?? {}) as Partial<OpenShiftInput>;
 
-  if (input.notes !== undefined && typeof input.notes !== 'string') {
-    throw new AppError('VALIDATION_ERROR', 'notes must be a string', 400, { field: 'notes' });
-  }
+  // Only 'notes' is a genuine client input (source: userInput).
+  // All other fields (shiftId, status, openedAt, openedBy, createdAt, updatedAt)
+  // are resolved inside the usecase from ctx/ports and are NOT on the Input type.
+  const input: OpenShiftInput = {
+    notes: params.notes,
+  };
 
   const result = await openShift(ctx, input);
   return ok(result);
