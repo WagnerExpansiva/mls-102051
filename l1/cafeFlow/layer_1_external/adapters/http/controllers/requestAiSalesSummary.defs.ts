@@ -21,7 +21,7 @@ export const requestAiSalesSummaryController = {
         "handlerName": "cafeFlowRequestAiSalesSummaryHandler",
         "command": "requestAiSalesSummary",
         "usecaseRef": "requestAiSalesSummary",
-        "inputTypeName": "RequestAiSalesSummaryInput",
+        "inputTypeName": "AiSalesSummaryInput",
         "kind": "query",
         "inputContract": [
           {

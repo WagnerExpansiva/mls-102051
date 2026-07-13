@@ -1,16 +1,20 @@
 {
-  "savedAt": "2026-07-08T05:31:19.582Z",
+  "savedAt": "2026-07-11T23:41:13.385Z",
   "outcome": "passed",
   "l1Defs": 58,
   "findings": [],
   "warnings": [],
   "repairHistory": [
-    "2026-07-08T04:33:46.001Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/requestAiPromoSuggestions.defs.ts :: attempt 1 :: rulesApplied 'aiConsumesDomainData' not present in generated .ts",
-    "2026-07-08T04:36:30.470Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/manageMenuItem.defs.ts :: attempt 1 :: mdm local import forbidden -> _102051_/l1/cafeFlow/layer_3_domain/entities/menuItemIngredient",
-    "2026-07-08T04:37:21.078Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/viewDashboard.defs.ts :: attempt 1 :: handler cafeFlowViewDashboardHandler requires 'shiftId' outside l4 inputContract",
-    "2026-07-08T04:39:03.484Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/viewDashboard.defs.ts :: attempt 1 :: handler cafeFlowViewDashboardHandler requires 'shiftId' outside l4 inputContract",
-    "2026-07-08T05:25:08.530Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/manageStockItem.defs.ts :: attempt 1 :: compiler: TS2698: Spread types may only be created from object types."
+    "2026-07-11T06:18:12.551Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/requestAiPromoSuggestions.defs.ts :: attempt 1 :: compiler: TS2554: Expected 1 arguments, but got 0.",
+    "2026-07-11T06:19:39.260Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/requestAiSalesSummary.defs.ts :: attempt 1 :: handler cafeFlowRequestAiSalesSummaryHandler requires 'actorId' outside l4 inputContract",
+    "2026-07-11T08:25:23.117Z :: _102051_/l1/cafeFlow/layer_2_application/ports/stockAdjustmentRepository.defs.ts :: attempt 1 :: compiler: TS2792: Cannot find module '/_102051_/l1/cafeFlow/layer_3_domain/value-objects/productId.js'. Did you mean to set the 'moduleResolution' option to 'nodenext', or to add aliases to the 'paths' option?",
+    "2026-07-11T08:26:47.889Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/persistence/stockAdjustmentRepositoryAdapter.defs.ts :: attempt 1 :: compiler: TS2792: Cannot find module '/_102051_/l1/cafeFlow/layer_3_domain/value-objects/productId.js'. Did you mean to set the 'moduleResolution' option to 'nodenext', or to add aliases to the 'paths' option?",
+    "2026-07-11T08:27:27.053Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/closeShift.defs.ts :: attempt 1 :: rulesApplied 'dashboardCurrentShiftOnly' not present in generated .ts",
+    "2026-07-11T08:30:04.031Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/browseStockItems.defs.ts :: attempt 1 :: handler cafeFlowBrowseStockItemsHandler requires 'actorId' outside l4 inputContract",
+    "2026-07-11T08:30:35.013Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/closeShift.defs.ts :: attempt 1 :: rulesApplied 'dashboardCurrentShiftOnly' not present in generated .ts",
+    "2026-07-11T22:59:13.229Z :: _102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/closeShift.defs.ts :: attempt 1 :: handler cafeFlowCloseShiftHandler requires 'body' outside l4 inputContract",
+    "2026-07-11T23:35:27.800Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/createOrder.defs.ts :: attempt 1 :: rulesApplied 'fifoKitchenQueue' not present in generated .ts"
   ],
-  "globalAttempts": 1,
+  "globalAttempts": 0,
   "judgeRuns": 1
 }

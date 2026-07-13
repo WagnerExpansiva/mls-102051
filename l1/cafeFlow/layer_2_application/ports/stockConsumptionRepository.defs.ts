@@ -23,13 +23,6 @@ export const stockConsumptionRepositoryPort = {
         ]
       },
       {
-        "name": "list",
-        "returns": "StockConsumption[]",
-        "params": [
-          "filter: StockConsumptionListFilter"
-        ]
-      },
-      {
         "name": "listByOwnerId",
         "returns": "StockConsumption[]",
         "params": [
@@ -42,6 +35,13 @@ export const stockConsumptionRepositoryPort = {
         "params": [
           "start: Date",
           "end: Date"
+        ]
+      },
+      {
+        "name": "listByProductId",
+        "returns": "StockConsumption[]",
+        "params": [
+          "productId: ProductId"
         ]
       }
     ]

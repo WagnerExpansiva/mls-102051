@@ -5,14 +5,11 @@ import { browseStockItems, type BrowseStockItemsInput } from '/_102051_/l1/cafeF
 export const cafeFlowBrowseStockItemsHandler: BffHandler = async ({ request, ctx }) => {
   const params = (request.params ?? {}) as Partial<BrowseStockItemsInput>;
 
+  // Only searchTerm is a genuine client input (source: userInput).
+  // actorId is resolved from ctx.sessionContext inside the usecase — not sent by the client.
   const input: BrowseStockItemsInput = {
     searchTerm: params.searchTerm,
-    page: params.page,
-    pageSize: params.pageSize,
   };
-
-  // actorId is resolved from the authenticated session context inside the usecase;
-  // it is not a public boundary field, so no manual validation is needed here.
 
   const result = await browseStockItems(ctx, input);
   return ok(result);

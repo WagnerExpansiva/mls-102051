@@ -1,6 +1,6 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/shiftClosingReportRepositoryAdapter.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { IShiftClosingReportRepository, ShiftClosingReportListFilter } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftClosingReportRepository.js';
+import type { IShiftClosingReportRepository, ShiftClosingReportFilter } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftClosingReportRepository.js';
 import type { ShiftClosingReport } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.js';
 
 interface ShiftClosingReportRow {
@@ -58,29 +58,42 @@ export function createShiftClosingReportRepositoryAdapter(ctx: RequestContext): 
   const getTable = () => ctx.data.moduleData.getTable<ShiftClosingReportRow>('shift_closing_report');
 
   return {
-    async getById(id) {
+    async getById(reportId) {
       const repo = await getTable();
-      const row = await repo.findOne({ where: { shift_closing_report_id: id } });
+      const row = await repo.findOne({ where: { shift_closing_report_id: reportId } });
       if (!row) {
-        throw new AppError('NOT_FOUND', `ShiftClosingReport ${id} not found`, 404, { shiftClosingReportId: id });
+        throw new AppError('NOT_FOUND', `ShiftClosingReport ${reportId} not found`, 404, { reportId });
       }
       return toDomain(row);
     },
 
-    async list(filter?: ShiftClosingReportListFilter) {
+    async findById(reportId) {
+      const repo = await getTable();
+      const row = await repo.findOne({ where: { shift_closing_report_id: reportId } });
+      return row ? toDomain(row) : null;
+    },
+
+    async list(filter?: ShiftClosingReportFilter) {
       const repo = await getTable();
       const where: Partial<ShiftClosingReportRow> = {};
       if (filter?.shiftClosingReportId) where.shift_closing_report_id = filter.shiftClosingReportId;
       if (filter?.shiftId) where.shift_id = filter.shiftId;
-      const rows = await repo.findMany({ where, orderBy: { field: 'created_at', direction: 'desc' } });
-      let filtered = rows;
+
+      const rows = await repo.findMany({
+        where,
+        orderBy: { field: 'created_at', direction: 'desc' },
+      });
+
+      let result = rows.map(toDomain);
+
       if (filter?.fromCreatedAt) {
-        filtered = filtered.filter((r) => r.created_at >= filter.fromCreatedAt!);
+        result = result.filter((r) => r.createdAt >= filter.fromCreatedAt!);
       }
       if (filter?.toCreatedAt) {
-        filtered = filtered.filter((r) => r.created_at <= filter.toCreatedAt!);
+        result = result.filter((r) => r.createdAt <= filter.toCreatedAt!);
       }
-      return filtered.map(toDomain);
+
+      return result;
     },
 
     async save(report) {
@@ -93,13 +106,22 @@ export function createShiftClosingReportRepositoryAdapter(ctx: RequestContext): 
       }
     },
 
-    async listByShiftId(shiftId) {
+    async findByShiftId(shiftId) {
+      const repo = await getTable();
+      const row = await repo.findOne({ where: { shift_id: shiftId } });
+      return row ? toDomain(row) : null;
+    },
+
+    async findByPeriod(start, end) {
       const repo = await getTable();
       const rows = await repo.findMany({
-        where: { shift_id: shiftId },
-        orderBy: { field: 'created_at', direction: 'desc' },
+        orderBy: { field: 'created_at', direction: 'asc' },
       });
-      return rows.map(toDomain);
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+      return rows
+        .map(toDomain)
+        .filter((r) => r.createdAt >= startIso && r.createdAt <= endIso);
     },
   };
 }

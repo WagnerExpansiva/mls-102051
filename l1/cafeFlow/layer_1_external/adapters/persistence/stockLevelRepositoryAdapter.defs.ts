@@ -12,20 +12,18 @@ export const stockLevelRepositoryAdapter = {
     "planId": ""
   },
   "data": {
-    "className": "StockLevelRepositoryAdapter",
+    "className": "StockLevelRepository",
     "entityId": "StockLevel",
     "portRef": "IStockLevelRepository",
     "tableRef": "stock_levels",
     "mdmReads": [
-      "ctx.mdm.collection.getMany('stock_item')",
-      "ctx.mdm.collection.hydrateMany('stock_item')"
+      "StockItem"
     ],
     "notes": [
-      "Domain StockLevel <-> stock_levels row via ctx.data.moduleData",
-      "Real columns snake_case: stock_level_id, stock_item_id, unit, created_at",
-      "details JSONB: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt",
-      "MDM ref StockItem resolved via ctx.mdm.collection.getMany/hydrateMany (bulk load by collected ids, never in loop)",
-      "stock_item_id column stores the MDM reference id"
+      "Real columns (snake_case): stock_level_id, stock_item_id, unit, created_at.",
+      "Details JSONB fields: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt.",
+      "MDM ref StockItem resolved via ctx.mdm.collection.getMany/hydrateMany using stock_item_id; never call ctx.mdm.entity.get inside a loop.",
+      "Uses ctx.data.moduleData.stock_levels for CRUD."
     ]
   }
 } as const;

@@ -1,6 +1,6 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/stockConsumptionRepositoryAdapter.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { IStockConsumptionRepository, StockConsumptionListFilter } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.js';
+import type { IStockConsumptionRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.js';
 import type { StockConsumption, StockConsumptionStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.js';
 
 interface StockConsumptionRow {
@@ -60,40 +60,40 @@ export function createStockConsumptionRepositoryAdapter(ctx: RequestContext): IS
   const getTable = () => ctx.data.moduleData.getTable<StockConsumptionRow>('stock_consumption');
 
   return {
-    async append(record: StockConsumption): Promise<void> {
+    async append(record) {
       const repo = await getTable();
       await repo.insert({ record: toRow(record) });
+      return record;
     },
 
-    async list(filter?: StockConsumptionListFilter): Promise<StockConsumption[]> {
-      const where: Partial<StockConsumptionRow> = {};
-      if (filter?.stockItemId) where.stock_item_id = filter.stockItemId;
-      if (filter?.orderId) where.order_id = filter.orderId;
-      if (filter?.status) where.status = filter.status;
-      const rows = await (await getTable()).findMany({
-        where,
-        orderBy: { field: 'created_at', direction: 'desc' },
-      });
-      return rows.map(toDomain);
-    },
-
-    async listByOwnerId(orderId: string): Promise<StockConsumption[]> {
-      const rows = await (await getTable()).findMany({
+    async listByOwnerId(orderId) {
+      const repo = await getTable();
+      const rows = await repo.findMany({
         where: { order_id: orderId },
         orderBy: { field: 'created_at', direction: 'asc' },
       });
       return rows.map(toDomain);
     },
 
-    async listByPeriod(start: Date, end: Date): Promise<StockConsumption[]> {
-      const startIso = start.toISOString();
-      const endIso = end.toISOString();
-      const rows = await (await getTable()).findMany({
+    async listByPeriod(start, end) {
+      const repo = await getTable();
+      const rows = await repo.findMany({
         orderBy: { field: 'created_at', direction: 'asc' },
       });
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
       return rows
         .filter((row) => row.created_at >= startIso && row.created_at <= endIso)
         .map(toDomain);
+    },
+
+    async listByProductId(productId) {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        where: { stock_item_id: productId },
+        orderBy: { field: 'created_at', direction: 'asc' },
+      });
+      return rows.map(toDomain);
     },
   };
 }

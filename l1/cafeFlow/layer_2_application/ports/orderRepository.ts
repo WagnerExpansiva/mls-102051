@@ -1,17 +1,21 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.ts" enhancement="_blank"/>
-import type { Order, OrderStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
+import type { Order, OrderStatus, OrderType } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
 
-export interface OrderListFilter {
+export type OrderId = string;
+export type CustomerId = string;
+
+export interface OrderFilter {
   shiftId?: string;
   status?: OrderStatus;
-  orderType?: 'table' | 'takeout';
-  tableNumber?: string | null;
+  orderType?: OrderType;
+  tableNumber?: string;
 }
 
 export interface IOrderRepository {
-  getById(id: string): Promise<Order>;
-  list(filter?: OrderListFilter): Promise<Order[]>;
+  getById(orderId: OrderId): Promise<Order>;
+  list(filter?: OrderFilter): Promise<Order[]>;
   save(order: Order): Promise<void>;
-  listByStatus(status: OrderStatus): Promise<Order[]>;
-  listByPeriod(start: Date, end: Date): Promise<Order[]>;
+  findByCustomerId(customerId: CustomerId): Promise<Order[]>;
+  findByStatus(status: OrderStatus): Promise<Order[]>;
+  findByPeriod(start: Date, end: Date): Promise<Order[]>;
 }

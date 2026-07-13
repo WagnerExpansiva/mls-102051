@@ -12,17 +12,16 @@ export const stockAdjustmentRepositoryAdapter = {
     "planId": ""
   },
   "data": {
-    "className": "StockAdjustmentRepositoryAdapter",
+    "className": "StockAdjustmentRepository",
     "entityId": "StockAdjustment",
     "portRef": "IStockAdjustmentRepository",
     "tableRef": "stock_adjustments",
     "mdmReads": [],
     "notes": [
-      "Domain StockAdjustment <-> stock_adjustments row via ctx.data.moduleData (append-only event adapter)",
-      "Real columns snake_case: stock_adjustment_id, stock_item_id, status, created_at",
-      "details JSONB: quantity, reason, voidedAt, voidedReason",
-      "Append-only: insert row only, no update/delete; exposes finder/read methods",
-      "No MDM refs"
+      "Real columns (snake_case): stock_adjustment_id, stock_item_id, status, created_at.",
+      "Details JSONB fields: quantity, reason, voidedAt, voidedReason.",
+      "Append-only event adapter: insert row only; no update or delete operations.",
+      "Uses ctx.data.moduleData.stock_adjustments for append."
     ]
   }
 } as const;

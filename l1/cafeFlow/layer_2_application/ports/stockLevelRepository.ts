@@ -1,18 +1,20 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.ts" enhancement="_blank"/>
-import type { StockLevel, StockLevelUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import type { StockLevel, StockUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 
-export type StockLevelId = string;
 export type ProductId = string;
 
-export interface StockLevelListFilter {
+export type Location = string;
+
+export interface StockLevelFilter {
+  stockLevelId?: string;
   stockItemId?: string;
-  unit?: StockLevelUnit;
+  unit?: StockUnit;
 }
 
 export interface IStockLevelRepository {
-  getById(id: StockLevelId): Promise<StockLevel>;
-  list(filter?: StockLevelListFilter): Promise<StockLevel[]>;
+  getById(productId: ProductId): Promise<StockLevel>;
+  list(filter?: StockLevelFilter): Promise<StockLevel[]>;
   save(stockLevel: StockLevel): Promise<void>;
-  listLowStock(): Promise<StockLevel[]>;
-  listByProductId(productId: ProductId): Promise<StockLevel[]>;
+  findBelowMinimum(): Promise<StockLevel[]>;
+  findByLocation(location: Location): Promise<StockLevel[]>;
 }

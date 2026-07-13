@@ -17,10 +17,21 @@ export const STOCK_CONSUMPTION_STATUS_TRANSITIONS: Record<StockConsumptionStatus
   voided: [],
 };
 
-export function canTransitionStockConsumption(from: StockConsumptionStatus, to: StockConsumptionStatus): boolean {
+export function canTransitionStockConsumption(
+  from: StockConsumptionStatus,
+  to: StockConsumptionStatus,
+): boolean {
   return STOCK_CONSUMPTION_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export function isStockConsumptionVoided(consumption: Pick<StockConsumption, 'status'>): boolean {
+export function isStockConsumptionVoided(
+  consumption: Pick<StockConsumption, 'status'>,
+): boolean {
   return consumption.status === 'voided';
+}
+
+export function stockConsumptionRequiresPositiveQuantity(
+  consumption: Pick<StockConsumption, 'quantity'>,
+): boolean {
+  return consumption.quantity > 0;
 }

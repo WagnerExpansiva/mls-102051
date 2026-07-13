@@ -1,5 +1,4 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.ts" enhancement="_blank"/>
-
 export interface ShiftClosingReport {
   shiftClosingReportId: string;
   shiftId: string;
@@ -9,34 +8,33 @@ export interface ShiftClosingReport {
   updatedAt: string;
 }
 
-export function shiftClosingReportRequiresNonNegativeTotal(
-  report: Pick<ShiftClosingReport, 'totalApurado'>,
-): boolean {
+export function validateShiftClosingReportTotalApurado(report: Pick<ShiftClosingReport, 'totalApurado'>): boolean {
   return report.totalApurado >= 0;
 }
 
-export function shiftClosingReportRequiresNonNegativePaidOrderCount(
-  report: Pick<ShiftClosingReport, 'paidOrderCount'>,
-): boolean {
+export function validateShiftClosingReportPaidOrderCount(report: Pick<ShiftClosingReport, 'paidOrderCount'>): boolean {
   return report.paidOrderCount >= 0;
 }
 
-export function isUniqueShiftClosingReportPerShift(
-  reports: ShiftClosingReport[],
-  shiftId: string,
-): boolean {
-  return reports.filter((r) => r.shiftId === shiftId).length <= 1;
+export function validateShiftClosingReportInvariants(report: ShiftClosingReport): string[] {
+  const violations: string[] = [];
+  if (!validateShiftClosingReportTotalApurado(report)) {
+    violations.push('totalApurado must be greater than or equal to zero');
+  }
+  if (!validateShiftClosingReportPaidOrderCount(report)) {
+    violations.push('paidOrderCount must be greater than or equal to zero');
+  }
+  return violations;
 }
 
-export function validateShiftClosingReport(
-  report: Pick<ShiftClosingReport, 'totalApurado' | 'paidOrderCount'>,
-): string[] {
-  const errors: string[] = [];
-  if (report.totalApurado < 0) {
-    errors.push('totalApurado must be greater than or equal to zero');
-  }
-  if (report.paidOrderCount < 0) {
-    errors.push('paidOrderCount must be greater than or equal to zero');
-  }
-  return errors;
+export function isUniqueShiftClosingReportForShift(
+  existingReports: ShiftClosingReport[],
+  shiftId: string,
+  excludeReportId?: string,
+): boolean {
+  return !existingReports.some(
+    (report) =>
+      report.shiftId === shiftId &&
+      report.shiftClosingReportId !== excludeReportId,
+  );
 }

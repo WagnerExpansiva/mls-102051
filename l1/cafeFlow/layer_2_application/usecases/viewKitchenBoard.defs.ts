@@ -15,6 +15,7 @@ export const viewKitchenBoardUsecase = {
     "usecaseId": "viewKitchenBoard",
     "ports": [
       "Order",
+      "Shift",
       "StockConsumption"
     ],
     "functions": [
@@ -22,79 +23,82 @@ export const viewKitchenBoardUsecase = {
         "functionName": "viewKitchenBoard",
         "inputTypeName": "ViewKitchenBoardInput",
         "outputTypeName": "ViewKitchenBoardOutput",
-        "input": [
-          {
-            "name": "statusFilter",
-            "type": "string",
-            "required": false,
-            "description": "Optional override for status filter; defaults to ['received','inPreparation'] resolved by systemDefault"
-          }
-        ],
+        "input": [],
         "output": [
           {
             "name": "orderId",
             "type": "string",
+            "ofEntity": "Order",
             "required": true,
-            "ofEntity": "Order"
+            "description": "Identificador único do pedido"
           },
           {
             "name": "status",
             "type": "string",
+            "ofEntity": "Order",
             "required": true,
-            "ofEntity": "Order"
+            "description": "Status atual do pedido (received ou inPreparation)"
           },
           {
             "name": "orderType",
             "type": "string",
+            "ofEntity": "Order",
             "required": true,
-            "ofEntity": "Order"
+            "description": "Tipo do pedido: table ou takeout"
           },
           {
             "name": "tableNumber",
             "type": "string",
+            "ofEntity": "Order",
             "required": false,
-            "ofEntity": "Order"
+            "description": "Número da mesa quando orderType=table"
           },
           {
             "name": "priority",
             "type": "boolean",
+            "ofEntity": "Order",
             "required": false,
-            "ofEntity": "Order"
+            "description": "Indica se o pedido é prioritário"
           },
           {
             "name": "priorityReason",
             "type": "string",
+            "ofEntity": "Order",
             "required": false,
-            "ofEntity": "Order"
+            "description": "Motivo da prioridade quando priority=true"
           },
           {
             "name": "receivedAt",
             "type": "string",
+            "ofEntity": "Order",
             "required": false,
-            "ofEntity": "Order"
+            "description": "Data/hora em que o pedido foi recebido pela cozinha"
           },
           {
             "name": "inPreparationAt",
             "type": "string",
+            "ofEntity": "Order",
             "required": false,
-            "ofEntity": "Order"
+            "description": "Data/hora em que o pedido entrou em preparação"
           },
           {
             "name": "createdAt",
             "type": "string",
+            "ofEntity": "Order",
             "required": true,
-            "ofEntity": "Order"
+            "description": "Data/hora de criação do pedido"
           },
           {
-            "name": "items",
-            "type": "array",
-            "required": true,
+            "name": "orderItems",
+            "type": "OrderItem[]",
             "ofEntity": "OrderItem",
-            "description": "Order items belonging to each order in the kitchen board"
+            "required": true,
+            "description": "Itens do pedido com orderItemId, menuItemId, quantity e unitPrice"
           }
         ],
         "ports": [
-          "Order"
+          "Order",
+          "Shift"
         ],
         "rulesApplied": [
           "fifoKitchenQueue",
@@ -102,13 +106,12 @@ export const viewKitchenBoardUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolve shiftId from the active lifecycle instance (the single Shift with status='open') via ctx.sessionContext.activeLifecycleInstanceId; do NOT require it as user input",
-          "2. Determine statusFilter: use the provided optional input if supplied, otherwise default to ['received','inPreparation'] per systemDefault",
-          "3. Apply rule dashboardCurrentShiftOnly: query Order port for all orders where shiftId equals the resolved open shift id AND status is in the statusFilter set",
-          "4. Apply rule fifoKitchenQueue: sort results with priority=true orders first, then by receivedAt ascending (oldest first) to maintain FIFO kitchen queue order",
-          "5. For each order, load its embedded OrderItem collection from the parent Order aggregate",
-          "6. Project each order with orderId, status, orderType, tableNumber (when applicable), priority, priorityReason, receivedAt, inPreparationAt, createdAt, and its items array",
-          "7. Return the ordered list; orders with status 'ready' or 'delivered' are excluded by the status filter"
+          "1. Resolver o turno ativo: consultar o port Shift listando por status='open' para obter o shiftId do único turno aberto (activeLifecycleInstance). Se nenhum turno estiver aberto, retornar lista vazia.",
+          "2. Aplicar regra dashboardCurrentShiftOnly: filtrar pedidos do port Order pelo shiftId resolvido no passo 1, garantindo que apenas pedidos do turno atual sejam exibidos.",
+          "3. Aplicar filtro de status (systemDefault): restringir a lista aos pedidos cujo status seja 'received' ou 'inPreparation', excluindo pedidos 'registered', 'ready' ou 'delivered'.",
+          "4. Aplicar regra fifoKitchenQueue: ordenar os pedidos colocando primeiro os com priority=true (destaque) e dentro de cada grupo ordenar por receivedAt em ordem crescente (FIFO).",
+          "5. Projetar os campos de saída de cada Order (orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, createdAt) e incluir os OrderItems embarcados no agregado Order (orderItemId, menuItemId, quantity, unitPrice).",
+          "6. Retornar a lista de pedidos projetada como coleção de ViewKitchenBoardOutput."
         ]
       }
     ],
@@ -126,8 +129,10 @@ export const pipeline = [
     "defPath": "_102051_/l1/cafeFlow/layer_2_application/usecases/viewKitchenBoard.defs.ts",
     "dependsFiles": [
       "_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.d.ts",
+      "_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.d.ts",
       "_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.d.ts",
       "_102051_/l1/cafeFlow/layer_3_domain/entities/order.d.ts",
+      "_102051_/l1/cafeFlow/layer_3_domain/entities/shift.d.ts",
       "_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.d.ts"
     ],
     "dependsOn": [],

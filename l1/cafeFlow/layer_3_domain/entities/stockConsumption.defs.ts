@@ -71,8 +71,8 @@ export const stockConsumptionDomainEntity = {
       "posted",
       "voided"
     ],
-    "valueObjects": [],
-    "invariants": []
+    "invariants": [],
+    "valueObjects": []
   }
 } as const;
 

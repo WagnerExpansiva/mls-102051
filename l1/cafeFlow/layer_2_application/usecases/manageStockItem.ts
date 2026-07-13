@@ -1,14 +1,14 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/usecases/manageStockItem.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
 
-export interface ManageStockItemInput {
+export interface UpdateStockItemInput {
   stockItemId: string;
   name: string;
   unit: string;
   minimumLevel: number;
 }
 
-export interface ManageStockItemOutput {
+export interface UpdateStockItemOutput {
   stockItemId: string;
   name: string;
   unit: string;
@@ -16,86 +16,79 @@ export interface ManageStockItemOutput {
   updatedAt: string;
 }
 
-const ALLOWED_UNITS = ['kg', 'liter', 'portion', 'unit'];
+const VALID_UNITS = ['kg', 'liter', 'portion', 'unit'];
 
-export async function manageStockItem(
+/**
+ * Updates a StockItem (MDM master-data record) with new cadastral fields.
+ * The StockItem lives in the shared MDM store — there is no local port or table.
+ */
+export async function updateStockItem(
   ctx: RequestContext,
-  input: ManageStockItemInput,
-): Promise<ManageStockItemOutput> {
-  // 1. Validate name is a non-empty string
+  input: UpdateStockItemInput,
+): Promise<UpdateStockItemOutput> {
+  // ── Step 1: Validate input fields ──────────────────────────────────────────
   if (!input.name || input.name.trim().length === 0) {
     throw new AppError(
       'VALIDATION_ERROR',
-      'name must be a non-empty string.',
+      'name não pode ser vazio.',
       400,
       { field: 'name' },
     );
   }
 
-  // 2. Validate unit is one of the allowed enum values
-  if (!ALLOWED_UNITS.includes(input.unit)) {
+  if (!VALID_UNITS.includes(input.unit)) {
     throw new AppError(
       'VALIDATION_ERROR',
-      `unit must be one of: ${ALLOWED_UNITS.join(', ')}.`,
+      `unit deve ser um dos valores: ${VALID_UNITS.join(', ')}.`,
       400,
-      { field: 'unit', allowed: ALLOWED_UNITS },
+      { field: 'unit', value: input.unit },
     );
   }
 
-  // 3. Apply rule lowStockAlertCalculation: minimumLevel must be >= 0
+  // ── Step 4: Rule lowStockAlertCalculation — minimumLevel must be >= 0 ───────
   if (typeof input.minimumLevel !== 'number' || input.minimumLevel < 0) {
     throw new AppError(
       'VALIDATION_ERROR',
-      'minimumLevel must be a non-negative number (>= 0).',
+      'minimumLevel deve ser um número não-negativo (regra lowStockAlertCalculation).',
       400,
-      { ruleId: 'lowStockAlertCalculation', field: 'minimumLevel' },
+      { ruleId: 'lowStockAlertCalculation', field: 'minimumLevel', value: input.minimumLevel },
     );
   }
 
-  // 4. Load the existing StockItem by stockItemId via MDM
-  const entity = await ctx.mdm.entity.get({ mdmId: input.stockItemId });
-  if (!entity) {
-    throw new AppError(
-      'NOT_FOUND',
-      `StockItem not found: ${input.stockItemId}`,
-      404,
-      { stockItemId: input.stockItemId },
-    );
-  }
+  // ── Step 2-3: Load existing StockItem via MDM (throws NOT_FOUND if missing) ─
+  const existing = await ctx.mdm.entity.get({ mdmId: input.stockItemId });
 
-  // 5. Resolve updatedAt from system clock
+  // ── Step 5: System timestamp (systemDefault — not public input) ────────────
   const updatedAt = ctx.clock.nowIso();
 
-  // 6. Update the StockItem via MDM inside a single transaction
-  const existingDetails = entity.details as unknown as Record<string, unknown>;
+  // Preserve existing module-specific fields and merge updates
+  const existingDetails = existing.details as unknown as Record<string, unknown>;
   const existingCafeFlow = (existingDetails.cafeFlow ?? {}) as Record<string, unknown>;
 
-  const updated = await ctx.data.runInTransaction(async () => {
-    const result = await ctx.mdm.entity.update({
-      mdmId: input.stockItemId,
-      expectedVersion: entity.version,
-      patch: {
-        name: input.name,
-        cafeFlow: {
-          ...existingCafeFlow,
-          unit: input.unit,
-          minimumLevel: input.minimumLevel,
-          updatedAt,
-        },
-      } as unknown as Record<string, unknown>,
-    });
-    return result;
+  // ── Step 6: Update StockItem via MDM facade ─────────────────────────────────
+  const updated = await ctx.mdm.entity.update({
+    mdmId: input.stockItemId,
+    expectedVersion: existing.version,
+    patch: {
+      name: input.name,
+      cafeFlow: {
+        ...existingCafeFlow,
+        unit: input.unit,
+        minimumLevel: input.minimumLevel,
+        updatedAt,
+      },
+    } as unknown as Record<string, unknown>,
   });
 
-  const details = updated.details as unknown as Record<string, unknown>;
-  const cafeFlow = (details.cafeFlow ?? {}) as Record<string, unknown>;
+  // ── Step 7: Return updated fields ───────────────────────────────────────────
+  const updatedDetails = updated.details as unknown as Record<string, unknown>;
+  const updatedCafeFlow = (updatedDetails.cafeFlow ?? {}) as Record<string, unknown>;
 
-  // 7. Return the updated StockItem projection
   return {
-    stockItemId: updated.mdmId,
-    name: String(details.name ?? input.name),
-    unit: String(cafeFlow.unit ?? input.unit),
-    minimumLevel: Number(cafeFlow.minimumLevel ?? input.minimumLevel),
-    updatedAt: String(cafeFlow.updatedAt ?? updatedAt),
+    stockItemId: input.stockItemId,
+    name: String(updatedDetails.name ?? input.name),
+    unit: String(updatedCafeFlow.unit ?? input.unit),
+    minimumLevel: Number(updatedCafeFlow.minimumLevel ?? input.minimumLevel),
+    updatedAt,
   };
 }

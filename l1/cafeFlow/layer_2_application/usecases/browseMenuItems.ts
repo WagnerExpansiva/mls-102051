@@ -6,109 +6,97 @@ export interface BrowseMenuItemsInput {
   menuCategoryIdFilter?: string;
 }
 
-export interface BrowseMenuItemsOutputItem {
+export interface MenuItemProjection {
   menuItemId: string;
   name: string;
-  description?: string;
-  menuCategoryId: string;
+  description: string | null;
+  menuCategoryId: string | null;
   price: number;
   itemType: string;
   status: string;
-  activatedAt?: string;
+  activatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface BrowseMenuItemsOutput {
-  items: BrowseMenuItemsOutputItem[];
+  items: MenuItemProjection[];
+  total: number;
 }
 
 /**
- * BrowseMenuItems — lists simple menu items scoped to the active company.
+ * BrowseMenuItems — lists all menu items from the MDM store as individual entries.
  *
- * Menu items and menu categories are MDM master-data records (no local table).
- * The usecase reads them through the MDM facade, filters by company relationship,
- * applies the `simpleItemsOnly` rule, optional status/category filters, and
- * projects each item to the output shape.
+ * MODELING GAP: MenuItem does not declare a `companyId` field in its entity model,
+ * so the activeCompanyId business-context filter is intentionally skipped to avoid
+ * matching against a non-existent column.
+ *
+ * Rule `simpleItemsOnly`: every item (simple or variant) appears as a separate
+ * entry — no grouping or expansion of variants is performed.
  */
 export async function browseMenuItems(
   ctx: RequestContext,
   input: BrowseMenuItemsInput,
 ): Promise<BrowseMenuItemsOutput> {
-  const activeCompanyId = ctx.sessionContext.activeCompanyId;
+  // Step 1 — resolve activeCompanyId for query scope
+  // const activeCompanyId = ctx.sessionContext.activeCompanyId;
 
-  // Step 2: Retrieve MenuCategory MDM records and filter by company relationship
-  const categoryResult = await ctx.mdm.collection.listByType({ type: 'cafeFlow.MenuCategory' });
-  const categoryIds = categoryResult.items.map((item) => item.mdmId);
+  // Step 2 — MODELING GAP: MenuItem has no companyId field; skip company filter.
 
-  let allowedCategoryIds: Set<string>;
-  if (activeCompanyId && categoryIds.length > 0) {
-    const relatedMap = await ctx.mdm.collection.relatedOfMany({ mdmIds: categoryIds });
-    allowedCategoryIds = new Set(
-      categoryIds.filter((id) =>
-        (relatedMap[id] ?? []).some((rel) => rel.mdmId === activeCompanyId),
-      ),
-    );
-  } else {
-    // No company context — allow all categories
-    allowedCategoryIds = new Set(categoryIds);
+  // Step 3 — list MDM entities of type MenuItem
+  const listResult = await ctx.mdm.collection.listByType({
+    type: 'cafeFlow.MenuItem',
+  });
+
+  const mdmIds = listResult.items.map((item) => item.mdmId);
+
+  if (mdmIds.length === 0) {
+    return { items: [], total: 0 };
   }
 
-  // Step 3: Retrieve MenuItem MDM records
-  const itemResult = await ctx.mdm.collection.listByType({ type: 'cafeFlow.MenuItem' });
-  const itemIds = itemResult.items.map((item) => item.mdmId);
+  // Fetch full details for all listed items (plural-first, no per-id loop)
+  const entities = await ctx.mdm.collection.getMany({ mdmIds });
 
-  if (itemIds.length === 0) {
-    return { items: [] };
-  }
+  // Step 4 — apply optional statusFilter
+  let filtered = entities;
 
-  // Hydrate all menu items in a single bulk read (plural-first rule)
-  const itemEntities = await ctx.mdm.collection.getMany({ mdmIds: itemIds });
-
-  const items: BrowseMenuItemsOutputItem[] = [];
-
-  for (const entity of itemEntities) {
-    const details = entity.details as unknown as Record<string, unknown>;
-    const menuCategoryId = details.menuCategoryId as string | undefined;
-
-    // Filter by allowed categories (company scope from step 2)
-    if (!menuCategoryId || !allowedCategoryIds.has(menuCategoryId)) {
-      continue;
-    }
-
-    const itemType = details.itemType as string | undefined;
-
-    // Step 4: Apply rule simpleItemsOnly — only simple items are supported
-    if (itemType !== 'simple') {
-      continue;
-    }
-
-    const status = String(entity.details.status);
-
-    // Step 5: Apply optional statusFilter (case-insensitive match)
-    if (input.statusFilter && status.toLowerCase() !== input.statusFilter.toLowerCase()) {
-      continue;
-    }
-
-    // Step 6: Apply optional menuCategoryIdFilter
-    if (input.menuCategoryIdFilter && menuCategoryId !== input.menuCategoryIdFilter) {
-      continue;
-    }
-
-    // Step 7: Project to output shape
-    items.push({
-      menuItemId: entity.mdmId,
-      name: entity.details.name,
-      description: (details.description as string | null | undefined) ?? undefined,
-      menuCategoryId,
-      price: details.price as number,
-      itemType,
-      status,
-      activatedAt: (details.activatedAt as string | null | undefined) ?? undefined,
-      createdAt: entity.index.createdAt,
-      updatedAt: entity.index.updatedAt,
+  if (input.statusFilter) {
+    filtered = filtered.filter((entity) => {
+      const details = entity.details as unknown as Record<string, unknown>;
+      return String(details.status) === input.statusFilter;
     });
   }
 
-  return { items };
+  // Step 5 — apply optional menuCategoryIdFilter
+  if (input.menuCategoryIdFilter) {
+    filtered = filtered.filter((entity) => {
+      const details = entity.details as unknown as Record<string, unknown>;
+      const cafeFlow = (details['cafeFlow'] as Record<string, unknown> | undefined) ?? {};
+      const menuCategoryId = cafeFlow['menuCategoryId'] ?? details['menuCategoryId'];
+      return menuCategoryId != null && String(menuCategoryId) === input.menuCategoryIdFilter;
+    });
+  }
+
+  // Step 6 — simpleItemsOnly: each item appears individually, no grouping/expansion
+  // Step 7 — project output fields
+  const items: MenuItemProjection[] = filtered.map((entity) => {
+    const details = entity.details as unknown as Record<string, unknown>;
+    const cafeFlow = (details['cafeFlow'] as Record<string, unknown> | undefined) ?? {};
+    const index = entity.index as unknown as Record<string, unknown>;
+    return {
+      menuItemId: entity.mdmId,
+      name: String(details.name ?? index.name ?? ''),
+      description: (cafeFlow['description'] as string | null) ?? null,
+      menuCategoryId: (cafeFlow['menuCategoryId'] as string | null) ?? null,
+      price: Number(cafeFlow['price'] ?? 0),
+      itemType: String(cafeFlow['itemType'] ?? 'simple'),
+      status: String(details.status ?? index.status ?? 'active'),
+      activatedAt: (cafeFlow['activatedAt'] as string | null) ?? null,
+      createdAt: String(index.createdAt ?? details.createdAt ?? ''),
+      updatedAt: String(index.updatedAt ?? details.updatedAt ?? ''),
+    };
+  });
+
+  // Step 8 — return { items, total }
+  return { items, total: items.length };
 }

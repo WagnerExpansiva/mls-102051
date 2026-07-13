@@ -17,33 +17,33 @@ export const stockLevelTableDefinition = {
     "columns": [
       {
         "name": "stock_level_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "Primary key"
+        "description": "PK – unique stock level identifier"
       },
       {
         "name": "stock_item_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
         "description": "FK to stock item"
       },
       {
         "name": "unit",
-        "type": "VARCHAR",
+        "type": "text",
         "nullable": false,
-        "description": "Unit of measure"
+        "description": "Unit of measure (status-like filter)"
       },
       {
         "name": "created_at",
-        "type": "TIMESTAMP",
+        "type": "timestamp",
         "nullable": false,
         "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
-        "type": "JSONB",
+        "type": "jsonb",
         "nullable": true,
-        "description": "currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt"
+        "description": "Details JSONB: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt"
       }
     ],
     "primaryKey": [

@@ -4,7 +4,7 @@ import type { ShiftClosingReport } from '/_102051_/l1/cafeFlow/layer_3_domain/en
 export type ShiftClosingReportId = string;
 export type ShiftId = string;
 
-export interface ShiftClosingReportListFilter {
+export interface ShiftClosingReportFilter {
   shiftClosingReportId?: ShiftClosingReportId;
   shiftId?: ShiftId;
   fromCreatedAt?: string;
@@ -12,8 +12,10 @@ export interface ShiftClosingReportListFilter {
 }
 
 export interface IShiftClosingReportRepository {
-  getById(id: ShiftClosingReportId): Promise<ShiftClosingReport>;
-  list(filter?: ShiftClosingReportListFilter): Promise<ShiftClosingReport[]>;
+  getById(reportId: ShiftClosingReportId): Promise<ShiftClosingReport>;
+  findById(reportId: ShiftClosingReportId): Promise<ShiftClosingReport | null>;
+  list(filter?: ShiftClosingReportFilter): Promise<ShiftClosingReport[]>;
   save(report: ShiftClosingReport): Promise<void>;
-  listByShiftId(shiftId: ShiftId): Promise<ShiftClosingReport[]>;
+  findByShiftId(shiftId: ShiftId): Promise<ShiftClosingReport | null>;
+  findByPeriod(start: Date, end: Date): Promise<ShiftClosingReport[]>;
 }

@@ -16,9 +16,9 @@ export const manageMenuItemUsecase = {
     "ports": [],
     "functions": [
       {
-        "functionName": "updateMenuItem",
-        "inputTypeName": "UpdateMenuItemInput",
-        "outputTypeName": "UpdateMenuItemOutput",
+        "functionName": "manageMenuItem",
+        "inputTypeName": "ManageMenuItemInput",
+        "outputTypeName": "ManageMenuItemOutput",
         "input": [
           {
             "name": "menuItemId",
@@ -75,71 +75,61 @@ export const manageMenuItemUsecase = {
             "name": "menuItemId",
             "type": "string",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Identificador do item do cardápio atualizado"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "name",
             "type": "string",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Nome do item do cardápio"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "description",
             "type": "string",
             "required": false,
-            "ofEntity": "MenuItem",
-            "description": "Descrição detalhada do item do cardápio"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "menuCategoryId",
             "type": "string",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Categoria de classificação à qual o item pertence"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "price",
             "type": "number",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Preço de venda do item do cardápio"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "itemType",
             "type": "string",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Tipo do item"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "status",
             "type": "string",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Status do item"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "activatedAt",
             "type": "string",
             "required": false,
-            "ofEntity": "MenuItem",
-            "description": "Data e hora de ativação do item"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "inactivatedAt",
             "type": "string",
             "required": false,
-            "ofEntity": "MenuItem",
-            "description": "Data e hora de inativação do item"
+            "ofEntity": "MenuItem"
           },
           {
             "name": "updatedAt",
             "type": "string",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Data e hora da última atualização"
+            "ofEntity": "MenuItem"
           }
         ],
         "ports": [],
@@ -149,14 +139,16 @@ export const manageMenuItemUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Resolve actorId from ctx.sessionContext.actorId and updatedAt from ctx.clock.now()",
-          "2. Load existing MenuItem via ctx.mdm.entity.get({ mdmId: menuItemId })",
-          "3. Validate itemType === 'simple' (rule simpleItemsOnly); reject with error if itemType is 'variant'",
-          "4. If status is changing to 'active' (from 'draft' or 'inactive'), query MenuItemIngredient via ctx.mdm.collection.listByType for ingredients related to this menuItemId; reject if none found (rule menuItemRequiresIngredient)",
-          "5. If status transitions to 'active', set activatedAt = ctx.clock.now(); if transitions to 'inactive', set inactivatedAt = ctx.clock.now()",
-          "6. Build update payload with name, description, menuCategoryId, price, itemType, status, activatedAt/inactivatedAt as applicable, and updatedAt = ctx.clock.now()",
-          "7. Persist via ctx.mdm.entity.update({ mdmId: menuItemId, details: payload })",
-          "8. Return updated MenuItem fields: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt"
+          "1. Resolve actorId from ctx.sessionContext (actorSession) and now from ctx.clock (systemDefault) — these are context values, not public input.",
+          "2. Load the current MenuItem via ctx.mdm.entity.get({ mdmId: menuItemId }) to obtain the existing record including its current status, activatedAt, and inactivatedAt.",
+          "3. Apply rule simpleItemsOnly: validate that itemType === 'simple'; if not, reject with error detail referencing rule 'simpleItemsOnly'.",
+          "4. Validate that menuCategoryId references an existing MenuCategory via ctx.mdm.entity.get({ mdmId: menuCategoryId }); reject if not found or inactive.",
+          "5. If status is transitioning to 'active' (current status is 'draft' or 'inactive' and new status is 'active'), apply rule menuItemRequiresIngredient: query related entities of the MenuItem via ctx.mdm.collection.relatedOfMany({ mdmIds: [menuItemId] }) to check for linked ingredients (StockItems related as ingredients). MODELING GAP: MenuItemIngredient is neither a declared MDM entity type nor a runtime port — it is not in mdmRefs [MenuItem, MenuCategory] nor in the valid MDM entities [MenuCategory, MenuItem, StockItem] nor in the valid ports [Order, Shift, StockLevel, ShiftClosingReport, StockAdjustment, StockConsumption]. The relatedOfMany call is the closest available proxy: if it returns zero related entities, reject with error detail referencing rule 'menuItemRequiresIngredient'. If relatedOfMany returns results, proceed.",
+          "6. If status transitions from 'draft' or 'inactive' to 'active', set activatedAt = ctx.clock.now().",
+          "7. If status transitions from 'active' to 'inactive', set inactivatedAt = ctx.clock.now().",
+          "8. Set updatedAt = ctx.clock.now().",
+          "9. Persist the updated MenuItem via ctx.mdm.entity.update({ mdmId: menuItemId, details: { name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt } }).",
+          "10. Return the updated MenuItem fields: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt."
         ]
       }
     ],

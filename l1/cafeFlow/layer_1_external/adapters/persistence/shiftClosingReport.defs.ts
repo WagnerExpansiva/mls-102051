@@ -17,27 +17,27 @@ export const shiftClosingReportTableDefinition = {
     "columns": [
       {
         "name": "shift_closing_report_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "Primary key"
+        "description": "PK – unique closing report identifier"
       },
       {
         "name": "shift_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
         "description": "FK to shift"
       },
       {
         "name": "created_at",
-        "type": "TIMESTAMP",
+        "type": "timestamp",
         "nullable": false,
         "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
-        "type": "JSONB",
+        "type": "jsonb",
         "nullable": true,
-        "description": "totalApurado, paidOrderCount, updatedAt"
+        "description": "Details JSONB: totalApurado, paidOrderCount, updatedAt"
       }
     ],
     "primaryKey": [

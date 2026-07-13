@@ -3,11 +3,15 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { deliverOrder, type DeliverOrderInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/deliverOrder.js';
 
 export const cafeFlowDeliverOrderHandler: BffHandler = async ({ request, ctx }) => {
-  const input = request.params as DeliverOrderInput;
+  const params = (request.params ?? {}) as Partial<DeliverOrderInput>;
 
-  if (!input || !input.orderId) {
+  if (!params.orderId) {
     throw new AppError('VALIDATION_ERROR', 'orderId is required', 400, { field: 'orderId' });
   }
+
+  const input: DeliverOrderInput = {
+    orderId: params.orderId,
+  };
 
   const result = await deliverOrder(ctx, input);
   return ok(result);

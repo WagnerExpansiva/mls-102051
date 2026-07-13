@@ -44,14 +44,14 @@ export const createOrderUsecase = {
             "type": "array",
             "required": true,
             "ofEntity": "OrderItem",
-            "description": "Lista de itens do cardápio com menuItemId e quantidade"
+            "description": "Lista de itens do cardápio selecionados, cada um com menuItemId (string) e quantity (number > 0)"
           },
           {
             "name": "priority",
             "type": "boolean",
             "required": false,
             "ofEntity": "Order",
-            "description": "Indica se o pedido é prioritário no preparo"
+            "description": "Indica se o pedido foi marcado como prioritário no preparo"
           },
           {
             "name": "priorityReason",
@@ -88,7 +88,7 @@ export const createOrderUsecase = {
             "type": "string",
             "required": false,
             "ofEntity": "Order",
-            "description": "Número da mesa quando orderType = 'table', nulo quando 'takeout'"
+            "description": "Número da mesa (nulo quando takeout)"
           },
           {
             "name": "createdAt",
@@ -110,24 +110,23 @@ export const createOrderUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Resolve active shift: query Shift port for a Shift with status='open'; if none found, throw validation error 'No open shift available for order creation'",
-          "2. Validate orderType against enum ['table','takeout']; if orderType='table', require tableNumber (non-null, non-empty) — throw error with rule orderStatusFlow if missing; if orderType='takeout', set tableNumber=null",
-          "3. Validate priority: if priority=true, require priorityReason (non-null, non-empty) — throw error if missing",
-          "4. Validate orderItems: must be non-empty array; each item must have menuItemId (string) and quantity (number > 0)",
-          "5. Generate orderId via ctx.idGenerator; set createdAt and updatedAt via ctx.clock",
-          "6. Collect all menuItemIds from orderItems; fetch MenuItem MDM records in bulk via ctx.mdm.collection.getMany({ mdmIds: menuItemIds })",
-          "7. Validate every MenuItem exists and has status='active'; throw error listing any inactive or missing menuItemIds",
-          "8. Build Order aggregate root: set orderId, shiftId (from active shift), status='registered' (rule orderStatusFlow: initial status must be 'registered'), orderType, tableNumber, priority (default false), priorityReason (default null), createdAt, updatedAt; leave receivedAt/inPreparationAt/readyAt/deliveredAt as null",
-          "9. Build OrderItem children: for each input item, generate orderItemId via ctx.idGenerator, set orderId=orderId, menuItemId, quantity, unitPrice=MenuItem.price (from MDM record), createdAt, updatedAt",
-          "10. Resolve ingredient stock items for all MenuItems: use ctx.mdm.collection.relatedOfMany({ mdmIds: menuItemIds, relationType: 'requires-ingredient' }) to get stock item ids and quantities per serving",
-          "11. Aggregate total consumption per stockItemId: for each OrderItem, multiply quantity by ingredient quantity-per-serving; sum across all OrderItems that share the same stockItemId",
-          "12. Fetch all affected StockLevel records via StockLevel port (by stockItemId); for each, validate currentQuantity >= consumption amount — throw error with rule stockDecrementOnOrderLaunch if insufficient stock",
-          "13. Decrement each StockLevel.currentQuantity by the aggregated consumption amount; update lastDecrementAt=createdAt and updatedAt=createdAt (rule stockDecrementOnOrderLaunch)",
-          "14. Build StockConsumption audit records: for each stock item consumed, generate stockConsumptionId via ctx.idGenerator, set stockItemId, orderId, quantity=consumed amount, status='posted', createdAt=createdAt; append these as event records through the Order port inside the same transaction (eventWrites: StockConsumption, purpose=audit, persisted=true)",
-          "15. Save Order aggregate (including OrderItem children and StockConsumption event records) through Order port inside the transaction",
-          "16. Save all updated StockLevel records through StockLevel port inside the same transaction",
-          "17. The order is now in status 'registered' and enters the kitchen queue in FIFO order based on createdAt (rule fifoKitchenQueue: orders are processed in creation-timestamp order)",
-          "18. Return { orderId, status='registered', orderType, tableNumber, createdAt }"
+          "1. Resolve the active (open) Shift by querying the Shift port for status='open'; if none found, throw validation error 'No open shift found — cannot launch order'",
+          "2. Validate orderType is 'table' or 'takeout' (rule: orderStatusFlow — order must start at 'registered')",
+          "3. If orderType='table', validate tableNumber is provided and non-empty; if orderType='takeout', set tableNumber to null",
+          "4. If priority=true, validate priorityReason is provided and non-empty (rule: orderStatusFlow — priority requires justification)",
+          "5. Validate orderItems array is not empty and each item has a non-null menuItemId and quantity > 0",
+          "6. Collect all menuItemIds from orderItems; fetch MenuItems from MDM via ctx.mdm.collection.getMany({ mdmIds }); validate all exist and have status='active'",
+          "7. Generate orderId via ctx.idGenerator; set createdAt and updatedAt to ctx.clock.now()",
+          "8. Build Order aggregate root with status='registered', shiftId from resolved open Shift, orderType, tableNumber, priority (default false), priorityReason, createdAt, updatedAt",
+          "9. For each orderItem entry, generate orderItemId via ctx.idGenerator, set unitPrice from the corresponding MenuItem.price, and create an OrderItem child linked to orderId with createdAt and updatedAt",
+          "10. For all ordered MenuItems, resolve ingredient stock-item links via ctx.mdm.collection.relatedOfMany to get each ingredient's stockItemId and quantity-per-unit",
+          "11. Aggregate total consumption per stockItemId across all order items: sum(ingredient.quantityPerUnit × orderItem.quantity) for each stock item",
+          "12. For each stockItemId with consumption > 0, load StockLevel via StockLevel port (find by stockItemId); validate currentQuantity >= total consumption (rule: stockDecrementOnOrderLaunch — stock must be available at launch); decrement currentQuantity by total consumption; set lastDecrementAt to ctx.clock.now()",
+          "13. For each consumption, create a StockConsumption child record with generated stockConsumptionId (ctx.idGenerator), stockItemId, orderId, quantity, status='posted', createdAt=ctx.clock.now()",
+          "14. Append StockConsumption audit event records through the Order port (StockConsumption is owned by Order) inside the same transaction — event purpose 'audit', persisted=true",
+          "15. The order's createdAt timestamp establishes its position in the kitchen queue, ensuring FIFO processing (rule: fifoKitchenQueue — orders are queued by creation time)",
+          "16. Inside a single ctx.data transaction: save the Order aggregate (with embedded OrderItems and StockConsumption children) through the Order port; save each updated StockLevel through the StockLevel port",
+          "17. Return { orderId, status: 'registered', orderType, tableNumber, createdAt }"
         ]
       }
     ],

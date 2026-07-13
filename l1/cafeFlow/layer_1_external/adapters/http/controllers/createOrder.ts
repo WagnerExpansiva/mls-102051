@@ -3,18 +3,28 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { createOrder, type CreateOrderInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/createOrder.js';
 
 export const cafeFlowCreateOrderHandler: BffHandler = async ({ request, ctx }) => {
-  const input = request.params as CreateOrderInput;
+  const params = (request.params ?? {}) as Partial<CreateOrderInput>;
 
-  if (!input || !input.orderType) {
+  // Validate only genuine client inputs (source: userInput)
+  if (!params.orderType) {
     throw new AppError('VALIDATION_ERROR', 'orderType is required', 400, { field: 'orderType' });
   }
 
-  if (!input.orderItems || !Array.isArray(input.orderItems) || input.orderItems.length === 0) {
-    throw new AppError('VALIDATION_ERROR', 'orderItems is required and must have at least one item', 400, { field: 'orderItems' });
+  if (!params.orderItems || params.orderItems.length === 0) {
+    throw new AppError('VALIDATION_ERROR', 'orderItems is required and must not be empty', 400, { field: 'orderItems' });
   }
 
-  const result = await createOrder(ctx, input);
+  // Build an EXPLICIT input with only the client fields — shiftId, orderId, createdAt, updatedAt
+  // are resolved inside the usecase from ctx/ports and are NOT on the usecase Input type.
+  const input: CreateOrderInput = {
+    orderType: params.orderType,
+    tableNumber: params.tableNumber,
+    orderItems: params.orderItems,
+    priority: params.priority,
+    priorityReason: params.priorityReason,
+  };
 
+  const result = await createOrder(ctx, input);
   return ok(result);
 };
 

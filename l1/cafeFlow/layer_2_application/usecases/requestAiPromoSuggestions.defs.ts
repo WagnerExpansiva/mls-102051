@@ -29,19 +29,19 @@ export const requestAiPromoSuggestionsUsecase = {
             "name": "suggestions",
             "type": "array",
             "required": true,
-            "description": "Lista de sugestões de itens para promoção derivadas dos padrões de venda dos últimos 7 dias"
+            "description": "Promo suggestion items derived from 7-day sales patterns and stock levels. Each element: { menuItemId: string, totalQuantity: number, orderCount: number, suggestedPromoType: string, reason: string }"
           },
           {
             "name": "windowStart",
             "type": "string",
             "required": true,
-            "description": "Data de início da janela de análise (7 dias antes do momento atual)"
+            "description": "ISO datetime marking the start of the 7-day analysis window (now - 7 days)"
           },
           {
             "name": "windowEnd",
             "type": "string",
             "required": true,
-            "description": "Data de fim da janela de análise (momento atual)"
+            "description": "ISO datetime marking the end of the analysis window (current timestamp)"
           }
         ],
         "ports": [
@@ -54,20 +54,20 @@ export const requestAiPromoSuggestionsUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "Resolve actorId from ctx.sessionContext.actorId for audit and permission context",
-          "Resolve windowStart by computing ctx.clock.now() minus 7 days (rule: aiPromoBasedOnLast7Days)",
-          "Load orders from the Order port filtered by createdAt >= windowStart and createdAt <= now",
-          "Collect all orderIds from the fetched orders",
-          "Load OrderItem children embedded in each Order aggregate through the Order port (no separate OrderItem repository)",
-          "Aggregate OrderItem data: group by menuItemId, sum quantities, compute average unitPrice, count occurrences",
-          "Load all StockLevel records from the StockLevel port to identify items with high stock or near minimum level",
-          "Join aggregated sales data with stock levels by matching stockItemId to menuItemId where possible",
-          "Apply rule aiConsumesDomainData: build promo suggestions exclusively from domain data (Order, OrderItem, StockLevel) — no external sources",
-          "For each menuItemId with sufficient sales volume, compute a suggestion score: higher when sales volume is high AND current stock quantity is high relative to minimum level (surplus stock to move via promo)",
-          "Sort suggestions by score descending and return top suggestions with menuItemId, totalQuantitySold, averageUnitPrice, currentStockQuantity, suggestionScore, and a human-readable rationale",
-          "Append a StockConsumption audit event through the StockConsumption port recording that promo suggestions were requested (actorId, windowStart, windowEnd, suggestionCount) — this is a read-only audit trail, no mutation to Order or StockLevel aggregates"
+          "Resolve windowEnd = ctx.clock.now() and windowStart = windowEnd minus 7 days (rule aiPromoBasedOnLast7Days)",
+          "Resolve actorId from ctx.sessionContext for audit/permission context — not a public input",
+          "Load orders with createdAt >= windowStart via Order port (list query filtered by date range); each Order carries its embedded OrderItem collection",
+          "Aggregate OrderItem data across all loaded orders: for each menuItemId compute totalQuantity (sum of quantity) and orderCount (distinct orders containing the item)",
+          "Load all current StockLevel records via StockLevel port to identify items with currentQuantity above minimumLevel (overstock candidates)",
+          "Generate promo suggestions by joining sales-frequency data (from OrderItem aggregation) with stock data (from StockLevel): items with high stock relative to minimum and moderate sales volume in the window are flagged for promotion (rule aiConsumesDomainData — only domain data from Order/OrderItem/StockLevel is used, no external sources)",
+          "Build suggestion records: menuItemId, totalQuantity, orderCount, suggestedPromoType ('discount' | 'bundle' | 'featured'), and a human-readable reason string",
+          "Return { suggestions, windowStart, windowEnd } — no aggregate is mutated, no events are emitted (strictly read-only)"
         ]
       }
+    ],
+    "rulesApplied": [
+      "aiPromoBasedOnLast7Days",
+      "aiConsumesDomainData"
     ],
     "mdmRefs": []
   }
@@ -94,6 +94,10 @@ export const pipeline = [
       "_102021_/l2/agentChangeBackend/skills/architecture.md",
       "_102021_/l2/agentChangeBackend/skills/applicationUsecase.md",
       "_102034_.d.ts"
+    ],
+    "rulesApplied": [
+      "aiPromoBasedOnLast7Days",
+      "aiConsumesDomainData"
     ],
     "agent": "agentCbMaterialize"
   }

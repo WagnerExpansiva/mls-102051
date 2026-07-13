@@ -26,46 +26,22 @@ export const browseStockItemsUsecase = {
             "name": "searchTerm",
             "type": "string",
             "required": false,
-            "ofEntity": "StockItem",
             "description": "Termo de busca opcional para filtrar itens de estoque pelo nome."
-          },
-          {
-            "name": "page",
-            "type": "number",
-            "required": false,
-            "description": "Número da página para paginação opcional (base 1)."
-          },
-          {
-            "name": "pageSize",
-            "type": "number",
-            "required": false,
-            "description": "Quantidade de itens por página para paginação opcional."
           }
         ],
         "output": [
           {
             "name": "items",
-            "type": "StockItemBrowseResult[]",
+            "type": "array",
             "required": true,
-            "description": "Lista de itens de estoque com nome, unidade, limite mínimo, quantidade atual e flag de alerta de estoque baixo."
+            "description": "Lista de itens de estoque com nome, unidade, limite mínimo, quantidade atual e flag de alerta de estoque baixo.",
+            "ofEntity": "StockItem"
           },
           {
-            "name": "totalCount",
+            "name": "total",
             "type": "number",
             "required": true,
-            "description": "Total de itens encontrados antes da paginação."
-          },
-          {
-            "name": "page",
-            "type": "number",
-            "required": true,
-            "description": "Página atual retornada."
-          },
-          {
-            "name": "pageSize",
-            "type": "number",
-            "required": true,
-            "description": "Tamanho da página aplicado."
+            "description": "Número total de itens retornados na lista."
           }
         ],
         "ports": [
@@ -76,15 +52,14 @@ export const browseStockItemsUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolver actorId a partir de ctx.sessionContext (sessão autenticada do gerente) para autorização de acesso ao estoque.",
-          "2. Listar StockItems do MDM via ctx.mdm.collection.listByType({ type: 'StockItem' }), aplicando filtro opcional por searchTerm sobre o campo name quando fornecido.",
-          "3. Coletar todos os stockItemIds do resultado da listagem de MDM.",
-          "4. Consultar StockLevels em lote via porta StockLevel (stockLevelPort.listByStockItemIds) para todos os stockItemIds coletados, evitando chamadas individuais em loop.",
-          "5. Join em memória: para cada StockItem, localizar o StockLevel correspondente pelo stockItemId e extrair currentQuantity.",
-          "6. Aplicar regra lowStockAlertCalculation: para cada item, calcular lowStockAlert = (StockLevel.currentQuantity <= StockItem.minimumLevel). Itens sem StockLevel associado recebem lowStockAlert = false e currentQuantity = 0.",
-          "7. Ordenar a lista resultante por name (ascendente) para facilitar a consulta.",
-          "8. Aplicar paginação opcional: se page e pageSize forem fornecidos, fatiar a lista ordenada; caso contrário, retornar todos os itens com page=1 e pageSize=totalCount.",
-          "9. Retornar items (cada item contendo stockItemId, name, unit, minimumLevel, currentQuantity, lowStockAlert, createdAt, updatedAt), totalCount, page e pageSize."
+          "1. Resolver o actorId a partir de ctx.sessionContext para autorização do gerente autenticado.",
+          "2. Listar todos os StockItems do MDM via ctx.mdm.collection.listByType({ type: 'StockItem' }).",
+          "3. Se searchTerm foi informado, filtrar os itens cujo name contém o termo (case-insensitive).",
+          "4. Ordenar os itens resultantes por name em ordem ascendente.",
+          "5. Coletar todos os stockItemId dos itens filtrados e buscar os StockLevels correspondentes em lote através da porta StockLevel (list/find by stockItemId).",
+          "6. Para cada StockItem, localizar seu StockLevel correspondente e aplicar a regra lowStockAlertCalculation: se currentQuantity <= minimumLevel, marcar lowStockAlert = true; caso contrário false.",
+          "7. Montar a lista de saída com stockItemId, name, unit, minimumLevel, createdAt, updatedAt, currentQuantity e lowStockAlert para cada item.",
+          "8. Retornar { items, total } onde total é o número de itens na lista."
         ]
       }
     ],

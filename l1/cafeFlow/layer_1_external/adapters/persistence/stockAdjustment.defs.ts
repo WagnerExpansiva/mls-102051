@@ -17,33 +17,33 @@ export const stockAdjustmentTableDefinition = {
     "columns": [
       {
         "name": "stock_adjustment_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "Primary key"
+        "description": "PK – unique adjustment identifier"
       },
       {
         "name": "stock_item_id",
-        "type": "UUID",
+        "type": "text",
         "nullable": false,
-        "description": "FK to stock item"
+        "description": "FK to stock item (owner)"
       },
       {
         "name": "status",
-        "type": "VARCHAR",
+        "type": "text",
         "nullable": false,
         "description": "Adjustment status"
       },
       {
         "name": "created_at",
-        "type": "TIMESTAMP",
+        "type": "timestamp",
         "nullable": false,
         "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
-        "type": "JSONB",
+        "type": "jsonb",
         "nullable": true,
-        "description": "quantity, reason, voidedAt, voidedReason"
+        "description": "Details JSONB: quantity, reason, voidedAt, voidedReason"
       }
     ],
     "primaryKey": [
