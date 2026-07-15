@@ -4,6 +4,8 @@ export const definition = {
   "pageId": "kitchenQueue",
   "pageName": "Fila da cozinha — Preparo de pedidos",
   "moduleName": "cafeFlow",
+  "baseClassName": "CafeFlowKitchenQueueBase",
+  "routePattern": "/cafeFlow/kitchenQueue",
   "sourceKind": "workflow",
   "ownerIds": [
     "workflow:orderLifecycle",
@@ -76,7 +78,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.defs.ts",
-    "layoutId": "kitchenQueue.page11"
+    "layoutId": "kanban_pipeline"
   },
   "states": [
     {
@@ -127,9 +129,24 @@ export const definition = {
       "defaultValue": "idle"
     },
     {
+      "stateKey": "ui.kitchenQueue.input.updateOrderStatus.orderId",
+      "name": "updateOrderStatusOrderId",
+      "kind": "input",
+      "source": "selectedEntity",
+      "presentation": "selection",
+      "contractRef": {
+        "commandName": "updateOrderStatus",
+        "direction": "input",
+        "field": "orderId"
+      },
+      "defaultValue": ""
+    },
+    {
       "stateKey": "ui.kitchenQueue.input.updateOrderStatus.status",
       "name": "updateOrderStatusStatus",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "updateOrderStatus",
         "direction": "input",
@@ -139,9 +156,20 @@ export const definition = {
     },
     {
       "stateKey": "ui.kitchenQueue.output.updateOrderStatus",
-      "name": "OutputUpdateOrderStatus",
+      "name": "updateOrderStatusOutput",
       "kind": "commandOutput",
+      "contractRef": {
+        "commandName": "updateOrderStatus",
+        "direction": "output"
+      },
       "defaultValue": null
+    },
+    {
+      "stateKey": "ui.kitchenQueue.action.updateOrderStatus.error",
+      "name": "updateOrderStatusError",
+      "kind": "actionError",
+      "actionRef": "updateOrderStatus",
+      "defaultValue": ""
     }
   ],
   "actions": [
@@ -154,6 +182,8 @@ export const definition = {
       "methodName": "loadViewKitchenBoard",
       "handlerName": "handleViewKitchenBoardClick",
       "inputStateKeys": [],
+      "routeParamInputStateKeys": [],
+      "selectedEntityInputStateKeys": [],
       "outputStateKeys": [
         "ui.kitchenQueue.data.viewKitchenBoard"
       ],
@@ -168,15 +198,37 @@ export const definition = {
       "methodName": "updateOrderStatus",
       "handlerName": "handleUpdateOrderStatusClick",
       "inputStateKeys": [
+        "ui.kitchenQueue.input.updateOrderStatus.orderId",
         "ui.kitchenQueue.input.updateOrderStatus.status"
+      ],
+      "routeParamInputStateKeys": [],
+      "selectedEntityInputStateKeys": [
+        "ui.kitchenQueue.input.updateOrderStatus.orderId"
       ],
       "outputStateKeys": [
         "ui.kitchenQueue.output.updateOrderStatus"
       ],
       "statusStateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
+      "errorStateKey": "ui.kitchenQueue.action.updateOrderStatus.error",
+      "feedback": {
+        "successMessageKey": "action.updateOrderStatus.success",
+        "errorMessageKey": "action.updateOrderStatus.error",
+        "dismissible": true
+      },
+      "clearInputStateKeys": [
+        "ui.kitchenQueue.input.updateOrderStatus.orderId",
+        "ui.kitchenQueue.input.updateOrderStatus.status"
+      ],
       "refreshActionIds": [
         "viewKitchenBoard"
       ]
+    },
+    {
+      "actionId": "set.updateOrderStatusOrderId",
+      "kind": "stateSetter",
+      "stateKey": "ui.kitchenQueue.input.updateOrderStatus.orderId",
+      "methodName": "setUpdateOrderStatusOrderId",
+      "handlerName": "handleUpdateOrderStatusOrderIdChange"
     },
     {
       "actionId": "set.updateOrderStatusStatus",
@@ -202,34 +254,76 @@ export const definition = {
     ]
   },
   "i18n": {
-    "kitchenQueue.section.board.title": "Fila da cozinha",
-    "kitchenQueue.organism.board.title": "Painel da cozinha",
-    "kitchenQueue.intent.board.list.title": "Pedidos por status",
-    "kitchenQueue.section.transition.title": "Transição de status",
-    "kitchenQueue.organism.update.title": "Atualizar status do pedido",
-    "kitchenQueue.intent.update.title": "Avançar status do pedido",
-    "kitchenQueue.section.summary.title": "Resumo do pedido",
-    "kitchenQueue.organism.summary.title": "Resumo do pedido selecionado",
-    "kitchenQueue.intent.summary.title": "Detalhes do pedido",
-    "kitchenQueue.field.orderId": "Pedido",
-    "kitchenQueue.field.status": "Status",
-    "kitchenQueue.field.orderType": "Tipo",
-    "kitchenQueue.field.tableNumber": "Mesa",
-    "kitchenQueue.field.priority": "Prioridade",
-    "kitchenQueue.field.priorityReason": "Motivo da prioridade",
-    "kitchenQueue.field.receivedAt": "Recebido em",
-    "kitchenQueue.field.inPreparationAt": "Em preparo desde",
-    "kitchenQueue.action.markInPreparation": "Iniciar preparo",
-    "kitchenQueue.action.markReady": "Marcar como pronto",
-    "kitchenQueue.section.cards.title": "Fila em cartões",
-    "kitchenQueue.organism.cards.title": "Pedidos da cozinha",
-    "kitchenQueue.intent.cards.list.title": "Pedidos do turno",
-    "kitchenQueue.section.actions.title": "Ações do pedido",
-    "kitchenQueue.organism.actions.title": "Atualizar status",
-    "kitchenQueue.intent.card.update.title": "Avançar status",
-    "kitchenQueue.section.queue.title": "Fila de trabalho",
-    "kitchenQueue.organism.queue.title": "Pedidos em fila",
-    "kitchenQueue.intent.queue.list.title": "Fila atual"
+    "page.title": "Fila da Cozinha — Preparo de Pedidos",
+    "section.kitchenBoard.title": "Fila da Cozinha",
+    "section.orderTransition.title": "Atualizar Status do Pedido",
+    "intention.boardList.title": "Pedidos na Cozinha",
+    "intention.transitionForm.title": "Transicao de Status",
+    "empty.kitchenBoard": "Nenhum pedido na fila no momento",
+    "empty.transitionPanel": "Selecione um pedido na fila para atualizar o status",
+    "field.orderId": "Pedido selecionado",
+    "field.status": "Próximo status",
+    "field.orderType": "Tipo",
+    "field.tableNumber": "Mesa",
+    "field.priority": "Prioridade",
+    "field.priorityReason": "Motivo da Prioridade",
+    "field.receivedAt": "Recebido as",
+    "field.inPreparationAt": "Em preparo desde",
+    "field.createdAt": "Criado em",
+    "action.selectOrder": "Selecionar",
+    "action.updateOrderStatus.submit": "Atualizar Status",
+    "action.updateOrderStatus.success": "Status do pedido atualizado com sucesso",
+    "action.updateOrderStatus.error": "Erro ao atualizar status do pedido",
+    "sec.kitchen.board.title": "Sec kitchen board",
+    "org.kitchen.board.title": "Exibir fila de pedidos da cozinha ordenados por prioridade e ordem de chegada, permitindo seleção para transição de status",
+    "sec.transition.title": "Sec transition",
+    "org.transition.panel.title": "Atualizar status do pedido selecionado para o proximo estado do ciclo de vida",
+    "section.discover.title": "Fila da Cozinha",
+    "section.discover.empty": "Nenhum pedido na fila no momento",
+    "section.execute.title": "Atualizar Status do Pedido",
+    "section.review.title": "Resumo",
+    "field.orderId.label": "Pedido",
+    "field.status.label": "Status",
+    "field.orderType.label": "Tipo",
+    "field.tableNumber.label": "Mesa",
+    "field.priority.label": "Prioridade",
+    "field.priorityReason.label": "Motivo da Prioridade",
+    "field.receivedAt.label": "Recebido às",
+    "field.inPreparationAt.label": "Em preparo desde",
+    "field.createdAt.label": "Criado em",
+    "filter.status.label": "Filtrar por status",
+    "action.viewKitchenBoard.label": "Atualizar fila",
+    "action.updateOrderStatus.label": "Confirmar",
+    "action.selectOrder.label": "Selecionar pedido",
+    "status.received.label": "Recebido",
+    "status.inPreparation.label": "Em preparo",
+    "status.ready.label": "Pronto",
+    "status.delivered.label": "Entregue",
+    "status.registered.label": "Registrado",
+    "sec.discover.title": "Sec discover",
+    "sec.execute.title": "Sec execute",
+    "org.update.status.title": "Permitir ao cozinheiro atualizar o status do pedido selecionado, marcando como em preparo ou pronto",
+    "sec.review.title": "Sec review",
+    "org.review.title": "Exibir feedback da última ação e resumo do estado atual da fila",
+    "section.queue.title": "Fila de Pedidos",
+    "section.queue.empty": "Nenhum pedido na fila no momento",
+    "section.transition.title": "Atualizar Status do Pedido",
+    "section.transition.empty": "Selecione um pedido da fila para atualizar o status",
+    "column.orderId": "Pedido",
+    "column.status": "Status",
+    "column.orderType": "Tipo",
+    "column.tableNumber": "Mesa",
+    "column.priority": "Prioridade",
+    "column.priorityReason": "Motivo da Prioridade",
+    "column.receivedAt": "Recebido às",
+    "column.inPreparationAt": "Em preparo desde",
+    "column.createdAt": "Criado em",
+    "action.select": "Selecionar",
+    "action.refresh": "Atualizar fila",
+    "action.updateOrderStatus": "Confirmar alteração",
+    "sec.kitchen.queue.title": "Sec kitchen queue",
+    "sec.order.transition.title": "Sec order transition",
+    "org.status.transition.title": "Atualizar status do pedido selecionado na fila, apresentando a próxima transição válida do ciclo de vida"
   },
   "automation": {
     "statePrefix": "ui.kitchenQueue",
@@ -238,12 +332,15 @@ export const definition = {
       "ui.kitchenQueue.action.viewKitchenBoard.status",
       "ui.kitchenQueue.data.viewKitchenBoard",
       "ui.kitchenQueue.action.updateOrderStatus.status",
+      "ui.kitchenQueue.input.updateOrderStatus.orderId",
       "ui.kitchenQueue.input.updateOrderStatus.status",
-      "ui.kitchenQueue.output.updateOrderStatus"
+      "ui.kitchenQueue.output.updateOrderStatus",
+      "ui.kitchenQueue.action.updateOrderStatus.error"
     ],
     "actionIds": [
       "viewKitchenBoard",
       "updateOrderStatus",
+      "set.updateOrderStatusOrderId",
       "set.updateOrderStatusStatus"
     ]
   }

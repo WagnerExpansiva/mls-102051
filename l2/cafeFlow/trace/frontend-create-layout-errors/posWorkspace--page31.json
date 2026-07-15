@@ -1,0 +1,10 @@
+{
+  "savedAt": "2026-07-15T01:53:21.776Z",
+  "runId": "cfe-20260715014853.1000",
+  "pageId": "posWorkspace",
+  "genome": "page31",
+  "templateId": "workflow_queue",
+  "stage": "afterPromptStep",
+  "message": "col-orderNumber.field references unknown field orderNumber",
+  "agent": "agentCfeCreateLayout"
+}

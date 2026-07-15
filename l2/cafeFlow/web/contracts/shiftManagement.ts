@@ -24,7 +24,9 @@ export interface CafeFlowCloseShiftOutput {
   notes: string;
 }
 
-export interface CafeFlowViewShiftClosingReportInput {}
+export interface CafeFlowViewShiftClosingReportInput {
+  shiftId: string;
+}
 
 export interface CafeFlowViewShiftClosingReportOutputItem {
   shiftClosingReportId: string;

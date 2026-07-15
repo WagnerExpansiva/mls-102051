@@ -13,7 +13,9 @@ export const definition = [
         "name": "searchTerm",
         "type": "string",
         "required": false,
-        "description": "Termo de busca opcional para filtrar itens de estoque pelo nome."
+        "description": "Termo de busca opcional para filtrar itens de estoque pelo nome.",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [
@@ -71,10 +73,20 @@ export const definition = [
     "outputShape": "object",
     "input": [
       {
+        "name": "stockItemId",
+        "type": "string",
+        "required": true,
+        "description": "Identificador do item de estoque a ser atualizado, obtido da rota de edição.",
+        "source": "routeParam",
+        "presentation": "route"
+      },
+      {
         "name": "name",
         "type": "string",
         "required": true,
-        "description": "Nome do ingrediente editado pelo gerente."
+        "description": "Nome do ingrediente editado pelo gerente.",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "unit",
@@ -86,13 +98,17 @@ export const definition = [
           "portion",
           "unit"
         ],
-        "description": "Unidade de medida do ingrediente (kg, liter, portion ou unit)."
+        "description": "Unidade de medida do ingrediente (kg, liter, portion ou unit).",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "minimumLevel",
         "type": "number",
         "required": true,
-        "description": "Quantidade mínima configurada para disparar o alerta de estoque baixo."
+        "description": "Quantidade mínima configurada para disparar o alerta de estoque baixo.",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [

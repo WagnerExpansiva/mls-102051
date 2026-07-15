@@ -18,13 +18,17 @@ export const definition = [
           "active",
           "inactive"
         ],
-        "description": "Filtro opcional por status do item (draft, active, inactive) informado pelo gerente"
+        "description": "Filtro opcional por status do item (draft, active, inactive) informado pelo gerente",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "menuCategoryIdFilter",
         "type": "string",
         "required": false,
-        "description": "Filtro opcional por categoria do item informado pelo gerente"
+        "description": "Filtro opcional por categoria do item informado pelo gerente",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [
@@ -105,28 +109,44 @@ export const definition = [
     "outputShape": "object",
     "input": [
       {
+        "name": "menuItemId",
+        "type": "string",
+        "required": true,
+        "description": "Identificador do item do cardápio selecionado para edição",
+        "source": "selectedEntity",
+        "presentation": "selection"
+      },
+      {
         "name": "name",
         "type": "string",
         "required": true,
-        "description": "Nome do item do cardápio exibido no POS"
+        "description": "Nome do item do cardápio exibido no POS",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "description",
         "type": "string",
         "required": false,
-        "description": "Descrição detalhada do item do cardápio"
+        "description": "Descrição detalhada do item do cardápio",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "menuCategoryId",
         "type": "string",
         "required": true,
-        "description": "Categoria de classificação à qual o item pertence"
+        "description": "Categoria de classificação à qual o item pertence",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "price",
         "type": "number",
         "required": true,
-        "description": "Preço de venda do item do cardápio"
+        "description": "Preço de venda do item do cardápio",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "itemType",
@@ -136,7 +156,9 @@ export const definition = [
           "simple",
           "variant"
         ],
-        "description": "Tipo do item: deve ser 'simple' nesta fase"
+        "description": "Tipo do item: deve ser 'simple' nesta fase",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "status",
@@ -147,7 +169,9 @@ export const definition = [
           "active",
           "inactive"
         ],
-        "description": "Status do item: rascunho, ativo ou inativo"
+        "description": "Status do item: rascunho, ativo ou inativo",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [

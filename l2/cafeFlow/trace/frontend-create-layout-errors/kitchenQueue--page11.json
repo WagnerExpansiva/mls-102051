@@ -1,0 +1,10 @@
+{
+  "savedAt": "2026-07-15T01:50:29.889Z",
+  "runId": "cfe-20260715014853.1000",
+  "pageId": "kitchenQueue",
+  "genome": "page11",
+  "templateId": "kanban_pipeline",
+  "stage": "afterPromptStep",
+  "message": "col-order-number.field references unknown field orderNumber",
+  "agent": "agentCfeCreateLayout"
+}

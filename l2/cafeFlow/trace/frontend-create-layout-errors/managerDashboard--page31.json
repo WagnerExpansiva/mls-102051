@@ -1,0 +1,10 @@
+{
+  "savedAt": "2026-07-15T01:51:21.220Z",
+  "runId": "cfe-20260715014853.1000",
+  "pageId": "managerDashboard",
+  "genome": "page31",
+  "templateId": "mobile_cards",
+  "stage": "afterPromptStep",
+  "message": "col_metricName.field references unknown field metricName",
+  "agent": "agentCfeCreateLayout"
+}

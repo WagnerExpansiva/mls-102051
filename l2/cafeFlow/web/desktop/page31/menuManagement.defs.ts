@@ -3,6 +3,7 @@
 export const definition = {
   "pageId": "menuManagement",
   "pageName": "Gestão de cardápio",
+  "baseClassName": "CafeFlowMenuManagementBase",
   "actor": "gerente",
   "purpose": "Executar Gestão de cardápio.",
   "capabilities": [
@@ -89,19 +90,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "s10_cards",
+      "id": "sec_discover",
       "type": "section",
-      "sectionName": "cards",
-      "titleKey": "menuManagement.cards.title",
-      "mode": "view",
-      "order": 10,
+      "sectionName": "sec_discover",
+      "titleKey": "sec.discover.title",
+      "mode": "list",
+      "order": 1,
       "organisms": [
         {
-          "id": "o10_cards",
-          "type": "cardList",
-          "organismName": "BrowseMenuItems",
-          "titleKey": "menuManagement.cards.list.title",
-          "purpose": "Navegar por cartões de itens do cardápio",
+          "id": "org_menuItemsCardList",
+          "type": "organism",
+          "organismName": "MenuItemsCardList",
+          "titleKey": "org.menuItemsCardList.title",
+          "purpose": "Listar itens do cardápio em cards com filtros compactos e ação de seleção para edição",
           "userActions": [
             "browseMenuItems"
           ],
@@ -112,63 +113,54 @@ export const definition = {
           "readsFields": [
             "menuItemId",
             "name",
+            "description",
             "menuCategoryId",
             "price",
+            "itemType",
             "status",
-            "itemType"
+            "activatedAt",
+            "createdAt",
+            "updatedAt"
           ],
           "writesFields": [],
           "rulesApplied": [
-            "simpleItemsOnly"
+            "O backend resolve o escopo da consulta limitando os itens do cardápio à empresa ativa da sessão do gerente"
           ],
-          "order": 10,
+          "order": 1,
           "intentionRefs": [
             {
-              "id": "i10_context",
-              "intent": "workflowStatus",
-              "stateKey": "ui.menuManagement.data.browseMenuItems",
-              "order": 10
-            },
-            {
-              "id": "i20_query",
+              "id": "intent_browseMenuItems",
               "intent": "queryList",
               "stateKey": "ui.menuManagement.data.browseMenuItems",
-              "action": "browseMenuItems",
-              "order": 20
-            },
-            {
-              "id": "i30_summary",
-              "intent": "summary",
-              "stateKey": "ui.menuManagement.data.browseMenuItems",
-              "order": 30
+              "order": 1
             }
           ]
         }
       ]
     },
     {
-      "id": "s20_detail",
+      "id": "sec_execute",
       "type": "section",
-      "sectionName": "detail",
-      "titleKey": "menuManagement.detail.title",
-      "mode": "edit",
-      "order": 20,
+      "sectionName": "sec_execute",
+      "titleKey": "sec.execute.title",
+      "mode": "form",
+      "order": 2,
       "organisms": [
         {
-          "id": "o20_manage",
-          "type": "formPanel",
-          "organismName": "ManageMenuItem",
-          "titleKey": "menuManagement.detail.form.title",
-          "purpose": "Atualizar dados e status do item do cardápio",
+          "id": "org_manageItemForm",
+          "type": "organism",
+          "organismName": "ManageItemForm",
+          "titleKey": "org.manageItemForm.title",
+          "purpose": "Formulário em bottom sheet para criar ou editar um item do cardápio com nome, categoria, preço, tipo e status",
           "userActions": [
             "manageMenuItem"
           ],
           "requiredEntities": [
             "MenuItem",
-            "MenuCategory",
-            "MenuItemIngredient"
+            "MenuCategory"
           ],
           "readsFields": [
+            "menuItemId",
             "name",
             "description",
             "menuCategoryId",
@@ -177,6 +169,7 @@ export const definition = {
             "status"
           ],
           "writesFields": [
+            "menuItemId",
             "name",
             "description",
             "menuCategoryId",
@@ -185,50 +178,85 @@ export const definition = {
             "status"
           ],
           "rulesApplied": [
-            "simpleItemsOnly",
-            "menuItemRequiresIngredient"
+            "O sistema valida que o tipo do item é 'simple' e que, se for ativado, existe pelo menos um ingrediente de estoque vinculado",
+            "O sistema persiste as alterações atualizando updatedAt e, conforme o status, activatedAt ou inactivatedAt"
           ],
-          "order": 10,
+          "order": 1,
           "intentionRefs": [
             {
-              "id": "i40_status",
-              "intent": "workflowStatus",
-              "order": 10
-            },
-            {
-              "id": "i50_edit",
+              "id": "intent_manageMenuItem",
               "intent": "commandForm",
+              "stateKey": "ui.menuManagement.action.manageMenuItem.status",
+              "action": "manageMenuItem",
               "submitAction": "manageMenuItem",
-              "order": 20
-            },
+              "order": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec_review",
+      "type": "section",
+      "sectionName": "sec_review",
+      "titleKey": "sec.review.title",
+      "mode": "summary",
+      "order": 3,
+      "organisms": [
+        {
+          "id": "org_actionFeedback",
+          "type": "organism",
+          "organismName": "ActionFeedback",
+          "titleKey": "org.actionFeedback.title",
+          "purpose": "Exibir feedback textual da última ação de gerenciamento e resumo do resultado",
+          "userActions": [],
+          "requiredEntities": [
+            "MenuItem"
+          ],
+          "readsFields": [
+            "menuItemId",
+            "name",
+            "status",
+            "price",
+            "activatedAt",
+            "inactivatedAt",
+            "updatedAt"
+          ],
+          "writesFields": [],
+          "rulesApplied": [],
+          "order": 1,
+          "intentionRefs": [
             {
-              "id": "i60_review",
+              "id": "intent_summary",
               "intent": "summary",
-              "order": 30
+              "stateKey": "ui.menuManagement.action.manageMenuItem.status",
+              "order": 1
             }
           ]
         }
       ]
     }
   ],
+  "templateId": "mobile_cards",
+  "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "layout": {
-    "id": "menuManagement.page31",
+    "id": "page31_mobile_cards",
     "type": "page",
     "sections": [
       {
-        "id": "s10_cards",
+        "id": "sec_discover",
         "type": "section",
-        "sectionName": "cards",
-        "titleKey": "menuManagement.cards.title",
-        "mode": "view",
-        "order": 10,
+        "sectionName": "sec_discover",
+        "titleKey": "sec.discover.title",
+        "mode": "list",
+        "order": 1,
         "organisms": [
           {
-            "id": "o10_cards",
-            "type": "cardList",
-            "organismName": "BrowseMenuItems",
-            "titleKey": "menuManagement.cards.list.title",
-            "purpose": "Navegar por cartões de itens do cardápio",
+            "id": "org_menuItemsCardList",
+            "type": "organism",
+            "organismName": "MenuItemsCardList",
+            "titleKey": "org.menuItemsCardList.title",
+            "purpose": "Listar itens do cardápio em cards com filtros compactos e ação de seleção para edição",
             "userActions": [
               "browseMenuItems"
             ],
@@ -239,86 +267,95 @@ export const definition = {
             "readsFields": [
               "menuItemId",
               "name",
+              "description",
               "menuCategoryId",
               "price",
+              "itemType",
               "status",
-              "itemType"
+              "activatedAt",
+              "createdAt",
+              "updatedAt"
             ],
             "writesFields": [],
             "rulesApplied": [
-              "simpleItemsOnly"
+              "O backend resolve o escopo da consulta limitando os itens do cardápio à empresa ativa da sessão do gerente"
             ],
-            "order": 10,
+            "order": 1,
             "intentions": [
               {
-                "id": "i10_context",
-                "intent": "workflowStatus",
-                "order": 10,
-                "titleKey": "menuManagement.context.title",
-                "fields": [],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": [],
-                "stateKey": "ui.menuManagement.data.browseMenuItems"
-              },
-              {
-                "id": "i20_query",
+                "id": "intent_browseMenuItems",
                 "intent": "queryList",
-                "order": 20,
-                "titleKey": "menuManagement.cards.query.title",
-                "action": "browseMenuItems",
+                "order": 1,
+                "titleKey": "organism.menuItemsList.title",
+                "source": "ui.menuManagement.data.browseMenuItems",
+                "binding": "browseMenuItemsBinding",
+                "emptyKey": "empty.menuItems",
+                "displayHint": "card",
+                "stateKey": "ui.menuManagement.data.browseMenuItems",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "c10_name",
+                    "id": "col_name",
                     "field": "name",
-                    "labelKey": "menuManagement.menuItem.name",
-                    "order": 10,
+                    "labelKey": "field.name",
+                    "order": 1,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   },
                   {
-                    "id": "c20_category",
-                    "field": "menuCategoryId",
-                    "labelKey": "menuManagement.menuItem.menuCategoryId",
-                    "order": 20,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.data.browseMenuItems"
-                  },
-                  {
-                    "id": "c30_price",
-                    "field": "price",
-                    "labelKey": "menuManagement.menuItem.price",
-                    "order": 30,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.data.browseMenuItems"
-                  },
-                  {
-                    "id": "c40_status",
+                    "id": "col_status",
                     "field": "status",
-                    "labelKey": "menuManagement.menuItem.status",
-                    "order": 40,
+                    "labelKey": "field.status",
+                    "order": 2,
                     "required": false,
+                    "inputType": "badge",
+                    "stateKey": "ui.menuManagement.data.browseMenuItems"
+                  },
+                  {
+                    "id": "col_price",
+                    "field": "price",
+                    "labelKey": "field.price",
+                    "order": 3,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "currency",
+                    "stateKey": "ui.menuManagement.data.browseMenuItems"
+                  },
+                  {
+                    "id": "col_itemType",
+                    "field": "itemType",
+                    "labelKey": "field.itemType",
+                    "order": 4,
+                    "required": false,
+                    "inputType": "text",
+                    "stateKey": "ui.menuManagement.data.browseMenuItems"
+                  },
+                  {
+                    "id": "col_menuCategoryId",
+                    "field": "menuCategoryId",
+                    "labelKey": "field.menuCategoryId",
+                    "order": 5,
+                    "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   }
                 ],
                 "filters": [
                   {
-                    "id": "f10_status",
+                    "id": "flt_statusFilter",
                     "field": "statusFilter",
-                    "labelKey": "menuManagement.filter.status",
-                    "order": 10,
+                    "labelKey": "filter.statusFilter",
+                    "order": 1,
                     "required": false,
                     "inputType": "select",
                     "stateKey": "ui.menuManagement.input.browseMenuItems.statusFilter"
                   },
                   {
-                    "id": "f20_category",
+                    "id": "flt_menuCategoryIdFilter",
                     "field": "menuCategoryIdFilter",
-                    "labelKey": "menuManagement.filter.menuCategory",
-                    "order": 20,
+                    "labelKey": "filter.menuCategoryIdFilter",
+                    "order": 2,
                     "required": false,
                     "inputType": "select",
                     "stateKey": "ui.menuManagement.input.browseMenuItems.menuCategoryIdFilter"
@@ -326,92 +363,44 @@ export const definition = {
                 ],
                 "toolbar": [
                   {
-                    "id": "t10_refresh",
+                    "id": "tb_refresh",
                     "action": "browseMenuItems",
-                    "labelKey": "menuManagement.action.refresh",
-                    "order": 10,
+                    "labelKey": "action.refresh",
+                    "order": 1,
+                    "displayHint": "icon",
                     "actionKey": "browseMenuItems"
                   }
                 ],
-                "rowActions": [
-                  {
-                    "id": "ra10_manage",
-                    "action": "manageMenuItem",
-                    "labelKey": "menuManagement.action.manage",
-                    "order": 10,
-                    "displayHint": "primary",
-                    "actionKey": "manageMenuItem"
-                  }
-                ],
-                "actions": [],
-                "stateKey": "ui.menuManagement.data.browseMenuItems"
-              },
-              {
-                "id": "i30_summary",
-                "intent": "summary",
-                "order": 30,
-                "titleKey": "menuManagement.cards.summary.title",
-                "fields": [
-                  {
-                    "id": "s10_status",
-                    "field": "status",
-                    "labelKey": "menuManagement.menuItem.status",
-                    "order": 10,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.data.browseMenuItems"
-                  },
-                  {
-                    "id": "s20_itemType",
-                    "field": "itemType",
-                    "labelKey": "menuManagement.menuItem.itemType",
-                    "order": 20,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.data.browseMenuItems"
-                  },
-                  {
-                    "id": "s30_updatedAt",
-                    "field": "updatedAt",
-                    "labelKey": "menuManagement.menuItem.updatedAt",
-                    "order": 30,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.menuManagement.data.browseMenuItems"
-                  }
-                ],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
                 "rowActions": [],
-                "actions": [],
-                "stateKey": "ui.menuManagement.data.browseMenuItems"
+                "actions": []
               }
             ]
           }
         ]
       },
       {
-        "id": "s20_detail",
+        "id": "sec_execute",
         "type": "section",
-        "sectionName": "detail",
-        "titleKey": "menuManagement.detail.title",
-        "mode": "edit",
-        "order": 20,
+        "sectionName": "sec_execute",
+        "titleKey": "sec.execute.title",
+        "mode": "form",
+        "order": 2,
         "organisms": [
           {
-            "id": "o20_manage",
-            "type": "formPanel",
-            "organismName": "ManageMenuItem",
-            "titleKey": "menuManagement.detail.form.title",
-            "purpose": "Atualizar dados e status do item do cardápio",
+            "id": "org_manageItemForm",
+            "type": "organism",
+            "organismName": "ManageItemForm",
+            "titleKey": "org.manageItemForm.title",
+            "purpose": "Formulário em bottom sheet para criar ou editar um item do cardápio com nome, categoria, preço, tipo e status",
             "userActions": [
               "manageMenuItem"
             ],
             "requiredEntities": [
               "MenuItem",
-              "MenuCategory",
-              "MenuItemIngredient"
+              "MenuCategory"
             ],
             "readsFields": [
+              "menuItemId",
               "name",
               "description",
               "menuCategoryId",
@@ -420,6 +409,7 @@ export const definition = {
               "status"
             ],
             "writesFields": [
+              "menuItemId",
               "name",
               "description",
               "menuCategoryId",
@@ -428,107 +418,83 @@ export const definition = {
               "status"
             ],
             "rulesApplied": [
-              "simpleItemsOnly",
-              "menuItemRequiresIngredient"
+              "O sistema valida que o tipo do item é 'simple' e que, se for ativado, existe pelo menos um ingrediente de estoque vinculado",
+              "O sistema persiste as alterações atualizando updatedAt e, conforme o status, activatedAt ou inactivatedAt"
             ],
-            "order": 10,
+            "order": 1,
             "intentions": [
               {
-                "id": "i40_status",
-                "intent": "workflowStatus",
-                "order": 10,
-                "titleKey": "menuManagement.detail.status.title",
-                "fields": [
-                  {
-                    "id": "ws10_status",
-                    "field": "status",
-                    "labelKey": "menuManagement.menuItem.status",
-                    "order": 10,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.input.manageMenuItem.status"
-                  },
-                  {
-                    "id": "ws20_activatedAt",
-                    "field": "activatedAt",
-                    "labelKey": "menuManagement.menuItem.activatedAt",
-                    "order": 20,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.menuManagement.layout.ws20_activatedAt"
-                  },
-                  {
-                    "id": "ws30_inactivatedAt",
-                    "field": "inactivatedAt",
-                    "labelKey": "menuManagement.menuItem.inactivatedAt",
-                    "order": 30,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.menuManagement.layout.ws30_inactivatedAt"
-                  }
-                ],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": []
-              },
-              {
-                "id": "i50_edit",
+                "id": "intent_manageMenuItem",
                 "intent": "commandForm",
-                "order": 20,
-                "titleKey": "menuManagement.detail.edit.title",
+                "order": 1,
+                "titleKey": "organism.manageItemForm.title",
+                "source": "ui.menuManagement.output.manageMenuItem",
+                "binding": "manageMenuItemBinding",
+                "action": "manageMenuItem",
                 "submitAction": "manageMenuItem",
+                "displayHint": "bottomSheet",
+                "stateKey": "ui.menuManagement.action.manageMenuItem.status",
                 "fields": [
                   {
-                    "id": "f10_name",
+                    "id": "fld_menuItemId",
+                    "field": "menuItemId",
+                    "labelKey": "field.menuItemId",
+                    "order": 1,
+                    "required": false,
+                    "inputType": "hidden",
+                    "stateKey": "ui.menuManagement.input.manageMenuItem.menuItemId"
+                  },
+                  {
+                    "id": "fld_name",
                     "field": "name",
-                    "labelKey": "menuManagement.menuItem.name",
-                    "order": 10,
+                    "labelKey": "field.name",
+                    "order": 2,
                     "required": true,
                     "inputType": "text",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.name"
                   },
                   {
-                    "id": "f20_description",
+                    "id": "fld_description",
                     "field": "description",
-                    "labelKey": "menuManagement.menuItem.description",
-                    "order": 20,
+                    "labelKey": "field.description",
+                    "order": 3,
                     "required": false,
                     "inputType": "textarea",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.description"
                   },
                   {
-                    "id": "f30_category",
+                    "id": "fld_menuCategoryId",
                     "field": "menuCategoryId",
-                    "labelKey": "menuManagement.menuItem.menuCategoryId",
-                    "order": 30,
+                    "labelKey": "field.menuCategoryId",
+                    "order": 4,
                     "required": true,
                     "inputType": "select",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.menuCategoryId"
                   },
                   {
-                    "id": "f40_price",
+                    "id": "fld_price",
                     "field": "price",
-                    "labelKey": "menuManagement.menuItem.price",
-                    "order": 40,
+                    "labelKey": "field.price",
+                    "order": 5,
                     "required": true,
-                    "inputType": "money",
+                    "inputType": "number",
+                    "format": "currency",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.price"
                   },
                   {
-                    "id": "f50_itemType",
+                    "id": "fld_itemType",
                     "field": "itemType",
-                    "labelKey": "menuManagement.menuItem.itemType",
-                    "order": 50,
+                    "labelKey": "field.itemType",
+                    "order": 6,
                     "required": true,
                     "inputType": "select",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.itemType"
                   },
                   {
-                    "id": "f60_status",
+                    "id": "fld_status",
                     "field": "status",
-                    "labelKey": "menuManagement.menuItem.status",
-                    "order": 60,
+                    "labelKey": "field.status",
+                    "order": 7,
                     "required": true,
                     "inputType": "select",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.status"
@@ -540,64 +506,95 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "a10_submit",
+                    "id": "act_submit",
                     "action": "manageMenuItem",
-                    "labelKey": "menuManagement.action.save",
-                    "order": 10,
+                    "labelKey": "action.manageMenuItem.submit",
+                    "order": 1,
                     "displayHint": "primary",
                     "actionKey": "manageMenuItem"
                   }
                 ]
-              },
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sec_review",
+        "type": "section",
+        "sectionName": "sec_review",
+        "titleKey": "sec.review.title",
+        "mode": "summary",
+        "order": 3,
+        "organisms": [
+          {
+            "id": "org_actionFeedback",
+            "type": "organism",
+            "organismName": "ActionFeedback",
+            "titleKey": "org.actionFeedback.title",
+            "purpose": "Exibir feedback textual da última ação de gerenciamento e resumo do resultado",
+            "userActions": [],
+            "requiredEntities": [
+              "MenuItem"
+            ],
+            "readsFields": [
+              "menuItemId",
+              "name",
+              "status",
+              "price",
+              "activatedAt",
+              "inactivatedAt",
+              "updatedAt"
+            ],
+            "writesFields": [],
+            "rulesApplied": [],
+            "order": 1,
+            "intentions": [
               {
-                "id": "i60_review",
+                "id": "intent_summary",
                 "intent": "summary",
-                "order": 30,
-                "titleKey": "menuManagement.detail.review.title",
-                "fields": [
+                "order": 1,
+                "titleKey": "organism.actionFeedback.title",
+                "source": "ui.menuManagement.output.manageMenuItem",
+                "displayHint": "inline",
+                "stateKey": "ui.menuManagement.action.manageMenuItem.status",
+                "fields": [],
+                "columns": [
                   {
-                    "id": "r10_name",
+                    "id": "col_sum_name",
                     "field": "name",
-                    "labelKey": "menuManagement.menuItem.name",
-                    "order": 10,
+                    "labelKey": "field.name",
+                    "order": 1,
                     "required": false,
-                    "stateKey": "ui.menuManagement.input.manageMenuItem.name"
+                    "inputType": "text"
                   },
                   {
-                    "id": "r20_category",
-                    "field": "menuCategoryId",
-                    "labelKey": "menuManagement.menuItem.menuCategoryId",
-                    "order": 20,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.input.manageMenuItem.menuCategoryId"
-                  },
-                  {
-                    "id": "r30_price",
-                    "field": "price",
-                    "labelKey": "menuManagement.menuItem.price",
-                    "order": 30,
-                    "required": false,
-                    "stateKey": "ui.menuManagement.input.manageMenuItem.price"
-                  },
-                  {
-                    "id": "r40_status",
+                    "id": "col_sum_status",
                     "field": "status",
-                    "labelKey": "menuManagement.menuItem.status",
-                    "order": 40,
+                    "labelKey": "field.status",
+                    "order": 2,
                     "required": false,
-                    "stateKey": "ui.menuManagement.input.manageMenuItem.status"
+                    "inputType": "badge"
                   },
                   {
-                    "id": "r50_updatedAt",
-                    "field": "updatedAt",
-                    "labelKey": "menuManagement.menuItem.updatedAt",
-                    "order": 50,
+                    "id": "col_sum_price",
+                    "field": "price",
+                    "labelKey": "field.price",
+                    "order": 3,
                     "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.menuManagement.layout.r50_updatedAt"
+                    "inputType": "text",
+                    "format": "currency"
+                  },
+                  {
+                    "id": "col_sum_updatedAt",
+                    "field": "updatedAt",
+                    "labelKey": "field.updatedAt",
+                    "order": 4,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "datetime"
                   }
                 ],
-                "columns": [],
                 "filters": [],
                 "toolbar": [],
                 "rowActions": [],
@@ -611,11 +608,11 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "db10_browse",
-      "source": "bffCommand",
+      "id": "browseMenuItemsBinding",
+      "source": "query",
       "entity": "MenuItem",
       "command": "browseMenuItems",
-      "description": "Consultar itens do cardápio",
+      "description": "Consulta itens do cardápio da empresa ativa com filtros opcionais de status e categoria",
       "stateKey": "ui.menuManagement.data.browseMenuItems",
       "inputStateKeys": [
         "ui.menuManagement.input.browseMenuItems.statusFilter",
@@ -623,13 +620,14 @@ export const definition = {
       ]
     },
     {
-      "id": "db20_manage",
-      "source": "bffCommand",
+      "id": "manageMenuItemBinding",
+      "source": "command",
       "entity": "MenuItem",
       "command": "manageMenuItem",
-      "description": "Gerenciar item do cardápio",
+      "description": "Cria ou atualiza um item do cardápio com nome, descrição, categoria, preço, tipo e status",
       "stateKey": "ui.menuManagement.output.manageMenuItem",
       "inputStateKeys": [
+        "ui.menuManagement.input.manageMenuItem.menuItemId",
         "ui.menuManagement.input.manageMenuItem.name",
         "ui.menuManagement.input.manageMenuItem.description",
         "ui.menuManagement.input.manageMenuItem.menuCategoryId",

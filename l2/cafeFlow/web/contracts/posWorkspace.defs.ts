@@ -17,31 +17,41 @@ export const definition = [
           "table",
           "takeout"
         ],
-        "description": "Tipo do pedido selecionado pelo atendente: 'table' (consumo na mesa) ou 'takeout' (para viagem)"
+        "description": "Tipo do pedido selecionado pelo atendente: 'table' (consumo na mesa) ou 'takeout' (para viagem)",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "tableNumber",
         "type": "string",
         "required": false,
-        "description": "Número da mesa informado pelo atendente, obrigatório quando orderType = 'table'"
+        "description": "Número da mesa informado pelo atendente, obrigatório quando orderType = 'table'",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "orderItems",
         "type": "string",
         "required": true,
-        "description": "Lista de itens do cardápio selecionados pelo cliente, cada um com menuItemId e quantidade"
+        "description": "Lista de itens do cardápio selecionados pelo cliente, cada um com menuItemId e quantidade",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "priority",
         "type": "boolean",
         "required": false,
-        "description": "Indica se o atendente marcou o pedido como prioritário no preparo"
+        "description": "Indica se o atendente marcou o pedido como prioritário no preparo",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "priorityReason",
         "type": "string",
         "required": false,
-        "description": "Justificativa da priorização, obrigatória quando priority = true"
+        "description": "Justificativa da priorização, obrigatória quando priority = true",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [
@@ -176,7 +186,16 @@ export const definition = [
     "purpose": "Entregar pedido ao cliente",
     "kind": "command",
     "outputShape": "object",
-    "input": [],
+    "input": [
+      {
+        "name": "orderId",
+        "type": "string",
+        "required": true,
+        "description": "Pedido selecionado pelo atendente no painel para entrega",
+        "source": "selectedEntity",
+        "presentation": "selection"
+      }
+    ],
     "output": [
       {
         "name": "orderId",

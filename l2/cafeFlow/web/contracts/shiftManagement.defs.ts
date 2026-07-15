@@ -13,7 +13,9 @@ export const definition = [
         "name": "notes",
         "type": "string",
         "required": false,
-        "description": "Observações gerais opcionais sobre o turno, informadas pelo gerente ao abrir."
+        "description": "Observações gerais opcionais sobre o turno, informadas pelo gerente ao abrir.",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [
@@ -62,13 +64,17 @@ export const definition = [
         "name": "totalApurado",
         "type": "number",
         "required": true,
-        "description": "Valor total apurado no fechamento do turno, informado pelo gerente para conferência."
+        "description": "Valor total apurado no fechamento do turno, informado pelo gerente para conferência.",
+        "source": "userInput",
+        "presentation": "form"
       },
       {
         "name": "notes",
         "type": "string",
         "required": false,
-        "description": "Observações gerais sobre o turno, opcionais."
+        "description": "Observações gerais sobre o turno, opcionais.",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [
@@ -117,7 +123,16 @@ export const definition = [
     "purpose": "Revisar relatório de fechamento de turno",
     "kind": "query",
     "outputShape": "object",
-    "input": [],
+    "input": [
+      {
+        "name": "shiftId",
+        "type": "string",
+        "required": true,
+        "description": "Identificador do turno fechado cujo relatório de fechamento será exibido.",
+        "source": "routeParam",
+        "presentation": "route"
+      }
+    ],
     "output": [
       {
         "name": "shiftClosingReportId",

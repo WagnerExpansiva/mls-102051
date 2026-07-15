@@ -8,207 +8,215 @@ import type { CafeFlowViewOrderBoardOutputItem } from '/_102051_/l2/cafeFlow/web
 @customElement('cafe-flow--web--desktop--page21--pos-workspace-102051')
 export class CafeFlowDesktopPage21PosWorkspacePage extends CafeFlowPosWorkspaceBase {
   render() {
-    const boardItems: CafeFlowViewOrderBoardOutputItem[] = this.viewOrderBoardData?.items ?? [];
-    const boardTotal: number = this.viewOrderBoardData?.total ?? 0;
+    const boardItems: CafeFlowViewOrderBoardOutputItem[] = this.viewOrderBoardData.items ?? [];
+
+    const laneConfig: ReadonlyArray<{
+      status: CafeFlowViewOrderBoardOutputItem['status'];
+      key: 'lane.registered' | 'lane.received' | 'lane.inPreparation' | 'lane.ready' | 'lane.delivered';
+    }> = [
+      { status: 'registered', key: 'lane.registered' },
+      { status: 'received', key: 'lane.received' },
+      { status: 'inPreparation', key: 'lane.inPreparation' },
+      { status: 'ready', key: 'lane.ready' },
+      { status: 'delivered', key: 'lane.delivered' },
+    ];
+
+    // TODO: no i18n key for orderType enum labels — using literal Portuguese strings
+    const orderTypeLabels: Record<string, string> = { table: 'Mesa', takeout: 'Para viagem' };
+
+    const renderOrderCard = (item: CafeFlowViewOrderBoardOutputItem) => {
+      const isReady: boolean = item.status === 'ready';
+      const isSelected: boolean = this.deliverOrderOrderId === item.orderId;
+      return html`
+        <div
+          class="rounded border p-2 space-y-1 cursor-pointer transition ${isReady
+            ? 'border-[var(--success-color,#52C41A)] bg-[var(--bg-primary-color,#ffffff)]'
+            : 'border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)]'} ${isSelected
+            ? 'ring-2 ring-[var(--active-color,#1890FF)]'
+            : ''}"
+          @click=${() => this.setDeliverOrderOrderId(item.orderId)}
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-[var(--text-primary-color,#403f3f)]">${item.orderId}</span>
+            ${item.priority
+              ? html`<span class="text-xs px-1.5 py-0.5 rounded bg-[var(--warning-color,#FAAD14)] text-white font-medium">${this.msg['field.priority.label']}</span>`
+              : null}
+          </div>
+          <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
+            ${this.msg['field.orderType.label']}: ${item.orderType}
+          </div>
+          ${item.tableNumber
+            ? html`<div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
+                ${this.msg['field.tableNumber.label']}: ${item.tableNumber}
+              </div>`
+            : null}
+          <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
+            ${this.msg['field.createdAt.label']}: ${item.createdAt}
+          </div>
+          ${isReady
+            ? html`<button
+                type="button"
+                class="w-full mt-1 px-2 py-1 rounded text-xs font-medium bg-[var(--active-color,#1890FF)] text-white hover:opacity-80"
+                @click=${(e: Event) => { e.stopPropagation(); this.setDeliverOrderOrderId(item.orderId); }}
+              >
+                ${this.msg['action.selectOrder.label']}
+              </button>`
+            : null}
+        </div>
+      `;
+    };
+
+    const renderCreateOrderFeedback = () => {
+      if (this.createOrderState === 'success') {
+        return html`
+          <div class="rounded p-3 text-sm bg-[var(--success-color,#52C41A)] text-white">
+            ${this.msg['action.createOrder.success']}
+          </div>
+        `;
+      }
+      if (this.createOrderState === 'error') {
+        return html`
+          <div class="rounded p-3 text-sm bg-[var(--error-color,#FF4D4F)] text-white">
+            ${this.createOrderError || this.msg['action.createOrder.error']}
+          </div>
+        `;
+      }
+      return null;
+    };
+
+    const renderDeliverOrderFeedback = () => {
+      if (this.deliverOrderState === 'success') {
+        return html`
+          <div class="rounded p-3 text-sm bg-[var(--success-color,#52C41A)] text-white">
+            ${this.msg['action.deliverOrder.success']}
+          </div>
+        `;
+      }
+      if (this.deliverOrderState === 'error') {
+        return html`
+          <div class="rounded p-3 text-sm bg-[var(--error-color,#FF4D4F)] text-white">
+            ${this.deliverOrderError || this.msg['action.deliverOrder.error']}
+          </div>
+        `;
+      }
+      return null;
+    };
 
     return html`
-      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
+      <div class="min-h-full bg-[var(--bg-secondary-color,#F9F9F9)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
           <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
-            ${this.msg['posWorkspace.section.pipeline.title']}
+            ${this.msg['page.posWorkspace.title']}
           </h1>
 
-          <!-- Section 10: Order Pipeline (Board / workflowStatus) -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
+          <!-- ═══ Board Section ═══ -->
+          <section class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
             <div class="flex items-center justify-between">
-              <h2
-                class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]"
-              >
-                ${this.msg['posWorkspace.organism.kanban.title']}
+              <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['intention.board.title']}
               </h2>
               <button
-                class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
-                @click=${(e: Event) => this.handleViewOrderBoardClick(e)}
-                ?disabled=${this.viewOrderBoardState === 'loading'}
+                type="button"
+                class="px-3 py-1.5 rounded text-sm bg-[var(--bg-secondary-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)] hover:opacity-80"
+                @click=${() => this.handleViewOrderBoardClick()}
               >
-                ${this.msg['posWorkspace.action.refreshBoard']}
+                ${this.msg['action.viewOrderBoard.label']}
               </button>
             </div>
 
-            <p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">
-              ${this.msg['posWorkspace.intent.kanban.title']}
-            </p>
-
             ${this.viewOrderBoardState === 'loading'
-              ? html`
-                  <div
-                    class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4"
-                  >
-                    …
-                  </div>
-                `
+              ? html`<div class="space-y-2">
+                  ${[1, 2, 3].map(() => html`<div class="h-20 rounded bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"></div>`)}
+                </div>`
               : boardItems.length === 0
-                ? html`
-                    <div
-                      class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4"
-                    >
-                      —
-                    </div>
-                  `
-                : html`
-                    <div class="overflow-x-auto">
-                      <table class="w-full text-sm">
-                        <thead>
-                          <tr
-                            class="border-b border-[var(--grey-color,#E6E6E6)] text-left text-[var(--text-primary-color-lighter,#535353)]"
-                          >
-                            <th class="py-2 px-3 font-medium">
-                              ${this.msg['posWorkspace.field.orderId']}
-                            </th>
-                            <th class="py-2 px-3 font-medium">
-                              ${this.msg['posWorkspace.field.status']}
-                            </th>
-                            <th class="py-2 px-3 font-medium">
-                              ${this.msg['posWorkspace.field.orderType']}
-                            </th>
-                            <th class="py-2 px-3 font-medium">
-                              ${this.msg['posWorkspace.field.tableNumber']}
-                            </th>
-                            <th class="py-2 px-3 font-medium">
-                              ${this.msg['posWorkspace.field.priority']}
-                            </th>
-                            <th class="py-2 px-3 font-medium">
-                              ${this.msg['posWorkspace.field.readyAt']}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          ${boardItems.map(
-                            (item: CafeFlowViewOrderBoardOutputItem) => html`
-                              <tr
-                                class="border-b border-[var(--grey-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)]"
-                              >
-                                <td class="py-2 px-3">${item.orderId}</td>
-                                <td class="py-2 px-3">${item.status}</td>
-                                <td class="py-2 px-3">${item.orderType}</td>
-                                <td class="py-2 px-3">
-                                  ${item.tableNumber || '—'}
-                                </td>
-                                <td class="py-2 px-3">
-                                  ${item.priority ? '⚠' : '—'}
-                                </td>
-                                <td class="py-2 px-3">
-                                  ${item.readyAt || '—'}
-                                </td>
-                              </tr>
-                            `,
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div
-                      class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
-                    >
-                      ${boardTotal}
-                    </div>
-                  `}
+                ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4">${this.msg['empty.board']}</p>`
+                : html`<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    ${laneConfig.map((lane) => {
+                      const laneItems: CafeFlowViewOrderBoardOutputItem[] = boardItems.filter(
+                        (item: CafeFlowViewOrderBoardOutputItem) => item.status === lane.status,
+                      );
+                      return html`
+                        <div class="rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] p-2 space-y-2 min-h-[6rem]">
+                          <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-[var(--text-primary-color,#403f3f)] uppercase tracking-wide">${this.msg[lane.key]}</span>
+                            <span class="text-xs text-[var(--text-primary-color-lighter,#535353)]">${laneItems.length}</span>
+                          </div>
+                          ${laneItems.length === 0
+                            ? html`<p class="text-xs text-[var(--text-primary-color-lighter,#535353)] py-2">—</p>`
+                            : laneItems.map(renderOrderCard)}
+                        </div>
+                      `;
+                    })}
+                  </div>`}
           </section>
 
-          <!-- Section 20: Create Order (Form / commandForm) -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2
-              class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]"
-            >
-              ${this.msg['posWorkspace.organism.createOrder.title']}
+          <!-- ═══ Create Order Section ═══ -->
+          <section class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['intention.createOrder.title']}
             </h2>
-            <p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">
-              ${this.msg['posWorkspace.intent.createOrder.details']}
-            </p>
 
-            <div class="space-y-4">
-              <!-- orderType: select -->
+            <form class="space-y-4" @submit=${(e: Event) => e.preventDefault()}>
               <div class="space-y-1">
-                <label
-                  class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.orderType']}
-                  <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]" for="fld-orderType">
+                  ${this.msg['field.orderType.label']}
                 </label>
                 <select
+                  id="fld-orderType"
                   class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
                   .value=${this.createOrderOrderType}
                   @change=${(e: Event) => this.handleCreateOrderOrderTypeChange(e)}
                 >
-                  <option value="">—</option>
-                  <option value="table" ?selected=${this.createOrderOrderType === 'table'}>
-                    table
-                  </option>
-                  <option value="takeout" ?selected=${this.createOrderOrderType === 'takeout'}>
-                    takeout
-                  </option>
+                  <option value="" ?selected=${this.createOrderOrderType === ''}></option>
+                  <option value="table" ?selected=${this.createOrderOrderType === 'table'}>${orderTypeLabels['table']}</option>
+                  <option value="takeout" ?selected=${this.createOrderOrderType === 'takeout'}>${orderTypeLabels['takeout']}</option>
                 </select>
               </div>
 
-              <!-- tableNumber: text -->
               <div class="space-y-1">
-                <label
-                  class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.tableNumber']}
+                <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]" for="fld-tableNumber">
+                  ${this.msg['field.tableNumber.label']}
                 </label>
                 <input
-                  type="text"
+                  id="fld-tableNumber"
+                  type="number"
                   class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
                   .value=${this.createOrderTableNumber}
                   @input=${(e: Event) => this.handleCreateOrderTableNumberChange(e)}
                 />
               </div>
 
-              <!-- orderItems: repeatable (rendered as textarea) -->
               <div class="space-y-1">
-                <label
-                  class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.orderItems']}
-                  <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]" for="fld-orderItems">
+                  ${this.msg['field.orderItems.label']}
                 </label>
                 <textarea
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  id="fld-orderItems"
                   rows="3"
+                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
                   .value=${this.createOrderOrderItems}
                   @input=${(e: Event) => this.handleCreateOrderOrderItemsChange(e)}
                 ></textarea>
               </div>
 
-              <!-- priority: checkbox -->
-              <div class="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="pos-priority"
-                  class="rounded border-[var(--grey-color,#E6E6E6)]"
-                  .checked=${this.createOrderPriority === 'true'}
-                  @change=${(e: Event) => this.handleCreateOrderPriorityChange(e)}
-                />
-                <label
-                  for="pos-priority"
-                  class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.priority']}
+              <div class="space-y-1">
+                <label class="flex items-center gap-2 text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
+                  <input
+                    type="checkbox"
+                    class="rounded border-[var(--grey-color,#E6E6E6)]"
+                    .checked=${this.createOrderPriority === 'true'}
+                    @change=${(e: Event) => this.handleCreateOrderPriorityChange(e)}
+                  />
+                  ${this.msg['field.priority.label']}
                 </label>
               </div>
 
-              <!-- priorityReason: text -->
               <div class="space-y-1">
-                <label
-                  class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.priorityReason']}
+                <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]" for="fld-priorityReason">
+                  ${this.msg['field.priorityReason.label']}
                 </label>
                 <input
+                  id="fld-priorityReason"
                   type="text"
                   class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
                   .value=${this.createOrderPriorityReason}
@@ -216,218 +224,93 @@ export class CafeFlowDesktopPage21PosWorkspacePage extends CafeFlowPosWorkspaceB
                 />
               </div>
 
-              <!-- Submit action -->
               <div class="flex items-center gap-3">
                 <button
-                  class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
-                  @click=${(e: Event) => this.handleCreateOrderClick(e)}
+                  type="button"
+                  class="px-4 py-2 rounded text-sm font-medium bg-[var(--active-color,#1890FF)] text-white hover:opacity-80 disabled:opacity-50"
                   ?disabled=${this.createOrderState === 'loading'}
+                  @click=${() => this.handleCreateOrderClick()}
                 >
-                  ${this.msg['posWorkspace.action.createOrder']}
+                  ${this.createOrderState === 'loading' ? '...' : this.msg['action.createOrder.label']}
                 </button>
-                ${this.createOrderState === 'loading'
-                  ? html`<span class="text-sm text-[var(--text-primary-color-lighter,#535353)]">…</span>`
-                  : null}
-                ${this.createOrderState === 'success'
-                  ? html`<span class="text-sm text-[var(--success-color,#52C41A)]">✓</span>`
-                  : null}
-                ${this.createOrderState === 'error'
-                  ? html`<span class="text-sm text-[var(--error-color,#FF4D4F)]">✗</span>`
-                  : null}
               </div>
-            </div>
+            </form>
+
+            ${renderCreateOrderFeedback()}
           </section>
 
-          <!-- Section 30: Deliver Order (Form / commandForm) -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2
-              class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]"
-            >
-              ${this.msg['posWorkspace.organism.deliver.title']}
+          <!-- ═══ Deliver Order Section ═══ -->
+          <section class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['intention.deliverOrder.title']}
             </h2>
-            <p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">
-              ${this.msg['posWorkspace.intent.deliverOrder.title']}
-            </p>
 
-            <div class="space-y-4">
-              <!-- orderId: read-only (layout state, no setter handler) -->
+            <div class="space-y-3">
               <div class="space-y-1">
-                <label
-                  class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.orderId']}
-                </label>
-                <input
-                  type="text"
-                  readonly
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] text-[var(--text-primary-color-lighter,#535353)]"
-                  .value=${this.LayoutFld60}
-                />
+                <span class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
+                  ${this.msg['field.orderId.label']}
+                </span>
+                <div class="px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] text-sm text-[var(--text-primary-color,#403f3f)]">
+                  ${this.deliverOrderOrderId || this.msg['empty.deliverOrder']}
+                </div>
               </div>
 
-              <!-- status: read-only (layout state, no setter handler) -->
-              <div class="space-y-1">
-                <label
-                  class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.status']}
-                </label>
-                <input
-                  type="text"
-                  readonly
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] text-[var(--text-primary-color-lighter,#535353)]"
-                  .value=${this.LayoutFld70}
-                />
-              </div>
-
-              <!-- readyAt: read-only (layout state, no setter handler) -->
-              <div class="space-y-1">
-                <label
-                  class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]"
-                >
-                  ${this.msg['posWorkspace.field.readyAt']}
-                </label>
-                <input
-                  type="text"
-                  readonly
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] text-[var(--text-primary-color-lighter,#535353)]"
-                  .value=${this.LayoutFld80}
-                />
-              </div>
-
-              <!-- Submit action -->
-              <div class="flex items-center gap-3">
-                <button
-                  class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
-                  @click=${(e: Event) => this.handleDeliverOrderClick(e)}
-                  ?disabled=${this.deliverOrderState === 'loading'}
-                >
-                  ${this.msg['posWorkspace.action.deliverOrder']}
-                </button>
-                ${this.deliverOrderState === 'loading'
-                  ? html`<span class="text-sm text-[var(--text-primary-color-lighter,#535353)]">…</span>`
-                  : null}
-                ${this.deliverOrderState === 'success'
-                  ? html`<span class="text-sm text-[var(--success-color,#52C41A)]">✓</span>`
-                  : null}
-                ${this.deliverOrderState === 'error'
-                  ? html`<span class="text-sm text-[var(--error-color,#FF4D4F)]">✗</span>`
-                  : null}
-              </div>
+              <button
+                type="button"
+                class="px-4 py-2 rounded text-sm font-medium bg-[var(--active-color,#1890FF)] text-white hover:opacity-80 disabled:opacity-50"
+                ?disabled=${this.deliverOrderState === 'loading' || !this.deliverOrderOrderId}
+                @click=${() => this.handleDeliverOrderClick()}
+              >
+                ${this.deliverOrderState === 'loading' ? '...' : this.msg['action.deliverOrder.label']}
+              </button>
             </div>
+
+            ${renderDeliverOrderFeedback()}
           </section>
 
-          <!-- Section 40: Review Summary (summary) -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2
-              class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]"
-            >
-              ${this.msg['posWorkspace.organism.review.title']}
+          <!-- ═══ Review Section ═══ -->
+          <section class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['intention.review.title']}
             </h2>
-            <p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">
-              ${this.msg['posWorkspace.intent.reviewSummary.title']}
-            </p>
 
-            ${this.OutputCreateOrder
-              ? html`
-                  <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                      <dt
-                        class="text-xs font-medium text-[var(--text-primary-color-lighter,#535353)]"
-                      >
-                        ${this.msg['posWorkspace.field.orderId']}
-                      </dt>
-                      <dd
-                        class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      >
-                        ${this.OutputCreateOrder.orderId}
-                      </dd>
-                    </div>
-                    <div class="space-y-1">
-                      <dt
-                        class="text-xs font-medium text-[var(--text-primary-color-lighter,#535353)]"
-                      >
-                        ${this.msg['posWorkspace.field.status']}
-                      </dt>
-                      <dd
-                        class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      >
-                        ${this.OutputCreateOrder.status}
-                      </dd>
-                    </div>
-                    <div class="space-y-1">
-                      <dt
-                        class="text-xs font-medium text-[var(--text-primary-color-lighter,#535353)]"
-                      >
-                        ${this.msg['posWorkspace.field.orderType']}
-                      </dt>
-                      <dd
-                        class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      >
-                        ${this.OutputCreateOrder.orderType}
-                      </dd>
-                    </div>
-                    <div class="space-y-1">
-                      <dt
-                        class="text-xs font-medium text-[var(--text-primary-color-lighter,#535353)]"
-                      >
-                        ${this.msg['posWorkspace.field.tableNumber']}
-                      </dt>
-                      <dd
-                        class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      >
-                        ${this.OutputCreateOrder.tableNumber || '—'}
-                      </dd>
-                    </div>
-                    <div class="space-y-1">
-                      <dt
-                        class="text-xs font-medium text-[var(--text-primary-color-lighter,#535353)]"
-                      >
-                        ${this.msg['posWorkspace.field.priority']}
-                      </dt>
-                      <dd
-                        class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      >
-                        ${this.createOrderPriority === 'true' ? '⚠' : '—'}
-                      </dd>
-                    </div>
-                    <div class="space-y-1">
-                      <dt
-                        class="text-xs font-medium text-[var(--text-primary-color-lighter,#535353)]"
-                      >
-                        ${this.msg['posWorkspace.field.priorityReason']}
-                      </dt>
-                      <dd
-                        class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      >
-                        ${this.createOrderPriorityReason || '—'}
-                      </dd>
-                    </div>
-                    <div class="space-y-1">
-                      <dt
-                        class="text-xs font-medium text-[var(--text-primary-color-lighter,#535353)]"
-                      >
-                        ${this.msg['posWorkspace.field.createdAt']}
-                      </dt>
-                      <dd
-                        class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      >
-                        ${this.OutputCreateOrder.createdAt}
-                      </dd>
-                    </div>
-                  </dl>
-                `
-              : html`
-                  <div
-                    class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-2"
-                  >
-                    —
-                  </div>
-                `}
+            ${this.createOrderOutput === null && this.deliverOrderOutput === null
+              ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-2">${this.msg['empty.review']}</p>`
+              : html`<div class="space-y-3">
+                  ${this.createOrderOutput !== null
+                    ? html`<div class="rounded border border-[var(--grey-color,#E6E6E6)] p-3 space-y-1">
+                        <div class="text-xs font-semibold text-[var(--text-primary-color-lighter,#535353)] uppercase">${this.msg['intention.createOrder.title']}</div>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                          <span class="font-medium">${this.msg['field.orderId.label']}:</span> ${this.createOrderOutput.orderId}
+                        </div>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                          <span class="font-medium">${this.msg['field.status.label']}:</span> ${this.createOrderOutput.status}
+                        </div>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                          <span class="font-medium">${this.msg['field.orderType.label']}:</span> ${this.createOrderOutput.orderType}
+                        </div>
+                        ${this.createOrderOutput.tableNumber
+                          ? html`<div class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                              <span class="font-medium">${this.msg['field.tableNumber.label']}:</span> ${this.createOrderOutput.tableNumber}
+                            </div>`
+                          : null}
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                          <span class="font-medium">${this.msg['field.createdAt.label']}:</span> ${this.createOrderOutput.createdAt}
+                        </div>
+                      </div>`
+                    : null}
+                  ${this.deliverOrderOutput !== null
+                    ? html`<div class="rounded border border-[var(--grey-color,#E6E6E6)] p-3 space-y-1">
+                        <div class="text-xs font-semibold text-[var(--text-primary-color-lighter,#535353)] uppercase">${this.msg['intention.deliverOrder.title']}</div>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                          <span class="font-medium">${this.msg['field.orderId.label']}:</span> ${this.deliverOrderOutput.orderId}
+                        </div>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                          <span class="font-medium">${this.msg['field.status.label']}:</span> ${this.deliverOrderOutput.status}
+                        </div>
+                      </div>`
+                    : null}
+                </div>`}
           </section>
         </div>
       </div>

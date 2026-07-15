@@ -1,0 +1,10 @@
+{
+  "savedAt": "2026-07-15T01:50:58.315Z",
+  "runId": "cfe-20260715014853.1000",
+  "pageId": "managerDashboard",
+  "genome": "page21",
+  "templateId": "split_detail",
+  "stage": "afterPromptStep",
+  "message": "col_dash_type.field references unknown field type",
+  "agent": "agentCfeCreateLayout"
+}

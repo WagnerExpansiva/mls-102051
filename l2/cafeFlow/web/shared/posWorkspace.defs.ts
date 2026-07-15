@@ -4,6 +4,8 @@ export const definition = {
   "pageId": "posWorkspace",
   "pageName": "POS — Lançamento e acompanhamento de pedidos",
   "moduleName": "cafeFlow",
+  "baseClassName": "CafeFlowPosWorkspaceBase",
+  "routePattern": "/cafeFlow/posWorkspace",
   "sourceKind": "workflow",
   "ownerIds": [
     "workflow:orderLifecycle",
@@ -94,7 +96,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/posWorkspace.defs.ts",
-    "layoutId": "posWorkspace.page11"
+    "layoutId": "page11_mobile_cards"
   },
   "states": [
     {
@@ -120,6 +122,8 @@ export const definition = {
       "stateKey": "ui.posWorkspace.input.createOrder.orderType",
       "name": "createOrderOrderType",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "createOrder",
         "direction": "input",
@@ -131,6 +135,8 @@ export const definition = {
       "stateKey": "ui.posWorkspace.input.createOrder.tableNumber",
       "name": "createOrderTableNumber",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "createOrder",
         "direction": "input",
@@ -142,6 +148,8 @@ export const definition = {
       "stateKey": "ui.posWorkspace.input.createOrder.orderItems",
       "name": "createOrderOrderItems",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "createOrder",
         "direction": "input",
@@ -153,6 +161,8 @@ export const definition = {
       "stateKey": "ui.posWorkspace.input.createOrder.priority",
       "name": "createOrderPriority",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "createOrder",
         "direction": "input",
@@ -164,11 +174,30 @@ export const definition = {
       "stateKey": "ui.posWorkspace.input.createOrder.priorityReason",
       "name": "createOrderPriorityReason",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "createOrder",
         "direction": "input",
         "field": "priorityReason"
       },
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.posWorkspace.output.createOrder",
+      "name": "createOrderOutput",
+      "kind": "commandOutput",
+      "contractRef": {
+        "commandName": "createOrder",
+        "direction": "output"
+      },
+      "defaultValue": null
+    },
+    {
+      "stateKey": "ui.posWorkspace.action.createOrder.error",
+      "name": "createOrderError",
+      "kind": "actionError",
+      "actionRef": "createOrder",
       "defaultValue": ""
     },
     {
@@ -213,51 +242,33 @@ export const definition = {
       "defaultValue": "idle"
     },
     {
-      "stateKey": "ui.posWorkspace.output.createOrder",
-      "name": "OutputCreateOrder",
-      "kind": "commandOutput",
-      "defaultValue": null
+      "stateKey": "ui.posWorkspace.input.deliverOrder.orderId",
+      "name": "deliverOrderOrderId",
+      "kind": "input",
+      "source": "selectedEntity",
+      "presentation": "selection",
+      "contractRef": {
+        "commandName": "deliverOrder",
+        "direction": "input",
+        "field": "orderId"
+      },
+      "defaultValue": ""
     },
     {
       "stateKey": "ui.posWorkspace.output.deliverOrder",
-      "name": "OutputDeliverOrder",
+      "name": "deliverOrderOutput",
       "kind": "commandOutput",
+      "contractRef": {
+        "commandName": "deliverOrder",
+        "direction": "output"
+      },
       "defaultValue": null
     },
     {
-      "stateKey": "ui.posWorkspace.layout.fld-130",
-      "name": "LayoutFld130",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.posWorkspace.layout.fld-140",
-      "name": "LayoutFld140",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.posWorkspace.layout.fld-150",
-      "name": "LayoutFld150",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.posWorkspace.layout.fld-60",
-      "name": "LayoutFld60",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.posWorkspace.layout.fld-70",
-      "name": "LayoutFld70",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.posWorkspace.layout.fld-80",
-      "name": "LayoutFld80",
-      "kind": "layoutState",
+      "stateKey": "ui.posWorkspace.action.deliverOrder.error",
+      "name": "deliverOrderError",
+      "kind": "actionError",
+      "actionRef": "deliverOrder",
       "defaultValue": ""
     }
   ],
@@ -277,10 +288,25 @@ export const definition = {
         "ui.posWorkspace.input.createOrder.priority",
         "ui.posWorkspace.input.createOrder.priorityReason"
       ],
+      "routeParamInputStateKeys": [],
+      "selectedEntityInputStateKeys": [],
       "outputStateKeys": [
         "ui.posWorkspace.output.createOrder"
       ],
       "statusStateKey": "ui.posWorkspace.action.createOrder.status",
+      "errorStateKey": "ui.posWorkspace.action.createOrder.error",
+      "feedback": {
+        "successMessageKey": "action.createOrder.success",
+        "errorMessageKey": "action.createOrder.error",
+        "dismissible": true
+      },
+      "clearInputStateKeys": [
+        "ui.posWorkspace.input.createOrder.orderType",
+        "ui.posWorkspace.input.createOrder.tableNumber",
+        "ui.posWorkspace.input.createOrder.orderItems",
+        "ui.posWorkspace.input.createOrder.priority",
+        "ui.posWorkspace.input.createOrder.priorityReason"
+      ],
       "refreshActionIds": [
         "viewOrderBoard"
       ]
@@ -294,6 +320,8 @@ export const definition = {
       "methodName": "loadViewOrderBoard",
       "handlerName": "handleViewOrderBoardClick",
       "inputStateKeys": [],
+      "routeParamInputStateKeys": [],
+      "selectedEntityInputStateKeys": [],
       "outputStateKeys": [
         "ui.posWorkspace.data.viewOrderBoard"
       ],
@@ -307,11 +335,26 @@ export const definition = {
       "purpose": "Entregar pedido ao cliente",
       "methodName": "deliverOrder",
       "handlerName": "handleDeliverOrderClick",
-      "inputStateKeys": [],
+      "inputStateKeys": [
+        "ui.posWorkspace.input.deliverOrder.orderId"
+      ],
+      "routeParamInputStateKeys": [],
+      "selectedEntityInputStateKeys": [
+        "ui.posWorkspace.input.deliverOrder.orderId"
+      ],
       "outputStateKeys": [
         "ui.posWorkspace.output.deliverOrder"
       ],
       "statusStateKey": "ui.posWorkspace.action.deliverOrder.status",
+      "errorStateKey": "ui.posWorkspace.action.deliverOrder.error",
+      "feedback": {
+        "successMessageKey": "action.deliverOrder.success",
+        "errorMessageKey": "action.deliverOrder.error",
+        "dismissible": true
+      },
+      "clearInputStateKeys": [
+        "ui.posWorkspace.input.deliverOrder.orderId"
+      ],
       "refreshActionIds": [
         "viewOrderBoard"
       ]
@@ -350,6 +393,13 @@ export const definition = {
       "stateKey": "ui.posWorkspace.input.createOrder.priorityReason",
       "methodName": "setCreateOrderPriorityReason",
       "handlerName": "handleCreateOrderPriorityReasonChange"
+    },
+    {
+      "actionId": "set.deliverOrderOrderId",
+      "kind": "stateSetter",
+      "stateKey": "ui.posWorkspace.input.deliverOrder.orderId",
+      "methodName": "setDeliverOrderOrderId",
+      "handlerName": "handleDeliverOrderOrderIdChange"
     }
   ],
   "initialLoads": [
@@ -368,36 +418,93 @@ export const definition = {
     ]
   },
   "i18n": {
-    "posWorkspace.section.orderBoard.title": "Painel de pedidos",
-    "posWorkspace.organism.orderBoard.title": "Pedidos do turno",
-    "posWorkspace.intent.orderBoardCards.title": "Fila de pedidos",
-    "posWorkspace.action.refreshBoard": "Atualizar painel",
-    "posWorkspace.section.createOrder.title": "Lançar pedido",
-    "posWorkspace.organism.createOrder.title": "Novo pedido",
-    "posWorkspace.intent.createOrder.details": "Detalhes do pedido",
-    "posWorkspace.action.createOrder": "Confirmar pedido",
-    "posWorkspace.section.review.title": "Revisão do pedido",
-    "posWorkspace.organism.review.title": "Resumo e alertas",
-    "posWorkspace.intent.reviewSummary.title": "Resumo do lançamento",
-    "posWorkspace.section.deliver.title": "Entrega do pedido",
-    "posWorkspace.organism.deliver.title": "Confirmar entrega",
-    "posWorkspace.intent.deliverOrder.title": "Entregar pedido",
-    "posWorkspace.action.deliverOrder": "Marcar como entregue",
-    "posWorkspace.field.orderId": "Pedido",
-    "posWorkspace.field.status": "Status",
-    "posWorkspace.field.orderType": "Tipo do pedido",
-    "posWorkspace.field.tableNumber": "Mesa",
-    "posWorkspace.field.priority": "Prioridade",
-    "posWorkspace.field.priorityReason": "Justificativa da prioridade",
-    "posWorkspace.field.readyAt": "Pronto em",
-    "posWorkspace.field.createdAt": "Criado em",
-    "posWorkspace.field.orderItems": "Itens do pedido",
-    "posWorkspace.section.pipeline.title": "Pipeline de pedidos",
-    "posWorkspace.organism.kanban.title": "Pedidos por status",
-    "posWorkspace.intent.kanban.title": "Pedidos em fluxo",
-    "posWorkspace.section.queue.title": "Fila de pedidos",
-    "posWorkspace.organism.queue.title": "Pedidos em andamento",
-    "posWorkspace.intent.queue.title": "Fila do turno"
+    "section.orderBoard.title": "Painel de Pedidos",
+    "section.createOrder.title": "Novo Pedido",
+    "section.deliverOrder.title": "Entregar Pedido",
+    "organism.orderBoardCards.title": "Pedidos do Turno",
+    "organism.createOrderForm.title": "Lançar Pedido",
+    "organism.deliverOrderSheet.title": "Confirmar Entrega",
+    "intention.orderBoard.list.title": "Fila de Pedidos",
+    "intention.createOrder.form.title": "Dados do Pedido",
+    "intention.deliverOrder.form.title": "Entrega ao Cliente",
+    "column.orderId": "Pedido",
+    "column.status": "Status",
+    "column.orderType": "Tipo",
+    "column.tableNumber": "Mesa",
+    "column.priority": "Prioridade",
+    "column.createdAt": "Criado em",
+    "filter.status": "Filtrar por status",
+    "filter.orderType": "Filtrar por tipo",
+    "field.orderType": "Tipo de Pedido",
+    "field.tableNumber": "Número da Mesa",
+    "field.orderItems": "Itens do Pedido",
+    "field.priority": "Pedido Prioritário",
+    "field.priorityReason": "Motivo da Prioridade",
+    "field.orderId": "Pedido Selecionado",
+    "action.viewOrderBoard.label": "Atualizar Painel",
+    "action.selectForDelivery": "Selecionar para Entrega",
+    "action.createOrder.submit": "Confirmar Pedido",
+    "action.deliverOrder.submit": "Confirmar Entrega",
+    "action.createOrder.success": "Pedido lançado com sucesso e enviado à cozinha.",
+    "action.createOrder.error": "Erro ao lançar pedido. Verifique os dados e tente novamente.",
+    "action.deliverOrder.success": "Pedido entregue ao cliente com sucesso.",
+    "action.deliverOrder.error": "Não foi possível entregar o pedido. Verifique se o status atual é 'pronto'.",
+    "empty.orderBoard": "Nenhum pedido no painel. Lance um novo pedido para começar.",
+    "empty.deliverOrder": "Selecione um pedido pronto no painel para entregar.",
+    "page.posWorkspace.title": "POS — Lançamento e acompanhamento de pedidos",
+    "section.board.title": "Painel de Pedidos",
+    "section.review.title": "Resumo das Ações",
+    "intention.board.title": "Painel de Pedidos",
+    "intention.createOrder.title": "Lançar Novo Pedido",
+    "intention.deliverOrder.title": "Entregar Pedido Selecionado",
+    "intention.review.title": "Resumo das Ações",
+    "field.orderType.label": "Tipo de Pedido",
+    "field.tableNumber.label": "Número da Mesa",
+    "field.orderItems.label": "Itens do Pedido",
+    "field.priority.label": "Prioridade",
+    "field.priorityReason.label": "Justificativa de Prioridade",
+    "field.orderId.label": "Pedido",
+    "field.status.label": "Status",
+    "field.receivedAt.label": "Recebido em",
+    "field.inPreparationAt.label": "Em Preparo desde",
+    "field.readyAt.label": "Pronto desde",
+    "field.createdAt.label": "Criado em",
+    "action.createOrder.label": "Lançar Pedido",
+    "action.deliverOrder.label": "Entregar",
+    "action.selectOrder.label": "Selecionar",
+    "empty.board": "Nenhum pedido encontrado no turno atual.",
+    "empty.createOrder": "Preencha os dados do pedido para lançá-lo.",
+    "empty.review": "Nenhuma ação realizada ainda.",
+    "lane.registered": "Registrado",
+    "lane.received": "Recebido",
+    "lane.inPreparation": "Em Preparo",
+    "lane.ready": "Pronto",
+    "lane.delivered": "Entregue",
+    "sec.board.title": "Sec board",
+    "org.orderKanbanBoard.title": "Visualizar pedidos agrupados por status em colunas kanban, identificar gargalos e selecionar pedidos para entrega",
+    "sec.createOrder.title": "Sec create Order",
+    "org.createOrderForm.title": "Formulário para lançar novo pedido no POS com tipo, mesa, itens e prioridade opcional",
+    "sec.deliverOrder.title": "Sec deliver Order",
+    "org.deliverOrderPanel.title": "Entregar pedido selecionado ao cliente, confirmando a entrega de um pedido com status pronto",
+    "sec.review.title": "Sec review",
+    "org.reviewSummary.title": "Revisar o contexto e o resultado das ações principais da página: pedidos criados e entregas realizadas",
+    "section.queue.title": "Painel de Pedidos",
+    "section.queue.deliverTitle": "Entregar Pedido",
+    "column.priorityReason": "Motivo",
+    "column.receivedAt": "Recebido",
+    "column.inPreparationAt": "Em Preparo",
+    "column.readyAt": "Pronto",
+    "column.deliveredAt": "Entregue em",
+    "column.updatedAt": "Atualizado em",
+    "action.refresh.label": "Atualizar Painel",
+    "action.confirmDeliver.label": "Confirmar Entrega",
+    "empty.queue": "Nenhum pedido no painel. Lance um novo pedido para começar.",
+    "queueSection.title": "Queue Section",
+    "orderBoard.title": "Painel ao vivo dos pedidos do turno atual, ordenados por chegada, com status, prioridade e ação contextual de entrega para pedidos prontos",
+    "createOrderSection.title": "Create Order Section",
+    "createOrderForm.title": "Formulário de lançamento de pedido: tipo, mesa, itens, prioridade opcional e confirmação para envio à cozinha",
+    "reviewSection.title": "Review Section",
+    "actionSummary.title": "Resumo do último pedido criado e da última entrega realizada, com feedback textual dismissible de sucesso ou erro"
   },
   "automation": {
     "statePrefix": "ui.posWorkspace",
@@ -409,17 +516,14 @@ export const definition = {
       "ui.posWorkspace.input.createOrder.orderItems",
       "ui.posWorkspace.input.createOrder.priority",
       "ui.posWorkspace.input.createOrder.priorityReason",
+      "ui.posWorkspace.output.createOrder",
+      "ui.posWorkspace.action.createOrder.error",
       "ui.posWorkspace.action.viewOrderBoard.status",
       "ui.posWorkspace.data.viewOrderBoard",
       "ui.posWorkspace.action.deliverOrder.status",
-      "ui.posWorkspace.output.createOrder",
+      "ui.posWorkspace.input.deliverOrder.orderId",
       "ui.posWorkspace.output.deliverOrder",
-      "ui.posWorkspace.layout.fld-130",
-      "ui.posWorkspace.layout.fld-140",
-      "ui.posWorkspace.layout.fld-150",
-      "ui.posWorkspace.layout.fld-60",
-      "ui.posWorkspace.layout.fld-70",
-      "ui.posWorkspace.layout.fld-80"
+      "ui.posWorkspace.action.deliverOrder.error"
     ],
     "actionIds": [
       "createOrder",
@@ -429,7 +533,8 @@ export const definition = {
       "set.createOrderTableNumber",
       "set.createOrderOrderItems",
       "set.createOrderPriority",
-      "set.createOrderPriorityReason"
+      "set.createOrderPriorityReason",
+      "set.deliverOrderOrderId"
     ]
   }
 };

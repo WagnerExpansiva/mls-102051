@@ -1,7 +1,7 @@
 {
-  "savedAt": "2026-07-09T16:05:24.320Z",
+  "savedAt": "2026-07-15T03:22:56.464Z",
   "status": "done",
   "pageId": "managerDashboard",
   "moduleName": "cafeFlow",
-  "agent": "agentCfeCreatePage"
+  "agent": "agentChangeFrontend"
 }
