@@ -5,7 +5,7 @@ export const cafeFlowTodoFrontend = {
   "moduleName": "cafeFlow",
   "layer": "frontend",
   "variants": 3,
-  "updatedAt": "2026-07-09T16:13:11.609Z",
+  "updatedAt": "2026-07-15T03:34:11.074Z",
   "owners": [
     {
       "ownerType": "workflow",

@@ -10,74 +10,95 @@ import type {
   CafeFlowOpenShiftOutput,
   CafeFlowCloseShiftInput,
   CafeFlowCloseShiftOutput,
+  CafeFlowViewShiftClosingReportInput,
   CafeFlowViewShiftClosingReportOutput,
 } from '/_102051_/l2/cafeFlow/web/contracts/shiftManagement.js';
 
 /// **collab_i18n_start**
 const message_pt = {
-  "shiftManagement.section.openShift.title": "Abertura do turno",
-  "shiftManagement.section.closeShift.title": "Fechamento do turno",
-  "shiftManagement.section.reports.title": "Relatórios de fechamento",
-  "shiftManagement.section.summary.title": "Resumo do fechamento",
-  "shiftManagement.organism.openShift.title": "Abrir turno diário",
-  "shiftManagement.organism.closeShift.title": "Fechar turno diário",
-  "shiftManagement.organism.reports.title": "Relatórios de fechamento",
-  "shiftManagement.organism.summary.title": "Resumo do relatório",
-  "shiftManagement.intention.openShift.title": "Abrir turno",
-  "shiftManagement.intention.closeShift.title": "Fechar turno",
-  "shiftManagement.intention.reports.title": "Relatórios de fechamento",
-  "shiftManagement.intention.summary.title": "Resumo do fechamento",
-  "shiftManagement.field.notes.label": "Observações",
-  "shiftManagement.field.totalApurado.label": "Total apurado",
-  "shiftManagement.field.shiftId.label": "Turno",
-  "shiftManagement.field.paidOrderCount.label": "Pedidos pagos",
-  "shiftManagement.field.createdAt.label": "Criado em",
-  "shiftManagement.field.updatedAt.label": "Atualizado em",
-  "shiftManagement.field.shiftClosingReportId.label": "Relatório",
-  "shiftManagement.action.openShift.label": "Abrir turno",
-  "shiftManagement.action.closeShift.label": "Fechar turno",
-  "shiftManagement.action.viewShiftClosingReport.label": "Ver relatório",
-  "shiftManagement.section.board.title": "Turnos por status",
-  "shiftManagement.section.actions.title": "Ações rápidas",
-  "shiftManagement.organism.board.title": "Quadro de turnos",
-  "shiftManagement.intention.board.title": "Turnos por status",
-  "shiftManagement.field.status.label": "Status",
-  "shiftManagement.field.openedAt.label": "Abertura",
-  "shiftManagement.field.closedAt.label": "Fechamento",
-  "shiftManagement.section.queue.title": "Fila de turnos",
-  "shiftManagement.organism.queue.title": "Fila de turnos",
-  "shiftManagement.intention.queue.title": "Turnos na fila"
+  "page.title": "Gestão de turno diário",
+  "section.discover.title": "Relatório de fechamento",
+  "section.openShift.title": "Abrir turno",
+  "section.closeShift.title": "Fechar turno",
+  "section.review.title": "Resumo",
+  "field.notes.label": "Observações",
+  "field.totalApurado.label": "Total apurado",
+  "field.shiftId.label": "ID do turno",
+  "field.shiftClosingReportId.label": "ID do relatório",
+  "field.paidOrderCount.label": "Pedidos pagos",
+  "field.createdAt.label": "Criado em",
+  "field.updatedAt.label": "Atualizado em",
+  "field.status.label": "Status",
+  "field.openedAt.label": "Aberto em",
+  "field.openedBy.label": "Aberto por",
+  "field.closedAt.label": "Fechado em",
+  "field.closedBy.label": "Fechado por",
+  "action.openShift.label": "Abrir turno",
+  "action.closeShift.label": "Fechar turno",
+  "action.openShift.success": "Turno aberto com sucesso",
+  "action.openShift.error": "Erro ao abrir turno",
+  "action.closeShift.success": "Turno fechado com sucesso",
+  "action.closeShift.error": "Erro ao fechar turno",
+  "empty.reports": "Nenhum relatório de fechamento encontrado",
+  "sec.discover.title": "Sec discover",
+  "org.report.cards.title": "Exibir relatório de fechamento de turno como cartão detalhado com total apurado e pedidos pagos",
+  "sec.open.shift.title": "Sec open shift",
+  "org.open.shift.title": "Formulário para abrir turno diário com observações opcionais",
+  "sec.close.shift.title": "Sec close shift",
+  "org.close.shift.title": "Formulário para fechar turno diário confirmando total apurado e observações",
+  "sec.review.title": "Sec review",
+  "org.shift.summary.title": "Resumo do turno exibindo dados de abertura e fechamento para conferência",
+  "section.board.title": "Quadro de turnos",
+  "lane.open.title": "Turno aberto",
+  "lane.open.empty": "Nenhum turno aberto. Abra um turno para iniciar o expediente.",
+  "lane.closed.title": "Turno fechado",
+  "lane.closed.empty": "Nenhum relatório de fechamento disponível.",
+  "intent.query.report.title": "Relatórios de fechamento",
+  "intent.openShift.title": "Abrir novo turno",
+  "intent.closeShift.title": "Fechar turno atual",
+  "intent.report.summary.title": "Detalhes do relatório de fechamento",
+  "empty.report": "Nenhum relatório de fechamento disponível",
+  "action.viewShiftClosingReport.label": "Atualizar relatório",
+  "org.shift.board.title": "Exibe turnos agrupados por status (aberto/fechado) em colunas kanban com ações de transição contextuais ao card selecionado",
+  "org.open.shift.form.title": "Formulário para abrir um novo turno diário com observações opcionais",
+  "org.close.shift.form.title": "Formulário para fechar o turno atual registrando o total apurado e observações",
+  "org.report.summary.title": "Exibe os detalhes do relatório de fechamento de turno para conferência do dia",
+  "page.shiftManagement.title": "Gestão de turno diário",
+  "section.execute.title": "Ações do turno",
+  "organism.report.title": "Relatório de fechamento de turno",
+  "organism.shiftLifecycle.title": "Ações do turno",
+  "organism.openShift.title": "Abrir turno",
+  "organism.closeShift.title": "Fechar turno",
+  "organism.summary.title": "Resumo do turno",
+  "empty.openShift": "Nenhum turno aberto",
+  "empty.closeShift": "Nenhum turno aberto para fechar",
+  "empty.summary": "Nenhuma ação realizada ainda",
+  "org.shift.report.title": "Exibir o relatório de fechamento de turno com total apurado e pedidos pagos consolidados, servindo como superfície dominante do fluxo de turno",
+  "sec.execute.title": "Sec execute",
+  "org.shift.lifecycle.title": "Apresentar as transições do ciclo de vida do turno (abrir e fechar) como ações contextuais, com formulários mínimos contendo apenas as decisões do gerente",
+  "org.summary.title": "Revisar o contexto e o resultado das ações principais da página, exibindo os dados de abertura e fechamento do turno para conferência"
 };
 type MessageType = typeof message_pt;
 const messages: { [key: string]: MessageType } = { pt: message_pt };
 /// **collab_i18n_end**
 
-type ActionStatus = "idle" | "loading" | "success" | "error";
-
 export class CafeFlowShiftManagementBase extends CollabLitElement {
-  @property({ type: String }) status: string = "";
+  @property({ type: String }) status: string = '';
 
-  @property({ type: String }) openShiftState: ActionStatus = "idle";
-  @property({ type: String }) openShiftNotes: string = "";
+  @property({ type: String }) openShiftState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
+  @property({ type: String }) openShiftNotes: string = '';
+  @property({ type: Object }) openShiftOutput: CafeFlowOpenShiftOutput | null = null;
+  @property({ type: String }) openShiftError: string = '';
 
-  @property({ type: String }) closeShiftState: ActionStatus = "idle";
-  @property({ type: String }) closeShiftTotalApurado: string = "";
-  @property({ type: String }) closeShiftNotes: string = "";
+  @property({ type: String }) closeShiftState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
+  @property({ type: String }) closeShiftTotalApurado: string = '';
+  @property({ type: String }) closeShiftNotes: string = '';
+  @property({ type: Object }) closeShiftOutput: CafeFlowCloseShiftOutput | null = null;
+  @property({ type: String }) closeShiftError: string = '';
 
-  @property({ type: String }) viewShiftClosingReportState: ActionStatus = "idle";
+  @property({ type: String }) viewShiftClosingReportState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
+  @property({ type: String }) viewShiftClosingReportShiftId: string = '';
   @property({ type: Object }) viewShiftClosingReportData: CafeFlowViewShiftClosingReportOutput | null = null;
-
-  @property({ type: Object }) OutputOpenShift: CafeFlowOpenShiftOutput | null = null;
-  @property({ type: Object }) OutputCloseShift: CafeFlowCloseShiftOutput | null = null;
-
-  @property({ type: String }) LayoutColBoardStatus: string = "";
-  @property({ type: String }) LayoutColBoardOpened: string = "";
-  @property({ type: String }) LayoutColBoardClosed: string = "";
-  @property({ type: String }) LayoutColQueueStatus: string = "";
-  @property({ type: String }) LayoutColQueueOpened: string = "";
-  @property({ type: String }) LayoutColQueueClosed: string = "";
-
-  private subscribedKeys: string[] = [];
 
   protected get msg(): MessageType {
     const lang: string = this.getMessageKey(messages);
@@ -86,215 +107,263 @@ export class CafeFlowShiftManagementBase extends CollabLitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this.status = (getState('ui.shiftManagement.status') as string) ?? '';
+    this.openShiftNotes = (getState('ui.shiftManagement.input.openShift.notes') as string) ?? '';
+    this.closeShiftTotalApurado = (getState('ui.shiftManagement.input.closeShift.totalApurado') as string) ?? '';
+    this.closeShiftNotes = (getState('ui.shiftManagement.input.closeShift.notes') as string) ?? '';
+    this.viewShiftClosingReportShiftId = (getState('ui.shiftManagement.input.viewShiftClosingReport.shiftId') as string) ?? '';
 
-    this.status = (getState("ui.shiftManagement.status") as string) ?? "";
-    this.openShiftState = (getState("ui.shiftManagement.action.openShift.status") as ActionStatus) ?? "idle";
-    this.openShiftNotes = (getState("ui.shiftManagement.input.openShift.notes") as string) ?? "";
-    this.closeShiftState = (getState("ui.shiftManagement.action.closeShift.status") as ActionStatus) ?? "idle";
-    this.closeShiftTotalApurado = (getState("ui.shiftManagement.input.closeShift.totalApurado") as string) ?? "";
-    this.closeShiftNotes = (getState("ui.shiftManagement.input.closeShift.notes") as string) ?? "";
-    this.viewShiftClosingReportState = (getState("ui.shiftManagement.action.viewShiftClosingReport.status") as ActionStatus) ?? "idle";
-    this.viewShiftClosingReportData = (getState("ui.shiftManagement.data.viewShiftClosingReport") as CafeFlowViewShiftClosingReportOutput | null) ?? null;
-    this.OutputOpenShift = (getState("ui.shiftManagement.output.openShift") as CafeFlowOpenShiftOutput | null) ?? null;
-    this.OutputCloseShift = (getState("ui.shiftManagement.output.closeShift") as CafeFlowCloseShiftOutput | null) ?? null;
-    this.LayoutColBoardStatus = (getState("ui.shiftManagement.layout.col-board-status") as string) ?? "";
-    this.LayoutColBoardOpened = (getState("ui.shiftManagement.layout.col-board-opened") as string) ?? "";
-    this.LayoutColBoardClosed = (getState("ui.shiftManagement.layout.col-board-closed") as string) ?? "";
-    this.LayoutColQueueStatus = (getState("ui.shiftManagement.layout.col-queue-status") as string) ?? "";
-    this.LayoutColQueueOpened = (getState("ui.shiftManagement.layout.col-queue-opened") as string) ?? "";
-    this.LayoutColQueueClosed = (getState("ui.shiftManagement.layout.col-queue-closed") as string) ?? "";
-
-    const sharedKeys = [
-      "ui.shiftManagement.status",
-      "ui.shiftManagement.action.openShift.status",
-      "ui.shiftManagement.input.openShift.notes",
-      "ui.shiftManagement.action.closeShift.status",
-      "ui.shiftManagement.input.closeShift.totalApurado",
-      "ui.shiftManagement.input.closeShift.notes",
-      "ui.shiftManagement.action.viewShiftClosingReport.status",
-      "ui.shiftManagement.data.viewShiftClosingReport",
-      "ui.shiftManagement.output.openShift",
-      "ui.shiftManagement.output.closeShift",
-    ];
-    subscribe(sharedKeys, this);
-    this.subscribedKeys = sharedKeys;
+    subscribe(
+      [
+        'ui.shiftManagement.status',
+        'ui.shiftManagement.input.openShift.notes',
+        'ui.shiftManagement.input.closeShift.totalApurado',
+        'ui.shiftManagement.input.closeShift.notes',
+        'ui.shiftManagement.input.viewShiftClosingReport.shiftId',
+      ],
+      this
+    );
 
     this.loadViewShiftClosingReport();
   }
 
   disconnectedCallback(): void {
-    if (this.subscribedKeys.length > 0) {
-      unsubscribe(this.subscribedKeys, this);
-      this.subscribedKeys = [];
-    }
+    unsubscribe(
+      [
+        'ui.shiftManagement.status',
+        'ui.shiftManagement.input.openShift.notes',
+        'ui.shiftManagement.input.closeShift.totalApurado',
+        'ui.shiftManagement.input.closeShift.notes',
+        'ui.shiftManagement.input.viewShiftClosingReport.shiftId',
+      ],
+      this
+    );
     super.disconnectedCallback();
   }
 
-  // --- State setters ---
+  // ---- Route param parsing ----
+
+  private parseRouteParams(): { shiftId?: string } {
+    const pattern = '/cafeFlow/shiftManagement/:shiftId?';
+    const patternParts = pattern.split('/').filter((p) => p.length > 0);
+    const pathParts = window.location.pathname.split('/').filter((p) => p.length > 0);
+    const result: { shiftId?: string } = {};
+    for (let i = 0; i < patternParts.length; i++) {
+      const part = patternParts[i];
+      if (part.startsWith(':')) {
+        const isOptional = part.endsWith('?');
+        const name = isOptional ? part.slice(1, -1) : part.slice(1);
+        const value = pathParts[i] ? decodeURIComponent(pathParts[i]) : undefined;
+        if (value) {
+          (result as Record<string, string | undefined>)[name] = value;
+        }
+      }
+    }
+    return result;
+  }
+
+  // ---- State setters ----
 
   setOpenShiftNotes(value: string): void {
     this.openShiftNotes = value;
-    setState("ui.shiftManagement.input.openShift.notes", value);
+    setState('ui.shiftManagement.input.openShift.notes', value);
     this.requestUpdate();
   }
 
   handleOpenShiftNotesChange(e: Event): void {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-    this.setOpenShiftNotes(target.value ?? "");
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!target) return;
+    this.setOpenShiftNotes(target.value);
   }
 
   setCloseShiftTotalApurado(value: string): void {
     this.closeShiftTotalApurado = value;
-    setState("ui.shiftManagement.input.closeShift.totalApurado", value);
+    setState('ui.shiftManagement.input.closeShift.totalApurado', value);
     this.requestUpdate();
   }
 
   handleCloseShiftTotalApuradoChange(e: Event): void {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-    this.setCloseShiftTotalApurado(target.value ?? "");
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!target) return;
+    this.setCloseShiftTotalApurado(target.value);
   }
 
   setCloseShiftNotes(value: string): void {
     this.closeShiftNotes = value;
-    setState("ui.shiftManagement.input.closeShift.notes", value);
+    setState('ui.shiftManagement.input.closeShift.notes', value);
     this.requestUpdate();
   }
 
   handleCloseShiftNotesChange(e: Event): void {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-    this.setCloseShiftNotes(target.value ?? "");
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!target) return;
+    this.setCloseShiftNotes(target.value);
   }
 
-  // --- Query action: viewShiftClosingReport ---
+  setViewShiftClosingReportShiftId(value: string): void {
+    this.viewShiftClosingReportShiftId = value;
+    setState('ui.shiftManagement.input.viewShiftClosingReport.shiftId', value);
+    this.requestUpdate();
+  }
+
+  handleViewShiftClosingReportShiftIdChange(e: Event): void {
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!target) return;
+    this.setViewShiftClosingReportShiftId(target.value);
+  }
+
+  // ---- Query action: viewShiftClosingReport ----
 
   async loadViewShiftClosingReport(): Promise<void> {
-    this.viewShiftClosingReportState = "loading";
-    setState("ui.shiftManagement.action.viewShiftClosingReport.status", "loading");
+    const routeParams = this.parseRouteParams();
+    if (routeParams.shiftId) {
+      this.viewShiftClosingReportShiftId = routeParams.shiftId;
+      setState('ui.shiftManagement.input.viewShiftClosingReport.shiftId', routeParams.shiftId);
+    }
 
-    const options: BffClientOptions = { mode: "silent" };
+    const shiftId = this.viewShiftClosingReportShiftId;
+    if (!shiftId) {
+      this.viewShiftClosingReportState = 'idle';
+      setState('ui.shiftManagement.action.viewShiftClosingReport.status', 'idle');
+      this.viewShiftClosingReportData = null;
+      setState('ui.shiftManagement.data.viewShiftClosingReport', null);
+      this.requestUpdate();
+      return;
+    }
+
+    this.viewShiftClosingReportState = 'loading';
+    setState('ui.shiftManagement.action.viewShiftClosingReport.status', 'loading');
+    this.requestUpdate();
+
+    const params: CafeFlowViewShiftClosingReportInput = { shiftId };
+    const options: BffClientOptions = { mode: 'silent' };
     const response = await execBff<CafeFlowViewShiftClosingReportOutput>(
-      "cafeFlow.shiftLifecycle.viewShiftClosingReport",
-      {},
+      'cafeFlow.shiftLifecycle.viewShiftClosingReport',
+      params,
       options
     );
 
     if (response.ok) {
-      const data = response.data ?? null;
-      this.viewShiftClosingReportData = data;
-      setState("ui.shiftManagement.data.viewShiftClosingReport", data);
-      this.viewShiftClosingReportState = "success";
-      setState("ui.shiftManagement.action.viewShiftClosingReport.status", "success");
+      this.viewShiftClosingReportData = response.data ?? null;
+      setState('ui.shiftManagement.data.viewShiftClosingReport', this.viewShiftClosingReportData);
+      this.viewShiftClosingReportState = 'success';
+      setState('ui.shiftManagement.action.viewShiftClosingReport.status', 'success');
     } else {
       this.viewShiftClosingReportData = null;
-      setState("ui.shiftManagement.data.viewShiftClosingReport", null);
-      this.viewShiftClosingReportState = "error";
-      setState("ui.shiftManagement.action.viewShiftClosingReport.status", "error");
-      console.error("[shiftManagement] viewShiftClosingReport error:", response.error);
+      setState('ui.shiftManagement.data.viewShiftClosingReport', null);
+      this.viewShiftClosingReportState = 'error';
+      setState('ui.shiftManagement.action.viewShiftClosingReport.status', 'error');
+      if (response.error?.message) {
+        console.error('viewShiftClosingReport error:', response.error.message);
+      }
     }
     this.requestUpdate();
   }
 
-  handleViewShiftClosingReportClick(): void {
-    this.loadViewShiftClosingReport();
+  handleViewShiftClosingReportClick(e: Event): void {
+    e.preventDefault();
+    void this.loadViewShiftClosingReport();
   }
 
-  // --- Command action: openShift ---
+  // ---- Command action: openShift ----
 
   async openShift(): Promise<void> {
-    this.openShiftState = "loading";
-    setState("ui.shiftManagement.action.openShift.status", "loading");
+    this.openShiftState = 'loading';
+    setState('ui.shiftManagement.action.openShift.status', 'loading');
+    this.requestUpdate();
 
-    const params: CafeFlowOpenShiftInput = {
+    const input: CafeFlowOpenShiftInput = {
       notes: this.openShiftNotes || undefined,
     };
-
+    const options: BffClientOptions = { mode: 'blocking' };
     const response = await execBff<CafeFlowOpenShiftOutput>(
-      "cafeFlow.shiftLifecycle.openShift",
-      params,
-      { mode: "blocking" }
+      'cafeFlow.shiftLifecycle.openShift',
+      input,
+      options
     );
 
     if (response.ok) {
-      const data = response.data ?? null;
-      this.OutputOpenShift = data;
-      setState("ui.shiftManagement.output.openShift", data);
+      this.openShiftOutput = response.data ?? null;
+      setState('ui.shiftManagement.output.openShift', this.openShiftOutput);
 
-      // Refresh: viewShiftClosingReport
-      try {
-        await this.loadViewShiftClosingReport();
-        if (this.viewShiftClosingReportState === "error") {
-          this.openShiftState = "error";
-          setState("ui.shiftManagement.action.openShift.status", "error");
-        } else {
-          this.openShiftState = "success";
-          setState("ui.shiftManagement.action.openShift.status", "success");
-        }
-      } catch {
-        this.openShiftState = "error";
-        setState("ui.shiftManagement.action.openShift.status", "error");
-      }
+      // Refresh query actions
+      await this.loadViewShiftClosingReport();
+
+      // Clear input state keys
+      this.openShiftNotes = '';
+      setState('ui.shiftManagement.input.openShift.notes', '');
+
+      this.openShiftError = '';
+      setState('ui.shiftManagement.action.openShift.error', '');
+      this.openShiftState = 'success';
+      setState('ui.shiftManagement.action.openShift.status', 'success');
     } else {
-      this.openShiftState = "error";
-      setState("ui.shiftManagement.action.openShift.status", "error");
-      console.error("[shiftManagement] openShift error:", response.error);
+      const errorMsg = response.error?.message ?? this.msg['action.openShift.error'];
+      this.openShiftError = errorMsg;
+      setState('ui.shiftManagement.action.openShift.error', errorMsg);
+      this.openShiftState = 'error';
+      setState('ui.shiftManagement.action.openShift.status', 'error');
     }
     this.requestUpdate();
   }
 
-  handleOpenShiftClick(): void {
-    runBlockingUiAction(async (_signal: AbortSignal) => {
+  handleOpenShiftClick(e: Event): void {
+    e.preventDefault();
+    void runBlockingUiAction(async (_signal: AbortSignal) => {
       await this.openShift();
-    }, { mode: "blocking" });
+    }, { mode: 'blocking' });
   }
 
-  // --- Command action: closeShift ---
+  // ---- Command action: closeShift ----
 
   async closeShift(): Promise<void> {
-    this.closeShiftState = "loading";
-    setState("ui.shiftManagement.action.closeShift.status", "loading");
+    this.closeShiftState = 'loading';
+    setState('ui.shiftManagement.action.closeShift.status', 'loading');
+    this.requestUpdate();
 
     const totalApuradoNum = parseFloat(this.closeShiftTotalApurado);
-    const params: CafeFlowCloseShiftInput = {
+    const input: CafeFlowCloseShiftInput = {
       totalApurado: isNaN(totalApuradoNum) ? 0 : totalApuradoNum,
       notes: this.closeShiftNotes || undefined,
     };
-
+    const options: BffClientOptions = { mode: 'blocking' };
     const response = await execBff<CafeFlowCloseShiftOutput>(
-      "cafeFlow.shiftLifecycle.closeShift",
-      params,
-      { mode: "blocking" }
+      'cafeFlow.shiftLifecycle.closeShift',
+      input,
+      options
     );
 
     if (response.ok) {
-      const data = response.data ?? null;
-      this.OutputCloseShift = data;
-      setState("ui.shiftManagement.output.closeShift", data);
+      this.closeShiftOutput = response.data ?? null;
+      setState('ui.shiftManagement.output.closeShift', this.closeShiftOutput);
 
-      // Refresh: viewShiftClosingReport
-      try {
-        await this.loadViewShiftClosingReport();
-        if (this.viewShiftClosingReportState === "error") {
-          this.closeShiftState = "error";
-          setState("ui.shiftManagement.action.closeShift.status", "error");
-        } else {
-          this.closeShiftState = "success";
-          setState("ui.shiftManagement.action.closeShift.status", "success");
-        }
-      } catch {
-        this.closeShiftState = "error";
-        setState("ui.shiftManagement.action.closeShift.status", "error");
-      }
+      // Refresh query actions
+      await this.loadViewShiftClosingReport();
+
+      // Clear input state keys
+      this.closeShiftTotalApurado = '';
+      setState('ui.shiftManagement.input.closeShift.totalApurado', '');
+      this.closeShiftNotes = '';
+      setState('ui.shiftManagement.input.closeShift.notes', '');
+
+      this.closeShiftError = '';
+      setState('ui.shiftManagement.action.closeShift.error', '');
+      this.closeShiftState = 'success';
+      setState('ui.shiftManagement.action.closeShift.status', 'success');
     } else {
-      this.closeShiftState = "error";
-      setState("ui.shiftManagement.action.closeShift.status", "error");
-      console.error("[shiftManagement] closeShift error:", response.error);
+      const errorMsg = response.error?.message ?? this.msg['action.closeShift.error'];
+      this.closeShiftError = errorMsg;
+      setState('ui.shiftManagement.action.closeShift.error', errorMsg);
+      this.closeShiftState = 'error';
+      setState('ui.shiftManagement.action.closeShift.status', 'error');
     }
     this.requestUpdate();
   }
 
-  handleCloseShiftClick(): void {
-    runBlockingUiAction(async (_signal: AbortSignal) => {
+  handleCloseShiftClick(e: Event): void {
+    e.preventDefault();
+    void runBlockingUiAction(async (_signal: AbortSignal) => {
       await this.closeShift();
-    }, { mode: "blocking" });
+    }, { mode: 'blocking' });
   }
 }

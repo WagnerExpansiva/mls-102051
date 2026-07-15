@@ -1,0 +1,10 @@
+{
+  "savedAt": "2026-07-15T01:53:22.374Z",
+  "runId": "cfe-20260715014853.1000",
+  "pageId": "posWorkspace",
+  "genome": "page21",
+  "templateId": "kanban_pipeline",
+  "stage": "afterPromptStep",
+  "message": "col_orderNumber.field references unknown field orderNumber",
+  "agent": "agentCfeCreateLayout"
+}

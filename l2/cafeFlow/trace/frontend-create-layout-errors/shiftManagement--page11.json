@@ -1,0 +1,10 @@
+{
+  "savedAt": "2026-07-15T01:53:38.136Z",
+  "runId": "cfe-20260715014853.1000",
+  "pageId": "shiftManagement",
+  "genome": "page11",
+  "templateId": "mobile_cards",
+  "stage": "afterPromptStep",
+  "message": "col-paid-orders.field references unknown field paidOrdersCount",
+  "agent": "agentCfeCreateLayout"
+}

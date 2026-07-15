@@ -4,6 +4,8 @@ export const definition = {
   "pageId": "menuManagement",
   "pageName": "Gestão de cardápio",
   "moduleName": "cafeFlow",
+  "baseClassName": "CafeFlowMenuManagementBase",
+  "routePattern": "/cafeFlow/menuManagement",
   "sourceKind": "workflow",
   "ownerIds": [
     "workflow:menuItemLifecycle",
@@ -76,7 +78,7 @@ export const definition = {
   },
   "layoutRef": {
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/menuManagement.defs.ts",
-    "layoutId": "menuManagement.page11"
+    "layoutId": "page11-workflow_queue"
   },
   "states": [
     {
@@ -102,6 +104,8 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.browseMenuItems.statusFilter",
       "name": "browseMenuItemsStatusFilter",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "browseMenuItems",
         "direction": "input",
@@ -113,6 +117,8 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.browseMenuItems.menuCategoryIdFilter",
       "name": "browseMenuItemsMenuCategoryIdFilter",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "browseMenuItems",
         "direction": "input",
@@ -149,9 +155,24 @@ export const definition = {
       "defaultValue": "idle"
     },
     {
+      "stateKey": "ui.menuManagement.input.manageMenuItem.menuItemId",
+      "name": "manageMenuItemMenuItemId",
+      "kind": "input",
+      "source": "selectedEntity",
+      "presentation": "selection",
+      "contractRef": {
+        "commandName": "manageMenuItem",
+        "direction": "input",
+        "field": "menuItemId"
+      },
+      "defaultValue": ""
+    },
+    {
       "stateKey": "ui.menuManagement.input.manageMenuItem.name",
       "name": "manageMenuItemName",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "manageMenuItem",
         "direction": "input",
@@ -163,6 +184,8 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.manageMenuItem.description",
       "name": "manageMenuItemDescription",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "manageMenuItem",
         "direction": "input",
@@ -174,6 +197,8 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.manageMenuItem.menuCategoryId",
       "name": "manageMenuItemMenuCategoryId",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "manageMenuItem",
         "direction": "input",
@@ -185,6 +210,8 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.manageMenuItem.price",
       "name": "manageMenuItemPrice",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "manageMenuItem",
         "direction": "input",
@@ -196,6 +223,8 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.manageMenuItem.itemType",
       "name": "manageMenuItemItemType",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "manageMenuItem",
         "direction": "input",
@@ -207,11 +236,30 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.manageMenuItem.status",
       "name": "manageMenuItemStatus",
       "kind": "input",
+      "source": "userInput",
+      "presentation": "form",
       "contractRef": {
         "commandName": "manageMenuItem",
         "direction": "input",
         "field": "status"
       },
+      "defaultValue": ""
+    },
+    {
+      "stateKey": "ui.menuManagement.output.manageMenuItem",
+      "name": "manageMenuItemOutput",
+      "kind": "commandOutput",
+      "contractRef": {
+        "commandName": "manageMenuItem",
+        "direction": "output"
+      },
+      "defaultValue": null
+    },
+    {
+      "stateKey": "ui.menuManagement.action.manageMenuItem.error",
+      "name": "manageMenuItemError",
+      "kind": "actionError",
+      "actionRef": "manageMenuItem",
       "defaultValue": ""
     },
     {
@@ -222,30 +270,6 @@ export const definition = {
       "targetRef": "MenuItem.menuCategoryId",
       "required": true,
       "selector": "company",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.menuManagement.output.manageMenuItem",
-      "name": "OutputManageMenuItem",
-      "kind": "commandOutput",
-      "defaultValue": null
-    },
-    {
-      "stateKey": "ui.menuManagement.layout.ws20_activatedAt",
-      "name": "LayoutWs20ActivatedAt",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.menuManagement.layout.ws30_inactivatedAt",
-      "name": "LayoutWs30InactivatedAt",
-      "kind": "layoutState",
-      "defaultValue": ""
-    },
-    {
-      "stateKey": "ui.menuManagement.layout.r50_updatedAt",
-      "name": "LayoutR50UpdatedAt",
-      "kind": "layoutState",
       "defaultValue": ""
     }
   ],
@@ -262,6 +286,8 @@ export const definition = {
         "ui.menuManagement.input.browseMenuItems.statusFilter",
         "ui.menuManagement.input.browseMenuItems.menuCategoryIdFilter"
       ],
+      "routeParamInputStateKeys": [],
+      "selectedEntityInputStateKeys": [],
       "outputStateKeys": [
         "ui.menuManagement.data.browseMenuItems"
       ],
@@ -276,6 +302,7 @@ export const definition = {
       "methodName": "manageMenuItem",
       "handlerName": "handleManageMenuItemClick",
       "inputStateKeys": [
+        "ui.menuManagement.input.manageMenuItem.menuItemId",
         "ui.menuManagement.input.manageMenuItem.name",
         "ui.menuManagement.input.manageMenuItem.description",
         "ui.menuManagement.input.manageMenuItem.menuCategoryId",
@@ -283,10 +310,29 @@ export const definition = {
         "ui.menuManagement.input.manageMenuItem.itemType",
         "ui.menuManagement.input.manageMenuItem.status"
       ],
+      "routeParamInputStateKeys": [],
+      "selectedEntityInputStateKeys": [
+        "ui.menuManagement.input.manageMenuItem.menuItemId"
+      ],
       "outputStateKeys": [
         "ui.menuManagement.output.manageMenuItem"
       ],
       "statusStateKey": "ui.menuManagement.action.manageMenuItem.status",
+      "errorStateKey": "ui.menuManagement.action.manageMenuItem.error",
+      "feedback": {
+        "successMessageKey": "action.manageMenuItem.success",
+        "errorMessageKey": "action.manageMenuItem.error",
+        "dismissible": true
+      },
+      "clearInputStateKeys": [
+        "ui.menuManagement.input.manageMenuItem.menuItemId",
+        "ui.menuManagement.input.manageMenuItem.name",
+        "ui.menuManagement.input.manageMenuItem.description",
+        "ui.menuManagement.input.manageMenuItem.menuCategoryId",
+        "ui.menuManagement.input.manageMenuItem.price",
+        "ui.menuManagement.input.manageMenuItem.itemType",
+        "ui.menuManagement.input.manageMenuItem.status"
+      ],
       "refreshActionIds": [
         "browseMenuItems"
       ]
@@ -304,6 +350,13 @@ export const definition = {
       "stateKey": "ui.menuManagement.input.browseMenuItems.menuCategoryIdFilter",
       "methodName": "setBrowseMenuItemsMenuCategoryIdFilter",
       "handlerName": "handleBrowseMenuItemsMenuCategoryIdFilterChange"
+    },
+    {
+      "actionId": "set.manageMenuItemMenuItemId",
+      "kind": "stateSetter",
+      "stateKey": "ui.menuManagement.input.manageMenuItem.menuItemId",
+      "methodName": "setManageMenuItemMenuItemId",
+      "handlerName": "handleManageMenuItemMenuItemIdChange"
     },
     {
       "actionId": "set.manageMenuItemName",
@@ -373,38 +426,89 @@ export const definition = {
     ]
   },
   "i18n": {
-    "menuManagement.queue.title": "Fila de itens do cardápio",
-    "menuManagement.queue.list.title": "Itens do cardápio",
-    "menuManagement.queue.query.title": "Lista de itens",
-    "menuManagement.queue.summary.title": "Resumo do item selecionado",
-    "menuManagement.detail.title": "Detalhes do item",
-    "menuManagement.detail.form.title": "Atualizar item do cardápio",
-    "menuManagement.detail.status.title": "Status atual",
-    "menuManagement.detail.edit.title": "Editar item",
-    "menuManagement.detail.review.title": "Revisão das alterações",
-    "menuManagement.context.title": "Empresa ativa",
-    "menuManagement.menuItem.name": "Nome",
-    "menuManagement.menuItem.description": "Descrição",
-    "menuManagement.menuItem.menuCategoryId": "Categoria",
-    "menuManagement.menuItem.price": "Preço",
-    "menuManagement.menuItem.itemType": "Tipo",
-    "menuManagement.menuItem.status": "Status",
-    "menuManagement.menuItem.activatedAt": "Ativado em",
-    "menuManagement.menuItem.inactivatedAt": "Inativado em",
-    "menuManagement.menuItem.updatedAt": "Atualizado em",
-    "menuManagement.filter.status": "Status",
-    "menuManagement.filter.menuCategory": "Categoria",
-    "menuManagement.action.refresh": "Atualizar lista",
-    "menuManagement.action.manage": "Gerenciar item",
-    "menuManagement.action.save": "Salvar alterações",
-    "menuManagement.board.title": "Pipeline de status",
-    "menuManagement.board.lanes.title": "Itens por status",
-    "menuManagement.board.query.title": "Cartões do cardápio",
-    "menuManagement.board.summary.title": "Resumo do cartão",
-    "menuManagement.cards.title": "Cartões de itens do cardápio",
-    "menuManagement.cards.list.title": "Itens do cardápio",
-    "menuManagement.cards.query.title": "Cartões do cardápio",
-    "menuManagement.cards.summary.title": "Resumo do cartão"
+    "page.title": "Gestão de cardápio",
+    "section.queue.title": "Fila de itens do cardápio",
+    "section.queue.empty": "Nenhum item encontrado. Ajuste os filtros ou crie um novo item.",
+    "section.manage.title": "Gerenciar item do cardápio",
+    "section.review.title": "Resultado",
+    "section.review.empty": "Nenhuma alteração realizada ainda.",
+    "filter.statusFilter.label": "Filtrar por status",
+    "filter.menuCategoryIdFilter.label": "Filtrar por categoria",
+    "column.menuItemId.label": "ID",
+    "column.name.label": "Nome",
+    "column.description.label": "Descrição",
+    "column.menuCategoryId.label": "Categoria",
+    "column.price.label": "Preço",
+    "column.itemType.label": "Tipo",
+    "column.status.label": "Status",
+    "column.activatedAt.label": "Ativado em",
+    "column.inactivatedAt.label": "Inativado em",
+    "column.createdAt.label": "Criado em",
+    "column.updatedAt.label": "Atualizado em",
+    "field.menuItemId.label": "ID do item",
+    "field.name.label": "Nome",
+    "field.description.label": "Descrição",
+    "field.menuCategoryId.label": "Categoria",
+    "field.price.label": "Preço de venda",
+    "field.itemType.label": "Tipo do item",
+    "field.status.label": "Status do item",
+    "action.refresh.label": "Atualizar",
+    "action.selectItem.label": "Selecionar",
+    "action.manageMenuItem.label": "Salvar item",
+    "action.manageMenuItem.submit": "Salvar item",
+    "action.manageMenuItem.success": "Item do cardápio salvo com sucesso.",
+    "action.manageMenuItem.error": "Erro ao salvar item do cardápio. Verifique os dados e tente novamente.",
+    "org.menu.item.queue.title": "Listar itens do cardápio da empresa ativa com filtros por status e categoria, permitindo seleção para gerenciamento",
+    "org.manage.item.form.title": "Formulário de gerenciamento do item do cardápio selecionado, permitindo editar dados e definir status do ciclo de vida",
+    "org.review.summary.title": "Exibir o resultado da última operação de gerenciamento de item do cardápio",
+    "page.menuManagement.title": "Gestão de cardápio",
+    "section.board.title": "Quadro de itens",
+    "section.detail.title": "Gerenciar item",
+    "organism.kanbanBoard.title": "Itens do cardápio por status",
+    "organism.manageForm.title": "Editar item do cardápio",
+    "intention.browse.title": "Itens do cardápio",
+    "intention.manage.title": "Dados do item",
+    "action.browseMenuItems.label": "Atualizar quadro",
+    "action.selectCard.label": "Selecionar item",
+    "empty.board": "Nenhum item encontrado para os filtros selecionados.",
+    "empty.detail": "Selecione um item no quadro para gerenciar seus dados.",
+    "lane.draft.title": "Rascunho",
+    "lane.active.title": "Ativo",
+    "lane.inactive.title": "Inativo",
+    "sec.board.title": "Sec board",
+    "org.kanban.board.title": "Exibir itens do cardápio agrupados por status (rascunho, ativo, inativo) em colunas kanban, permitindo filtragem e seleção para gerenciamento",
+    "sec.detail.title": "Sec detail",
+    "org.manage.form.title": "Editar e gerenciar o item do cardápio selecionado, permitindo alterar dados e transicionar status entre rascunho, ativo e inativo",
+    "section.discover.title": "Itens do cardápio",
+    "section.execute.title": "Gerenciar item",
+    "organism.menuItemsList.title": "Itens do cardápio",
+    "organism.manageItemForm.title": "Gerenciar item do cardápio",
+    "organism.actionFeedback.title": "Resumo da última ação",
+    "field.menuItemId": "ID do item",
+    "field.name": "Nome",
+    "field.description": "Descrição",
+    "field.menuCategoryId": "Categoria",
+    "field.price": "Preço",
+    "field.itemType": "Tipo",
+    "field.status": "Status",
+    "field.activatedAt": "Ativado em",
+    "field.inactivatedAt": "Inativado em",
+    "field.updatedAt": "Atualizado em",
+    "filter.statusFilter": "Filtrar por status",
+    "filter.menuCategoryIdFilter": "Filtrar por categoria",
+    "action.refresh": "Atualizar",
+    "action.newItem": "Novo item",
+    "action.selectItem": "Editar",
+    "empty.menuItems": "Nenhum item do cardápio encontrado. Use o botão Novo item para criar o primeiro.",
+    "status.draft": "Rascunho",
+    "status.active": "Ativo",
+    "status.inactive": "Inativo",
+    "sec.discover.title": "Sec discover",
+    "org.menuItemsCardList.title": "Listar itens do cardápio em cards com filtros compactos e ação de seleção para edição",
+    "sec.execute.title": "Sec execute",
+    "org.manageItemForm.title": "Formulário em bottom sheet para criar ou editar um item do cardápio com nome, categoria, preço, tipo e status",
+    "sec.review.title": "Sec review",
+    "org.actionFeedback.title": "Exibir feedback textual da última ação de gerenciamento e resumo do resultado"
   },
   "automation": {
     "statePrefix": "ui.menuManagement",
@@ -415,23 +519,23 @@ export const definition = {
       "ui.menuManagement.input.browseMenuItems.menuCategoryIdFilter",
       "ui.menuManagement.data.browseMenuItems",
       "ui.menuManagement.action.manageMenuItem.status",
+      "ui.menuManagement.input.manageMenuItem.menuItemId",
       "ui.menuManagement.input.manageMenuItem.name",
       "ui.menuManagement.input.manageMenuItem.description",
       "ui.menuManagement.input.manageMenuItem.menuCategoryId",
       "ui.menuManagement.input.manageMenuItem.price",
       "ui.menuManagement.input.manageMenuItem.itemType",
       "ui.menuManagement.input.manageMenuItem.status",
-      "ui.menuManagement.businessContext.activeCompanyId",
       "ui.menuManagement.output.manageMenuItem",
-      "ui.menuManagement.layout.ws20_activatedAt",
-      "ui.menuManagement.layout.ws30_inactivatedAt",
-      "ui.menuManagement.layout.r50_updatedAt"
+      "ui.menuManagement.action.manageMenuItem.error",
+      "ui.menuManagement.businessContext.activeCompanyId"
     ],
     "actionIds": [
       "browseMenuItems",
       "manageMenuItem",
       "set.browseMenuItemsStatusFilter",
       "set.browseMenuItemsMenuCategoryIdFilter",
+      "set.manageMenuItemMenuItemId",
       "set.manageMenuItemName",
       "set.manageMenuItemDescription",
       "set.manageMenuItemMenuCategoryId",
