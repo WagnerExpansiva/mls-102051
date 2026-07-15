@@ -84,6 +84,14 @@ export const definition = [
     "outputShape": "object",
     "input": [
       {
+        "name": "orderId",
+        "type": "string",
+        "required": true,
+        "description": "Pedido selecionado pelo cozinheiro na fila da cozinha",
+        "source": "selectedEntity",
+        "presentation": "selection"
+      },
+      {
         "name": "status",
         "type": "string",
         "required": true,
@@ -94,7 +102,9 @@ export const definition = [
           "ready",
           "delivered"
         ],
-        "description": "Novo status que o cozinheiro deseja atribuir ao pedido (inPreparation ou ready)"
+        "description": "Novo status que o cozinheiro deseja atribuir ao pedido (inPreparation ou ready)",
+        "source": "userInput",
+        "presentation": "form"
       }
     ],
     "output": [],

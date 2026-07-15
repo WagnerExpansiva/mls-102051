@@ -12,240 +12,201 @@ import type {
 @customElement('cafe-flow--web--desktop--page31--manager-dashboard-102051')
 export class CafeFlowDesktopPage31ManagerDashboardPage extends CafeFlowManagerDashboardBase {
   render() {
-    const dashboardRows: CafeFlowViewDashboardOutputItem[] = this.viewDashboardData;
-    const salesRows: CafeFlowRequestAiSalesSummaryOutputItem[] = this.requestAiSalesSummaryData;
-    const promoRows: CafeFlowRequestAiPromoSuggestionsOutputItem[] = this.requestAiPromoSuggestionsData;
-
     return html`
-      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
+      <div class="min-h-full bg-[var(--bg-secondary-color,#F9F9F9)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
+            ${this.msg['page.title']}
+          </h1>
 
-          <!-- Section: Dashboard Overview -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color-lighter,#ffffff)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-bold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['managerDashboard.section.overview.title']}
+          <!-- Section: Dashboard do dia -->
+          <section class="space-y-4">
+            <h2 class="text-xl font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['section.discover.title']}
             </h2>
 
-            <div class="space-y-3">
-              <h3 class="text-sm font-semibold text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['managerDashboard.organism.viewDashboard.title']}
-              </h3>
-
+            <!-- Organism: Pedidos do dia -->
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['managerDashboard.intent.dashboardStatus.title']}
-                </span>
+                <h3 class="text-lg font-medium text-[var(--text-primary-color,#403f3f)]">
+                  ${this.msg['organism.dashboard.title']}
+                </h3>
                 <button
-                  class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  class="px-3 py-1.5 rounded text-sm font-medium border border-[var(--grey-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)] hover:bg-[var(--bg-secondary-color,#E6E6E6)] disabled:opacity-50"
+                  @click=${(e: Event) => this.handleViewDashboardClick(e)}
                   ?disabled=${this.viewDashboardState === 'loading'}
-                  @click=${() => this.handleViewDashboardClick()}
                 >
-                  ${this.msg['managerDashboard.action.refreshDashboard']}
+                  ${this.viewDashboardState === 'loading'
+                    ? html`<span class="inline-block w-4 h-4 border-2 border-[var(--grey-color-dark,#D3D3D3)] border-t-transparent rounded-full animate-spin"></span>`
+                    : this.msg['action.viewDashboard.label']}
                 </button>
               </div>
 
               ${this.viewDashboardState === 'loading'
-                ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-2">…</p>`
-                : dashboardRows.length === 0
-                  ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4">
-                      ${this.msg['managerDashboard.intent.dashboardStatus.empty']}
-                    </p>`
-                  : html`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      ${dashboardRows.map(
-                        (row: CafeFlowViewDashboardOutputItem) => html`
-                          <div
-                            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-secondary-color-lighter,#f9f9f9)] p-3 space-y-1"
-                          >
-                            <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                              ${this.msg['managerDashboard.field.status']}
-                            </div>
-                            <div class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                              ${row.status}
-                            </div>
-                            <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                              ${this.msg['managerDashboard.field.orderType']}
-                            </div>
-                            <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                              ${row.orderType}
-                            </div>
-                            <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                              ${this.msg['managerDashboard.field.createdAt']}
-                            </div>
-                            <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                              ${row.createdAt}
-                            </div>
-                            <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                              ${this.msg['managerDashboard.field.deliveredAt']}
-                            </div>
-                            <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                              ${row.deliveredAt}
-                            </div>
-                            <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                              ${this.msg['managerDashboard.field.shiftId']}
-                            </div>
-                            <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                              ${row.shiftId}
-                            </div>
-                          </div>
-                        `,
-                      )}
-                    </div>`}
+                ? html`<div class="space-y-2">
+                    ${[0, 1, 2].map(() => html`
+                      <div class="h-16 rounded-lg bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"></div>
+                    `)}
+                  </div>`
+                : this.viewDashboardData.length === 0
+                ? html`<p class="text-sm text-[var(--text-primary-color-disabled,#525151)]">${this.msg['organism.dashboard.empty']}</p>`
+                : html`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    ${this.viewDashboardData.map((item: CafeFlowViewDashboardOutputItem) => html`
+                      <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] p-3 space-y-2">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-[var(--bg-primary-color,#ffffff)] ${item.status === 'delivered'
+                            ? 'bg-[var(--success-color,#52C41A)]'
+                            : item.status === 'ready'
+                            ? 'bg-[var(--active-color,#1890FF)]'
+                            : 'bg-[var(--warning-color,#FAAD14)]'}"
+                        >${item.status}</span>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)] space-y-1">
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.orderType.label']}:</span> ${item.orderType}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.createdAt.label']}:</span> ${item.createdAt}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.shiftId.label']}:</span> ${item.shiftId}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.deliveredAt.label']}:</span> ${item.deliveredAt}</div>
+                        </div>
+                      </div>
+                    `)}
+                  </div>`}
+
+              ${this.viewDashboardState === 'success'
+                ? html`<div class="flex items-center justify-between rounded-md bg-[var(--success-color,#52C41A)] bg-opacity-10 px-3 py-2">
+                    <span class="text-sm text-[var(--success-color,#52C41A)]">${this.msg['action.viewDashboard.success']}</span>
+                  </div>`
+                : this.viewDashboardState === 'error'
+                ? html`<div class="flex items-center justify-between rounded-md bg-[var(--error-color,#FF4D4F)] bg-opacity-10 px-3 py-2">
+                    <span class="text-sm text-[var(--error-color,#FF4D4F)]">${this.msg['action.viewDashboard.error']}</span>
+                  </div>`
+                : null}
             </div>
-          </section>
 
-          <!-- Section: AI Assistant -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color-lighter,#ffffff)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-bold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['managerDashboard.section.aiAssistant.title']}
-            </h2>
-
-            <!-- Organism: AI Sales Summary -->
-            <div class="space-y-3">
-              <h3 class="text-sm font-semibold text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['managerDashboard.organism.aiSalesSummary.title']}
-              </h3>
-
-              <!-- Action: request AI sales summary -->
+            <!-- Organism: Resumo de vendas por IA -->
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['managerDashboard.intent.aiSalesAction.title']}
-                </span>
+                <h3 class="text-lg font-medium text-[var(--text-primary-color,#403f3f)]">
+                  ${this.msg['organism.aiSales.title']}
+                </h3>
                 <button
-                  class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  class="px-3 py-1.5 rounded text-sm font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  @click=${(e: Event) => this.handleRequestAiSalesSummaryClick(e)}
                   ?disabled=${this.requestAiSalesSummaryState === 'loading'}
-                  @click=${() => this.handleRequestAiSalesSummaryClick()}
                 >
-                  ${this.msg['managerDashboard.action.requestAiSalesSummary']}
+                  ${this.requestAiSalesSummaryState === 'loading'
+                    ? html`<span class="inline-block w-4 h-4 border-2 border-[var(--bg-primary-color,#ffffff)] border-t-transparent rounded-full animate-spin"></span>`
+                    : this.msg['action.requestAiSalesSummary.label']}
                 </button>
               </div>
 
-              <!-- Result cards -->
-              <div class="space-y-1">
-                <span class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['managerDashboard.intent.aiSalesResult.title']}
-                </span>
-                ${this.requestAiSalesSummaryState === 'loading'
-                  ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-2">…</p>`
-                  : salesRows.length === 0
-                    ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4">
-                        ${this.msg['managerDashboard.intent.aiSalesResult.empty']}
-                      </p>`
-                    : html`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        ${salesRows.map(
-                          (row: CafeFlowRequestAiSalesSummaryOutputItem) => html`
-                            <div
-                              class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-secondary-color-lighter,#f9f9f9)] p-3 space-y-1"
-                            >
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.orderId']}
-                              </div>
-                              <div class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                                ${row.orderId}
-                              </div>
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.status']}
-                              </div>
-                              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                                ${row.status}
-                              </div>
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.orderType']}
-                              </div>
-                              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                                ${row.orderType}
-                              </div>
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.createdAt']}
-                              </div>
-                              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                                ${row.createdAt}
-                              </div>
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.deliveredAt']}
-                              </div>
-                              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                                ${row.deliveredAt}
-                              </div>
-                            </div>
-                          `,
-                        )}
-                      </div>`}
-              </div>
+              ${this.requestAiSalesSummaryState === 'loading'
+                ? html`<div class="space-y-2">
+                    ${[0, 1, 2].map(() => html`
+                      <div class="h-16 rounded-lg bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"></div>
+                    `)}
+                  </div>`
+                : this.requestAiSalesSummaryData.length === 0
+                ? html`<p class="text-sm text-[var(--text-primary-color-disabled,#525151)]">${this.msg['organism.aiSales.empty']}</p>`
+                : html`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    ${this.requestAiSalesSummaryData.map((item: CafeFlowRequestAiSalesSummaryOutputItem) => html`
+                      <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] p-3 space-y-2">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-[var(--bg-primary-color,#ffffff)] ${item.status === 'delivered'
+                            ? 'bg-[var(--success-color,#52C41A)]'
+                            : item.status === 'ready'
+                            ? 'bg-[var(--active-color,#1890FF)]'
+                            : 'bg-[var(--warning-color,#FAAD14)]'}"
+                        >${item.status}</span>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)] space-y-1">
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.orderId.label']}:</span> ${item.orderId}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.orderType.label']}:</span> ${item.orderType}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.createdAt.label']}:</span> ${item.createdAt}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.deliveredAt.label']}:</span> ${item.deliveredAt}</div>
+                        </div>
+                      </div>
+                    `)}
+                  </div>`}
+
+              ${this.requestAiSalesSummaryState === 'success'
+                ? html`<div class="flex items-center justify-between rounded-md bg-[var(--success-color,#52C41A)] bg-opacity-10 px-3 py-2">
+                    <span class="text-sm text-[var(--success-color,#52C41A)]">${this.msg['action.requestAiSalesSummary.success']}</span>
+                  </div>`
+                : this.requestAiSalesSummaryState === 'error'
+                ? html`<div class="flex items-center justify-between rounded-md bg-[var(--error-color,#FF4D4F)] bg-opacity-10 px-3 py-2">
+                    <span class="text-sm text-[var(--error-color,#FF4D4F)]">${this.msg['action.requestAiSalesSummary.error']}</span>
+                  </div>`
+                : null}
             </div>
 
-            <!-- Organism: AI Promo Suggestions -->
-            <div class="space-y-3 border-t border-[var(--grey-color,#e6e6e6)] pt-4">
-              <h3 class="text-sm font-semibold text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['managerDashboard.organism.aiPromoSuggestions.title']}
-              </h3>
-
-              <!-- Action: request AI promo suggestions -->
+            <!-- Organism: Sugestões de promoção por IA -->
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['managerDashboard.intent.aiPromoAction.title']}
-                </span>
+                <h3 class="text-lg font-medium text-[var(--text-primary-color,#403f3f)]">
+                  ${this.msg['organism.aiPromo.title']}
+                </h3>
                 <button
-                  class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  class="px-3 py-1.5 rounded text-sm font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890FF)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50"
+                  @click=${(e: Event) => this.handleRequestAiPromoSuggestionsClick(e)}
                   ?disabled=${this.requestAiPromoSuggestionsState === 'loading'}
-                  @click=${() => this.handleRequestAiPromoSuggestionsClick()}
                 >
-                  ${this.msg['managerDashboard.action.requestAiPromoSuggestions']}
+                  ${this.requestAiPromoSuggestionsState === 'loading'
+                    ? html`<span class="inline-block w-4 h-4 border-2 border-[var(--bg-primary-color,#ffffff)] border-t-transparent rounded-full animate-spin"></span>`
+                    : this.msg['action.requestAiPromoSuggestions.label']}
                 </button>
               </div>
 
-              <!-- Result cards -->
-              <div class="space-y-1">
-                <span class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['managerDashboard.intent.aiPromoResult.title']}
-                </span>
-                ${this.requestAiPromoSuggestionsState === 'loading'
-                  ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-2">…</p>`
-                  : promoRows.length === 0
-                    ? html`<p class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4">
-                        ${this.msg['managerDashboard.intent.aiPromoResult.empty']}
-                      </p>`
-                    : html`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        ${promoRows.map(
-                          (row: CafeFlowRequestAiPromoSuggestionsOutputItem) => html`
-                            <div
-                              class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-secondary-color-lighter,#f9f9f9)] p-3 space-y-1"
-                            >
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.orderId']}
-                              </div>
-                              <div class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                                ${row.orderId}
-                              </div>
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.orderType']}
-                              </div>
-                              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                                ${row.orderType}
-                              </div>
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.status']}
-                              </div>
-                              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                                ${row.status}
-                              </div>
-                              <div class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                                ${this.msg['managerDashboard.field.createdAt']}
-                              </div>
-                              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                                ${row.createdAt}
-                              </div>
-                            </div>
-                          `,
-                        )}
-                      </div>`}
-              </div>
+              ${this.requestAiPromoSuggestionsState === 'loading'
+                ? html`<div class="space-y-2">
+                    ${[0, 1, 2].map(() => html`
+                      <div class="h-16 rounded-lg bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"></div>
+                    `)}
+                  </div>`
+                : this.requestAiPromoSuggestionsData.length === 0
+                ? html`<p class="text-sm text-[var(--text-primary-color-disabled,#525151)]">${this.msg['organism.aiPromo.empty']}</p>`
+                : html`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    ${this.requestAiPromoSuggestionsData.map((item: CafeFlowRequestAiPromoSuggestionsOutputItem) => html`
+                      <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] p-3 space-y-2">
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-[var(--bg-primary-color,#ffffff)] ${item.status === 'delivered'
+                            ? 'bg-[var(--success-color,#52C41A)]'
+                            : item.status === 'ready'
+                            ? 'bg-[var(--active-color,#1890FF)]'
+                            : 'bg-[var(--warning-color,#FAAD14)]'}"
+                        >${item.status}</span>
+                        <div class="text-sm text-[var(--text-primary-color,#403f3f)] space-y-1">
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.orderId.label']}:</span> ${item.orderId}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.orderType.label']}:</span> ${item.orderType}</div>
+                          <div><span class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['field.createdAt.label']}:</span> ${item.createdAt}</div>
+                        </div>
+                      </div>
+                    `)}
+                  </div>`}
+
+              ${this.requestAiPromoSuggestionsState === 'success'
+                ? html`<div class="flex items-center justify-between rounded-md bg-[var(--success-color,#52C41A)] bg-opacity-10 px-3 py-2">
+                    <span class="text-sm text-[var(--success-color,#52C41A)]">${this.msg['action.requestAiPromoSuggestions.success']}</span>
+                  </div>`
+                : this.requestAiPromoSuggestionsState === 'error'
+                ? html`<div class="flex items-center justify-between rounded-md bg-[var(--error-color,#FF4D4F)] bg-opacity-10 px-3 py-2">
+                    <span class="text-sm text-[var(--error-color,#FF4D4F)]">${this.msg['action.requestAiPromoSuggestions.error']}</span>
+                  </div>`
+                : null}
             </div>
           </section>
 
+          <!-- Section: Revisão -->
+          <section class="space-y-4">
+            <h2 class="text-xl font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['section.review.title']}
+            </h2>
+            <div class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-2">
+              <h3 class="text-lg font-medium text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['organism.review.title']}
+              </h3>
+              <p class="text-sm text-[var(--text-primary-color-disabled,#525151)]">
+                ${this.msg['organism.review.empty']}
+              </p>
+            </div>
+          </section>
         </div>
       </div>
     `;

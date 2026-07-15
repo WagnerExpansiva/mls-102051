@@ -7,262 +7,480 @@ import { CafeFlowShiftManagementBase } from '/_102051_/l2/cafeFlow/web/shared/sh
 @customElement('cafe-flow--web--desktop--page21--shift-management-102051')
 export class CafeFlowDesktopPage21ShiftManagementPage extends CafeFlowShiftManagementBase {
   render() {
-    const data = this.viewShiftClosingReportData;
+    const openOutput = this.openShiftOutput;
+    const report = this.viewShiftClosingReportData;
+    const reportLoading = this.viewShiftClosingReportState === 'loading';
 
     return html`
       <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <h1 class="text-xl font-bold text-[var(--text-primary-color,#403f3f)]">
-            <!-- TODO: no page-title msg key in shared i18n; using section board title as page heading -->
-            ${this.msg['shiftManagement.section.board.title']}
+          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#0f172a)]">
+            ${this.msg['page.title']}
           </h1>
 
-          <!-- Section: Turnos por status (board / queryList) -->
+          <!-- Section: Board -->
           <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
           >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['shiftManagement.organism.board.title']}
+            <h2
+              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+            >
+              ${this.msg['section.board.title']}
             </h2>
 
-            <div class="flex justify-end">
-              <button
-                class="px-4 py-2 rounded text-white bg-[var(--active-color,#1890FF)] hover:opacity-90 disabled:opacity-50 text-sm"
-                ?disabled=${this.viewShiftClosingReportState === 'loading'}
-                @click=${this.handleViewShiftClosingReportClick}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Open lane -->
+              <div
+                class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-3 space-y-3"
               >
-                ${this.msg['shiftManagement.action.viewShiftClosingReport.label']}
-              </button>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr
-                    class="border-b border-[var(--grey-color,#E6E6E6)] text-left text-[var(--text-primary-color,#403f3f)]"
+                <div class="flex items-center justify-between">
+                  <h3
+                    class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]"
                   >
-                    <th class="py-2 px-3 font-medium">
-                      ${this.msg['shiftManagement.field.shiftId.label']}
-                    </th>
-                    <th class="py-2 px-3 font-medium">
-                      ${this.msg['shiftManagement.field.status.label']}
-                    </th>
-                    <th class="py-2 px-3 font-medium">
-                      ${this.msg['shiftManagement.field.openedAt.label']}
-                    </th>
-                    <th class="py-2 px-3 font-medium">
-                      ${this.msg['shiftManagement.field.closedAt.label']}
-                    </th>
-                    <th class="py-2 px-3 font-medium">
-                      ${this.msg['shiftManagement.field.totalApurado.label']}
-                    </th>
-                    <th class="py-2 px-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data
-                    ? html`
-                        <tr
-                          class="border-b border-[var(--grey-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)]"
+                    ${this.msg['lane.open.title']}
+                  </h3>
+                  <button
+                    class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
+                    ?disabled=${this.openShiftState === 'loading'}
+                    @click=${(e: Event) => this.handleOpenShiftClick(e)}
+                  >
+                    ${this.openShiftState === 'loading'
+                      ? '...'
+                      : this.msg['action.openShift.label']}
+                  </button>
+                </div>
+                ${openOutput && openOutput.status === 'open'
+                  ? html`
+                      <div
+                        class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-3 space-y-1 text-sm"
+                      >
+                        <div class="text-[var(--text-primary-color,#0f172a)]">
+                          <span class="font-medium"
+                            >${this.msg['field.shiftId.label']}:</span
+                          >
+                          ${openOutput.shiftId}
+                        </div>
+                        <div class="text-[var(--text-primary-color,#0f172a)]">
+                          <span class="font-medium"
+                            >${this.msg['field.status.label']}:</span
+                          >
+                          ${openOutput.status}
+                        </div>
+                        <div class="text-[var(--text-primary-color,#0f172a)]">
+                          <span class="font-medium"
+                            >${this.msg['field.openedAt.label']}:</span
+                          >
+                          ${openOutput.openedAt}
+                        </div>
+                        <div class="text-[var(--text-primary-color,#0f172a)]">
+                          <span class="font-medium"
+                            >${this.msg['field.openedBy.label']}:</span
+                          >
+                          ${openOutput.openedBy}
+                        </div>
+                        <button
+                          class="mt-2 px-2 py-1 rounded text-xs font-medium border border-[var(--grey-color,#e2e8f0)] text-[var(--text-primary-color,#0f172a)] hover:bg-[var(--bg-secondary-color,#f8fafc)]"
+                          @click=${(e: Event) => this.handleCloseShiftClick(e)}
                         >
-                          <td class="py-2 px-3">${data.shiftId ?? ''}</td>
-                          <td class="py-2 px-3">${this.LayoutColBoardStatus || ''}</td>
-                          <td class="py-2 px-3">${this.LayoutColBoardOpened || ''}</td>
-                          <td class="py-2 px-3">${this.LayoutColBoardClosed || ''}</td>
-                          <td class="py-2 px-3">${data.totalApurado ?? ''}</td>
-                          <td class="py-2 px-3">
-                            <button
-                              class="text-[var(--link-color,#1890FF)] hover:underline"
-                              @click=${this.handleViewShiftClosingReportClick}
+                          ${this.msg['action.closeShift.label']}
+                        </button>
+                      </div>
+                    `
+                  : html`
+                      <p
+                        class="text-sm text-[var(--text-primary-color,#535353)]"
+                      >
+                        ${this.msg['lane.open.empty']}
+                      </p>
+                    `}
+              </div>
+
+              <!-- Closed lane -->
+              <div
+                class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-3 space-y-3"
+              >
+                <h3
+                  class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]"
+                >
+                  ${this.msg['lane.closed.title']}
+                </h3>
+                ${reportLoading
+                  ? html`
+                      <div class="space-y-2">
+                        <div
+                          class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse"
+                        ></div>
+                        <div
+                          class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse w-3/4"
+                        ></div>
+                      </div>
+                    `
+                  : report
+                    ? html`
+                        <div
+                          class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-3 space-y-1 text-sm"
+                        >
+                          <div
+                            class="text-[var(--text-primary-color,#0f172a)]"
+                          >
+                            <span class="font-medium"
+                              >${this.msg['field.shiftId.label']}:</span
                             >
-                              ${this.msg['shiftManagement.action.viewShiftClosingReport.label']}
-                            </button>
-                          </td>
-                        </tr>
+                            ${report.shiftId}
+                          </div>
+                          <div
+                            class="text-[var(--text-primary-color,#0f172a)]"
+                          >
+                            <span class="font-medium"
+                              >${this.msg['field.totalApurado.label']}:</span
+                            >
+                            ${report.totalApurado}
+                          </div>
+                          <div
+                            class="text-[var(--text-primary-color,#0f172a)]"
+                          >
+                            <span class="font-medium"
+                              >${this.msg['field.paidOrderCount.label']}:</span
+                            >
+                            ${report.paidOrderCount}
+                          </div>
+                          <div
+                            class="text-[var(--text-primary-color,#0f172a)]"
+                          >
+                            <span class="font-medium"
+                              >${this.msg['field.createdAt.label']}:</span
+                            >
+                            ${report.createdAt}
+                          </div>
+                          <button
+                            class="mt-2 px-2 py-1 rounded text-xs font-medium border border-[var(--grey-color,#e2e8f0)] text-[var(--text-primary-color,#0f172a)] hover:bg-[var(--bg-secondary-color,#f8fafc)]"
+                            @click=${(e: Event) =>
+                              this.handleViewShiftClosingReportClick(e)}
+                          >
+                            ${this.msg['action.viewShiftClosingReport.label']}
+                          </button>
+                        </div>
                       `
                     : html`
-                        <tr>
-                          <td
-                            colspan="6"
-                            class="py-4 text-center text-[var(--text-primary-color,#403f3f)] opacity-60"
-                          >
-                            ${this.msg['shiftManagement.intention.board.title']}
-                          </td>
-                        </tr>
+                        <p
+                          class="text-sm text-[var(--text-primary-color,#535353)]"
+                        >
+                          ${this.msg['lane.closed.empty']}
+                        </p>
                       `}
-                </tbody>
-              </table>
+              </div>
+            </div>
+
+            <!-- Query report filter + detail -->
+            <div class="space-y-3 pt-2">
+              <h3
+                class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]"
+              >
+                ${this.msg['intent.query.report.title']}
+              </h3>
+              <div class="flex gap-2 items-end">
+                <div class="flex-1">
+                  <label
+                    class="block text-xs text-[var(--text-primary-color,#535353)] mb-1"
+                    >${this.msg['field.shiftId.label']}</label
+                  >
+                  <input
+                    type="text"
+                    class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
+                    .value=${this.viewShiftClosingReportShiftId}
+                    @input=${(e: Event) =>
+                      this.handleViewShiftClosingReportShiftIdChange(e)}
+                  />
+                </div>
+                <button
+                  class="px-3 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
+                  ?disabled=${reportLoading}
+                  @click=${(e: Event) =>
+                    this.handleViewShiftClosingReportClick(e)}
+                >
+                  ${this.msg['action.viewShiftClosingReport.label']}
+                </button>
+              </div>
+              ${reportLoading
+                ? html`
+                    <div class="space-y-2">
+                      <div
+                        class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse"
+                      ></div>
+                      <div
+                        class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse w-2/3"
+                      ></div>
+                    </div>
+                  `
+                : report
+                  ? html`
+                      <div
+                        class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-3 space-y-1 text-sm"
+                      >
+                        <div
+                          class="text-[var(--text-primary-color,#0f172a)]"
+                        >
+                          <span class="font-medium"
+                            >${this.msg['field.shiftClosingReportId.label']}:</span
+                          >
+                          ${report.shiftClosingReportId}
+                        </div>
+                        <div
+                          class="text-[var(--text-primary-color,#0f172a)]"
+                        >
+                          <span class="font-medium"
+                            >${this.msg['field.shiftId.label']}:</span
+                          >
+                          ${report.shiftId}
+                        </div>
+                        <div
+                          class="text-[var(--text-primary-color,#0f172a)]"
+                        >
+                          <span class="font-medium"
+                            >${this.msg['field.totalApurado.label']}:</span
+                          >
+                          ${report.totalApurado}
+                        </div>
+                        <div
+                          class="text-[var(--text-primary-color,#0f172a)]"
+                        >
+                          <span class="font-medium"
+                            >${this.msg['field.paidOrderCount.label']}:</span
+                          >
+                          ${report.paidOrderCount}
+                        </div>
+                        <div
+                          class="text-[var(--text-primary-color,#0f172a)]"
+                        >
+                          <span class="font-medium"
+                            >${this.msg['field.createdAt.label']}:</span
+                          >
+                          ${report.createdAt}
+                        </div>
+                        <div
+                          class="text-[var(--text-primary-color,#0f172a)]"
+                        >
+                          <span class="font-medium"
+                            >${this.msg['field.updatedAt.label']}:</span
+                          >
+                          ${report.updatedAt}
+                        </div>
+                      </div>
+                    `
+                  : html`
+                      <p
+                        class="text-sm text-[var(--text-primary-color,#535353)]"
+                      >
+                        ${this.msg['empty.report']}
+                      </p>
+                    `}
             </div>
           </section>
 
-          <!-- Section: Ações do turno (forms) -->
+          <!-- Section: Open Shift Form -->
           <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-6"
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
           >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['shiftManagement.section.actions.title']}
+            <h2
+              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+            >
+              ${this.msg['section.openShift.title']}
             </h2>
-
-            <!-- Open Shift form -->
+            <h3
+              class="text-sm font-medium text-[var(--text-primary-color,#535353)]"
+            >
+              ${this.msg['intent.openShift.title']}
+            </h3>
             <div class="space-y-3">
-              <h3 class="text-base font-medium text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['shiftManagement.organism.openShift.title']}
-              </h3>
-
-              <div class="space-y-1">
+              <div>
                 <label
-                  class="block text-sm text-[var(--text-primary-color,#403f3f)]"
-                  for="open-shift-notes"
+                  class="block text-sm text-[var(--text-primary-color,#0f172a)] mb-1"
+                  >${this.msg['field.notes.label']}</label
                 >
-                  ${this.msg['shiftManagement.field.notes.label']}
-                </label>
                 <textarea
-                  id="open-shift-notes"
-                  class="w-full rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-3 py-2 text-sm text-[var(--text-primary-color,#403f3f)] focus:outline-none"
+                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
                   rows="3"
                   .value=${this.openShiftNotes}
-                  @input=${this.handleOpenShiftNotesChange}
+                  @input=${(e: Event) => this.handleOpenShiftNotesChange(e)}
                 ></textarea>
               </div>
-
               <button
-                class="px-4 py-2 rounded text-white bg-[var(--active-color,#1890FF)] hover:opacity-90 disabled:opacity-50 text-sm"
+                class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
                 ?disabled=${this.openShiftState === 'loading'}
-                @click=${this.handleOpenShiftClick}
+                @click=${(e: Event) => this.handleOpenShiftClick(e)}
               >
-                ${this.msg['shiftManagement.action.openShift.label']}
+                ${this.openShiftState === 'loading'
+                  ? '...'
+                  : this.msg['action.openShift.label']}
               </button>
             </div>
-
-            <!-- Close Shift form -->
-            <div class="space-y-3">
-              <h3 class="text-base font-medium text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['shiftManagement.organism.closeShift.title']}
-              </h3>
-
-              <div class="space-y-1">
-                <label
-                  class="block text-sm text-[var(--text-primary-color,#403f3f)]"
-                  for="close-shift-total"
-                >
-                  ${this.msg['shiftManagement.field.totalApurado.label']} *
-                </label>
-                <input
-                  id="close-shift-total"
-                  type="number"
-                  step="0.01"
-                  class="w-full rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-3 py-2 text-sm text-[var(--text-primary-color,#403f3f)] focus:outline-none"
-                  .value=${this.closeShiftTotalApurado}
-                  @input=${this.handleCloseShiftTotalApuradoChange}
-                />
-              </div>
-
-              <div class="space-y-1">
-                <label
-                  class="block text-sm text-[var(--text-primary-color,#403f3f)]"
-                  for="close-shift-notes"
-                >
-                  ${this.msg['shiftManagement.field.notes.label']}
-                </label>
-                <textarea
-                  id="close-shift-notes"
-                  class="w-full rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-3 py-2 text-sm text-[var(--text-primary-color,#403f3f)] focus:outline-none"
-                  rows="3"
-                  .value=${this.closeShiftNotes}
-                  @input=${this.handleCloseShiftNotesChange}
-                ></textarea>
-              </div>
-
-              <button
-                class="px-4 py-2 rounded text-white bg-[var(--active-color,#1890FF)] hover:opacity-90 disabled:opacity-50 text-sm"
-                ?disabled=${this.closeShiftState === 'loading'}
-                @click=${this.handleCloseShiftClick}
-              >
-                ${this.msg['shiftManagement.action.closeShift.label']}
-              </button>
-            </div>
+            ${this.openShiftState === 'success'
+              ? html`
+                  <div
+                    class="rounded p-3 text-sm text-white bg-[var(--success-color,#52C41A)]"
+                  >
+                    ${this.msg['action.openShift.success']}
+                  </div>
+                `
+              : this.openShiftState === 'error'
+                ? html`
+                    <div
+                      class="rounded p-3 text-sm text-white bg-[var(--error-color,#FF4D4F)]"
+                    >
+                      ${this.openShiftError ||
+                      this.msg['action.openShift.error']}
+                    </div>
+                  `
+                : null}
           </section>
 
-          <!-- Section: Resumo do relatório (summary) -->
+          <!-- Section: Close Shift Form -->
           <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
           >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['shiftManagement.organism.summary.title']}
+            <h2
+              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+            >
+              ${this.msg['section.closeShift.title']}
             </h2>
-
-            ${data
+            <h3
+              class="text-sm font-medium text-[var(--text-primary-color,#535353)]"
+            >
+              ${this.msg['intent.closeShift.title']}
+            </h3>
+            <div class="space-y-3">
+              <div>
+                <label
+                  class="block text-sm text-[var(--text-primary-color,#0f172a)] mb-1"
+                >
+                  ${this.msg['field.totalApurado.label']}
+                  <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                </label>
+                <input
+                  type="number"
+                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
+                  .value=${this.closeShiftTotalApurado}
+                  @input=${(e: Event) =>
+                    this.handleCloseShiftTotalApuradoChange(e)}
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-sm text-[var(--text-primary-color,#0f172a)] mb-1"
+                  >${this.msg['field.notes.label']}</label
+                >
+                <textarea
+                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
+                  rows="3"
+                  .value=${this.closeShiftNotes}
+                  @input=${(e: Event) => this.handleCloseShiftNotesChange(e)}
+                ></textarea>
+              </div>
+              <button
+                class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
+                ?disabled=${this.closeShiftState === 'loading'}
+                @click=${(e: Event) => this.handleCloseShiftClick(e)}
+              >
+                ${this.closeShiftState === 'loading'
+                  ? '...'
+                  : this.msg['action.closeShift.label']}
+              </button>
+            </div>
+            ${this.closeShiftState === 'success'
               ? html`
-                  <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <dt
-                        class="text-[var(--text-primary-color,#403f3f)] opacity-70"
-                      >
-                        ${this.msg['shiftManagement.field.shiftClosingReportId.label']}
-                      </dt>
-                      <dd class="text-[var(--text-primary-color,#403f3f)]">
-                        ${data.shiftClosingReportId ?? ''}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt
-                        class="text-[var(--text-primary-color,#403f3f)] opacity-70"
-                      >
-                        ${this.msg['shiftManagement.field.shiftId.label']}
-                      </dt>
-                      <dd class="text-[var(--text-primary-color,#403f3f)]">
-                        ${data.shiftId ?? ''}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt
-                        class="text-[var(--text-primary-color,#403f3f)] opacity-70"
-                      >
-                        ${this.msg['shiftManagement.field.totalApurado.label']}
-                      </dt>
-                      <dd class="text-[var(--text-primary-color,#403f3f)]">
-                        ${data.totalApurado ?? ''}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt
-                        class="text-[var(--text-primary-color,#403f3f)] opacity-70"
-                      >
-                        ${this.msg['shiftManagement.field.paidOrderCount.label']}
-                      </dt>
-                      <dd class="text-[var(--text-primary-color,#403f3f)]">
-                        ${data.paidOrderCount ?? ''}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt
-                        class="text-[var(--text-primary-color,#403f3f)] opacity-70"
-                      >
-                        ${this.msg['shiftManagement.field.createdAt.label']}
-                      </dt>
-                      <dd class="text-[var(--text-primary-color,#403f3f)]">
-                        ${data.createdAt ?? ''}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt
-                        class="text-[var(--text-primary-color,#403f3f)] opacity-70"
-                      >
-                        ${this.msg['shiftManagement.field.updatedAt.label']}
-                      </dt>
-                      <dd class="text-[var(--text-primary-color,#403f3f)]">
-                        ${data.updatedAt ?? ''}
-                      </dd>
-                    </div>
-                  </dl>
-                `
-              : html`
-                  <p
-                    class="text-sm text-[var(--text-primary-color,#403f3f)] opacity-60"
+                  <div
+                    class="rounded p-3 text-sm text-white bg-[var(--success-color,#52C41A)]"
                   >
-                    ${this.msg['shiftManagement.intention.summary.title']}
-                  </p>
-                `}
+                    ${this.msg['action.closeShift.success']}
+                  </div>
+                `
+              : this.closeShiftState === 'error'
+                ? html`
+                    <div
+                      class="rounded p-3 text-sm text-white bg-[var(--error-color,#FF4D4F)]"
+                    >
+                      ${this.closeShiftError ||
+                      this.msg['action.closeShift.error']}
+                    </div>
+                  `
+                : null}
+          </section>
+
+          <!-- Section: Review Summary -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <h2
+              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+            >
+              ${this.msg['section.review.title']}
+            </h2>
+            <h3
+              class="text-sm font-medium text-[var(--text-primary-color,#535353)]"
+            >
+              ${this.msg['intent.report.summary.title']}
+            </h3>
+            ${reportLoading
+              ? html`
+                  <div class="space-y-2">
+                    <div
+                      class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse"
+                    ></div>
+                    <div
+                      class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse w-3/4"
+                    ></div>
+                  </div>
+                `
+              : report
+                ? html`
+                    <div
+                      class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-4 space-y-2 text-sm"
+                    >
+                      <div class="text-[var(--text-primary-color,#0f172a)]">
+                        <span class="font-medium"
+                          >${this.msg['field.shiftClosingReportId.label']}:</span
+                        >
+                        ${report.shiftClosingReportId}
+                      </div>
+                      <div class="text-[var(--text-primary-color,#0f172a)]">
+                        <span class="font-medium"
+                          >${this.msg['field.shiftId.label']}:</span
+                        >
+                        ${report.shiftId}
+                      </div>
+                      <div class="text-[var(--text-primary-color,#0f172a)]">
+                        <span class="font-medium"
+                          >${this.msg['field.totalApurado.label']}:</span
+                        >
+                        ${report.totalApurado}
+                      </div>
+                      <div class="text-[var(--text-primary-color,#0f172a)]">
+                        <span class="font-medium"
+                          >${this.msg['field.paidOrderCount.label']}:</span
+                        >
+                        ${report.paidOrderCount}
+                      </div>
+                      <div class="text-[var(--text-primary-color,#0f172a)]">
+                        <span class="font-medium"
+                          >${this.msg['field.createdAt.label']}:</span
+                        >
+                        ${report.createdAt}
+                      </div>
+                      <div class="text-[var(--text-primary-color,#0f172a)]">
+                        <span class="font-medium"
+                          >${this.msg['field.updatedAt.label']}:</span
+                        >
+                        ${report.updatedAt}
+                      </div>
+                    </div>
+                  `
+                : html`
+                    <p
+                      class="text-sm text-[var(--text-primary-color,#535353)]"
+                    >
+                      ${this.msg['empty.report']}
+                    </p>
+                  `}
           </section>
         </div>
       </div>

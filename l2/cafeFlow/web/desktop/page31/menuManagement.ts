@@ -3,454 +3,376 @@
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { CafeFlowMenuManagementBase } from '/_102051_/l2/cafeFlow/web/shared/menuManagement.js';
-import type { CafeFlowBrowseMenuItemsOutputItem } from '/_102051_/l2/cafeFlow/web/contracts/menuManagement.js';
 
 @customElement('cafe-flow--web--desktop--page31--menu-management-102051')
 export class CafeFlowDesktopPage31MenuManagementPage extends CafeFlowMenuManagementBase {
-
   render() {
-    const items: CafeFlowBrowseMenuItemsOutputItem[] = this.browseMenuItemsData?.items ?? [];
-    const total: number = this.browseMenuItemsData?.total ?? 0;
+    const items = this.browseMenuItemsData?.items ?? [];
+    const isLoadingList = this.browseMenuItemsState === 'loading';
+    const isSubmitting = this.manageMenuItemState === 'loading';
+    const showSuccess = this.manageMenuItemState === 'success';
+    const showError = this.manageMenuItemState === 'error';
+    const output = this.manageMenuItemOutput;
+
+    const statusLabel = (s: string): string => {
+      if (s === 'draft') return this.msg['status.draft'];
+      if (s === 'active') return this.msg['status.active'];
+      if (s === 'inactive') return this.msg['status.inactive'];
+      return s;
+    };
+
+    const statusBadgeClass = (s: string): string => {
+      if (s === 'draft') return 'bg-[var(--warning-color,#FAAD14)] text-[var(--bg-primary-color,#ffffff)]';
+      if (s === 'active') return 'bg-[var(--success-color,#52C41A)] text-[var(--bg-primary-color,#ffffff)]';
+      if (s === 'inactive') return 'bg-[var(--grey-color-darker,#C0C0C0)] text-[var(--bg-primary-color,#ffffff)]';
+      return 'bg-[var(--grey-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)]';
+    };
+
+    const formatPrice = (p: number): string => {
+      return `R$ ${p.toFixed(2)}`;
+    };
+
+    const formatDate = (d: string): string => {
+      if (!d) return '—';
+      try {
+        return new Date(d).toLocaleString('pt-BR');
+      } catch {
+        return d;
+      }
+    };
 
     return html`
       <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-
           <!-- Page header -->
-          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
-            ${this.msg['menuManagement.cards.title']}
-          </h1>
-
-          <!-- ── Section s10_cards ─────────────────────────────── -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['menuManagement.cards.list.title']}
-            </h2>
-
-            <!-- Organism o10_cards -->
-
-            <!-- Intention i10_context – workflowStatus / business context badge -->
-            <div
-              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] p-3"
-            >
-              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)] mb-2">
-                ${this.msg['menuManagement.context.title']}
-              </h3>
-              <div class="flex items-center gap-2">
-                <span
-                  class="inline-flex items-center rounded px-2 py-1 text-xs font-medium bg-[var(--bg-secondary-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)]"
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['page.menuManagement.title']}
+            </h1>
+            ${this.activeCompanyId
+              ? html`<span
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs bg-[var(--bg-secondary-color,#e6e6e6)] text-[var(--text-primary-color,#403f3f)]"
                 >
-                  ${this.activeCompanyId || '—'}
-                </span>
-              </div>
-            </div>
+                  ${this.activeCompanyId}
+                </span>`
+              : null}
+          </div>
 
-            <!-- Intention i20_query – queryList -->
-            <div class="space-y-3">
-              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['menuManagement.cards.query.title']}
-              </h3>
-
-              <!-- Filters + toolbar -->
-              <div class="flex flex-wrap items-end gap-3">
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="filter-status"
-                  >
-                    ${this.msg['menuManagement.filter.status']}
-                  </label>
-                  <select
-                    id="filter-status"
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.browseMenuItemsStatusFilter}"
-                    @change="${(e: Event) => this.handleBrowseMenuItemsStatusFilterChange(e)}"
-                  >
-                    <option value="">—</option>
-                    <option value="draft">draft</option>
-                    <option value="active">active</option>
-                    <option value="inactive">inactive</option>
-                  </select>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="filter-category"
-                  >
-                    ${this.msg['menuManagement.filter.menuCategory']}
-                  </label>
-                  <input
-                    id="filter-category"
-                    type="text"
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.browseMenuItemsMenuCategoryIdFilter}"
-                    @input="${(e: Event) => this.handleBrowseMenuItemsMenuCategoryIdFilterChange(e)}"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  class="rounded px-3 py-1 text-sm font-medium bg-[var(--active-color,#1890FF)] text-white hover:opacity-90"
-                  @click="${() => this.handleBrowseMenuItemsClick()}"
-                >
-                  ${this.msg['menuManagement.action.refresh']}
-                </button>
-              </div>
-
-              <!-- Table -->
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm border-collapse">
-                  <thead>
-                    <tr class="border-b border-[var(--grey-color,#E6E6E6)]">
-                      <th class="text-left py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">
-                        ${this.msg['menuManagement.menuItem.name']}
-                      </th>
-                      <th class="text-left py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">
-                        ${this.msg['menuManagement.menuItem.menuCategoryId']}
-                      </th>
-                      <th class="text-left py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">
-                        ${this.msg['menuManagement.menuItem.price']}
-                      </th>
-                      <th class="text-left py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]">
-                        ${this.msg['menuManagement.menuItem.status']}
-                      </th>
-                      <th class="text-left py-2 px-3 font-medium text-[var(--text-primary-color,#403f3f)]"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${items.length === 0
-                      ? html`<tr>
-                          <td
-                            colspan="5"
-                            class="py-4 text-center text-[var(--text-primary-color-lighter,#535353)]"
-                          >
-                            —
-                          </td>
-                        </tr>`
-                      : items.map(
-                          (item: CafeFlowBrowseMenuItemsOutputItem) => html`
-                            <tr class="border-b border-[var(--grey-color,#E6E6E6)]">
-                              <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">
-                                ${item.name}
-                              </td>
-                              <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">
-                                ${item.menuCategoryId}
-                              </td>
-                              <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">
-                                ${item.price}
-                              </td>
-                              <td class="py-2 px-3 text-[var(--text-primary-color,#403f3f)]">
-                                ${item.status}
-                              </td>
-                              <td class="py-2 px-3">
-                                <button
-                                  type="button"
-                                  class="rounded px-2 py-1 text-xs font-medium bg-[var(--active-color,#1890FF)] text-white hover:opacity-90"
-                                  @click="${() => this.handleManageMenuItemClick()}"
-                                >
-                                  ${this.msg['menuManagement.action.manage']}
-                                </button>
-                              </td>
-                            </tr>
-                          `,
-                        )}
-                  </tbody>
-                </table>
-              </div>
-
-              ${total > 0
-                ? html`<p class="text-xs text-[var(--text-primary-color-lighter,#535353)]">
-                    ${total}
-                  </p>`
-                : ''}
-            </div>
-
-            <!-- Intention i30_summary – summary -->
-            <div
-              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] p-3"
-            >
-              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)] mb-2">
-                ${this.msg['menuManagement.cards.summary.title']}
-              </h3>
-              ${items.length > 0
-                ? html`
-                    <dl class="grid grid-cols-3 gap-2 text-xs">
-                      <div>
-                        <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                          ${this.msg['menuManagement.menuItem.status']}
-                        </dt>
-                        <dd class="text-[var(--text-primary-color,#403f3f)]">
-                          ${items[0]!.status}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                          ${this.msg['menuManagement.menuItem.itemType']}
-                        </dt>
-                        <dd class="text-[var(--text-primary-color,#403f3f)]">
-                          ${items[0]!.itemType}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                          ${this.msg['menuManagement.menuItem.updatedAt']}
-                        </dt>
-                        <dd class="text-[var(--text-primary-color,#403f3f)]">
-                          ${items[0]!.updatedAt}
-                        </dd>
-                      </div>
-                    </dl>
-                  `
-                : html`<p class="text-xs text-[var(--text-primary-color-lighter,#535353)]">—</p>`}
-            </div>
-          </section>
-
-          <!-- ── Section s20_detail ────────────────────────────── -->
+          <!-- Section 1: Discover – Menu Items Card List -->
           <section
-            class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
           >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['menuManagement.detail.title']}
-            </h2>
-
-            <!-- Organism o20_manage -->
-
-            <!-- Intention i40_status – workflowStatus -->
-            <div
-              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] p-3"
-            >
-              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)] mb-2">
-                ${this.msg['menuManagement.detail.status.title']}
-              </h3>
-              <dl class="grid grid-cols-3 gap-2 text-xs">
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.status']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.manageMenuItemStatus || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.activatedAt']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.LayoutWs20ActivatedAt || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.inactivatedAt']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.LayoutWs30InactivatedAt || '—'}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            <!-- Intention i50_edit – commandForm -->
-            <div class="space-y-3">
-              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['menuManagement.detail.edit.title']}
-              </h3>
-
-              <form
-                @submit="${(e: Event) => {
-                  e.preventDefault();
-                  this.handleManageMenuItemClick();
-                }}"
-                class="space-y-3"
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+                ${this.msg['organism.menuItemsList.title']}
+              </h2>
+              <button
+                class="px-3 py-1.5 text-sm rounded border border-[var(--grey-color,#e6e6e6)] text-[var(--text-primary-color,#403f3f)] hover:bg-[var(--bg-secondary-color,#e6e6e6)]"
+                @click=${(e: Event) => this.handleBrowseMenuItemsClick(e)}
               >
-                <!-- name -->
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="f-name"
-                  >
-                    ${this.msg['menuManagement.menuItem.name']}
-                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
-                  </label>
-                  <input
-                    id="f-name"
-                    type="text"
-                    required
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.manageMenuItemName}"
-                    @input="${(e: Event) => this.handleManageMenuItemNameChange(e)}"
-                  />
-                </div>
-
-                <!-- description -->
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="f-desc"
-                  >
-                    ${this.msg['menuManagement.menuItem.description']}
-                  </label>
-                  <textarea
-                    id="f-desc"
-                    rows="3"
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.manageMenuItemDescription}"
-                    @input="${(e: Event) => this.handleManageMenuItemDescriptionChange(e)}"
-                  ></textarea>
-                </div>
-
-                <!-- menuCategoryId -->
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="f-cat"
-                  >
-                    ${this.msg['menuManagement.menuItem.menuCategoryId']}
-                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
-                  </label>
-                  <input
-                    id="f-cat"
-                    type="text"
-                    required
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.manageMenuItemMenuCategoryId}"
-                    @input="${(e: Event) => this.handleManageMenuItemMenuCategoryIdChange(e)}"
-                  />
-                </div>
-
-                <!-- price -->
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="f-price"
-                  >
-                    ${this.msg['menuManagement.menuItem.price']}
-                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
-                  </label>
-                  <input
-                    id="f-price"
-                    type="number"
-                    step="0.01"
-                    required
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.manageMenuItemPrice}"
-                    @input="${(e: Event) => this.handleManageMenuItemPriceChange(e)}"
-                  />
-                </div>
-
-                <!-- itemType -->
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="f-type"
-                  >
-                    ${this.msg['menuManagement.menuItem.itemType']}
-                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
-                  </label>
-                  <select
-                    id="f-type"
-                    required
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.manageMenuItemItemType}"
-                    @change="${(e: Event) => this.handleManageMenuItemItemTypeChange(e)}"
-                  >
-                    <option value="">—</option>
-                    <option value="simple">simple</option>
-                    <option value="variant">variant</option>
-                  </select>
-                </div>
-
-                <!-- status -->
-                <div class="flex flex-col gap-1">
-                  <label
-                    class="text-xs text-[var(--text-primary-color,#403f3f)]"
-                    for="f-status"
-                  >
-                    ${this.msg['menuManagement.menuItem.status']}
-                    <span class="text-[var(--error-color,#FF4D4F)]">*</span>
-                  </label>
-                  <select
-                    id="f-status"
-                    required
-                    class="rounded border border-[var(--grey-color,#E6E6E6)] px-2 py-1 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value="${this.manageMenuItemStatus}"
-                    @change="${(e: Event) => this.handleManageMenuItemStatusChange(e)}"
-                  >
-                    <option value="">—</option>
-                    <option value="draft">draft</option>
-                    <option value="active">active</option>
-                    <option value="inactive">inactive</option>
-                  </select>
-                </div>
-
-                <!-- Submit -->
-                <div>
-                  <button
-                    type="submit"
-                    class="rounded px-4 py-2 text-sm font-medium bg-[var(--active-color,#1890FF)] text-white hover:opacity-90"
-                    ?disabled="${this.manageMenuItemState === 'loading'}"
-                  >
-                    ${this.msg['menuManagement.action.save']}
-                  </button>
-                </div>
-              </form>
+                ${this.msg['action.refresh']}
+              </button>
             </div>
 
-            <!-- Intention i60_review – summary -->
-            <div
-              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] p-3"
-            >
-              <h3 class="text-sm font-medium text-[var(--text-primary-color,#403f3f)] mb-2">
-                ${this.msg['menuManagement.detail.review.title']}
-              </h3>
-              <dl class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.name']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.manageMenuItemName || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.menuCategoryId']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.manageMenuItemMenuCategoryId || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.price']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.manageMenuItemPrice || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.status']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.manageMenuItemStatus || '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt class="text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['menuManagement.menuItem.updatedAt']}
-                  </dt>
-                  <dd class="text-[var(--text-primary-color,#403f3f)]">
-                    ${this.LayoutR50UpdatedAt || '—'}
-                  </dd>
-                </div>
-              </dl>
+            <!-- Filters -->
+            <div class="flex flex-wrap gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['filter.statusFilter']}</label
+                >
+                <select
+                  class="px-2 py-1.5 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.browseMenuItemsStatusFilter}
+                  @change=${(e: Event) => this.handleBrowseMenuItemsStatusFilterChange(e)}
+                >
+                  <option value="">—</option>
+                  <option value="draft">${this.msg['status.draft']}</option>
+                  <option value="active">${this.msg['status.active']}</option>
+                  <option value="inactive">${this.msg['status.inactive']}</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['filter.menuCategoryIdFilter']}</label
+                >
+                <input
+                  type="text"
+                  class="px-2 py-1.5 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.browseMenuItemsMenuCategoryIdFilter}
+                  @input=${(e: Event) => this.handleBrowseMenuItemsMenuCategoryIdFilterChange(e)}
+                />
+              </div>
             </div>
+
+            <!-- Card list / loading / empty -->
+            ${isLoadingList
+              ? html`<div class="space-y-3">
+                  ${[1, 2, 3].map(
+                    () => html`
+                      <div
+                        class="h-24 rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-secondary-color,#e6e6e6)] animate-pulse"
+                      ></div>
+                    `,
+                  )}
+                </div>`
+              : items.length === 0
+                ? html`<p class="text-sm text-[var(--text-primary-color,#403f3f)] py-4">
+                    ${this.msg['empty.menuItems']}
+                  </p>`
+                : html`<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    ${items.map(
+                      (item) => html`
+                        <div
+                          class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] p-3 space-y-2"
+                        >
+                          <div class="flex items-start justify-between gap-2">
+                            <span
+                              class="font-medium text-sm text-[var(--text-primary-color,#403f3f)]"
+                              >${item.name}</span
+                            >
+                            <span
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs ${statusBadgeClass(
+                                item.status,
+                              )}"
+                            >
+                              ${statusLabel(item.status)}
+                            </span>
+                          </div>
+                          ${item.description
+                            ? html`<p
+                                class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+                              >
+                                ${item.description}
+                              </p>`
+                            : null}
+                          <div
+                            class="flex items-center gap-3 text-xs text-[var(--text-primary-color,#403f3f)]"
+                          >
+                            <span>${this.msg['field.price']}: ${formatPrice(item.price)}</span>
+                            <span>${this.msg['field.itemType']}: ${item.itemType}</span>
+                          </div>
+                          <div
+                            class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+                          >
+                            ${this.msg['field.menuCategoryId']}: ${item.menuCategoryId}
+                          </div>
+                          <button
+                            class="w-full mt-1 px-3 py-1.5 text-xs rounded border border-[var(--grey-color,#e6e6e6)] text-[var(--text-primary-color,#403f3f)] hover:bg-[var(--bg-secondary-color,#e6e6e6)]"
+                            @click=${() => {
+                              this.setManageMenuItemMenuItemId(item.menuItemId);
+                              this.setManageMenuItemName(item.name);
+                              this.setManageMenuItemDescription(item.description);
+                              this.setManageMenuItemMenuCategoryId(item.menuCategoryId);
+                              this.setManageMenuItemPrice(String(item.price));
+                              this.setManageMenuItemItemType(item.itemType);
+                              this.setManageMenuItemStatus(item.status);
+                            }}
+                          >
+                            ${this.msg['action.selectItem']}
+                          </button>
+                        </div>
+                      `,
+                    )}
+                  </div>`}
           </section>
 
+          <!-- Section 2: Execute – Manage Item Form -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['organism.manageItemForm.title']}
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- menuItemId is hidden -->
+              <input type="hidden" .value=${this.manageMenuItemMenuItemId} />
+
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['field.name']} *</label
+                >
+                <input
+                  type="text"
+                  class="px-3 py-2 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.manageMenuItemName}
+                  @input=${(e: Event) => this.handleManageMenuItemNameChange(e)}
+                />
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['field.menuCategoryId']} *</label
+                >
+                <input
+                  type="text"
+                  class="px-3 py-2 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.manageMenuItemMenuCategoryId}
+                  @input=${(e: Event) => this.handleManageMenuItemMenuCategoryIdChange(e)}
+                />
+              </div>
+
+              <div class="flex flex-col gap-1 sm:col-span-2">
+                <label class="text-sm text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['field.description']}</label
+                >
+                <textarea
+                  class="px-3 py-2 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  rows="2"
+                  .value=${this.manageMenuItemDescription}
+                  @input=${(e: Event) => this.handleManageMenuItemDescriptionChange(e)}
+                ></textarea>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['field.price']} *</label
+                >
+                <input
+                  type="number"
+                  step="0.01"
+                  class="px-3 py-2 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.manageMenuItemPrice}
+                  @input=${(e: Event) => this.handleManageMenuItemPriceChange(e)}
+                />
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['field.itemType']} *</label
+                >
+                <select
+                  class="px-3 py-2 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.manageMenuItemItemType}
+                  @change=${(e: Event) => this.handleManageMenuItemItemTypeChange(e)}
+                >
+                  <option value="">—</option>
+                  <!-- TODO: no i18n key for itemType enum values -->
+                  <option value="simple">simple</option>
+                  <option value="variant">variant</option>
+                </select>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-[var(--text-primary-color,#403f3f)]"
+                  >${this.msg['field.status']} *</label
+                >
+                <select
+                  class="px-3 py-2 text-sm rounded border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+                  .value=${this.manageMenuItemStatus}
+                  @change=${(e: Event) => this.handleManageMenuItemStatusChange(e)}
+                >
+                  <option value="">—</option>
+                  <option value="draft">${this.msg['status.draft']}</option>
+                  <option value="active">${this.msg['status.active']}</option>
+                  <option value="inactive">${this.msg['status.inactive']}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button
+                class="px-4 py-2 text-sm font-medium rounded bg-[var(--active-color,#1890ff)] text-[var(--bg-primary-color,#ffffff)] hover:opacity-90 disabled:opacity-50"
+                ?disabled=${isSubmitting}
+                @click=${(e: Event) => this.handleManageMenuItemClick(e)}
+              >
+                ${this.msg['action.manageMenuItem.submit']}
+              </button>
+              ${isSubmitting
+                ? html`<span class="text-sm text-[var(--text-primary-color,#403f3f)]">…</span>`
+                : null}
+            </div>
+
+            <!-- Feedback region -->
+            ${showSuccess || showError
+              ? html`<div
+                  class="flex items-start justify-between gap-3 rounded-lg p-3 border bg-[var(--bg-secondary-color,#e6e6e6)] ${showSuccess
+                    ? 'border-[var(--success-color,#52C41A)]'
+                    : 'border-[var(--error-color,#FF4D4F)]'}"
+                >
+                  <p
+                    class="text-sm ${showSuccess
+                      ? 'text-[var(--success-color,#52C41A)]'
+                      : 'text-[var(--error-color,#FF4D4F)]'}"
+                  >
+                    ${showSuccess
+                      ? this.msg['action.manageMenuItem.success']
+                      : this.manageMenuItemError || this.msg['action.manageMenuItem.error']}
+                  </p>
+                  <button
+                    class="text-sm text-[var(--text-primary-color,#403f3f)] hover:opacity-70"
+                    @click=${() => {
+                      this.manageMenuItemState = 'idle';
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>`
+              : null}
+          </section>
+
+          <!-- Section 3: Review – Summary -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-3"
+          >
+            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              ${this.msg['organism.actionFeedback.title']}
+            </h2>
+            ${output
+              ? html`<dl class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div class="flex flex-col gap-1">
+                    <dt
+                      class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+                    >
+                      ${this.msg['field.name']}
+                    </dt>
+                    <dd class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                      ${output.name}
+                    </dd>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <dt
+                      class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+                    >
+                      ${this.msg['field.status']}
+                    </dt>
+                    <dd class="text-sm">
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs ${statusBadgeClass(
+                          output.status,
+                        )}"
+                      >
+                        ${statusLabel(output.status)}
+                      </span>
+                    </dd>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <dt
+                      class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+                    >
+                      ${this.msg['field.price']}
+                    </dt>
+                    <dd class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                      ${formatPrice(output.price)}
+                    </dd>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <dt
+                      class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+                    >
+                      ${this.msg['field.updatedAt']}
+                    </dt>
+                    <dd class="text-sm text-[var(--text-primary-color,#403f3f)]">
+                      ${formatDate(output.updatedAt)}
+                    </dd>
+                  </div>
+                </dl>`
+              : html`<p
+                  class="text-sm text-[var(--text-primary-color,#403f3f)] opacity-60 py-2"
+                >
+                  ${this.msg['section.review.empty']}
+                </p>`}
+          </section>
         </div>
       </div>
     `;

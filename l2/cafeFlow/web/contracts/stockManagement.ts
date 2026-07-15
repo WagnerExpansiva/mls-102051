@@ -21,6 +21,7 @@ export interface CafeFlowBrowseStockItemsOutput {
 }
 
 export interface CafeFlowManageStockItemInput {
+  stockItemId: string;
   name: string;
   unit: "kg" | "liter" | "portion" | "unit";
   minimumLevel: number;

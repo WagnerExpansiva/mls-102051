@@ -1,6 +1,7 @@
 /// <mls fileReference="_102051_/l2/cafeFlow/web/contracts/kitchenQueue.ts" enhancement="_blank"/>
 
-export interface CafeFlowViewKitchenBoardInput {}
+export interface CafeFlowViewKitchenBoardInput {
+}
 
 export interface CafeFlowViewKitchenBoardOutputItem {
   orderId: string;
@@ -22,7 +23,9 @@ export interface CafeFlowViewKitchenBoardOutput {
 }
 
 export interface CafeFlowUpdateOrderStatusInput {
+  orderId: string;
   status: "registered" | "received" | "inPreparation" | "ready" | "delivered";
 }
 
-export interface CafeFlowUpdateOrderStatusOutput {}
+export interface CafeFlowUpdateOrderStatusOutput {
+}

@@ -26,6 +26,7 @@ export interface CafeFlowBrowseMenuItemsOutput {
 }
 
 export interface CafeFlowManageMenuItemInput {
+  menuItemId: string;
   name: string;
   description?: string;
   menuCategoryId: string;

@@ -3,6 +3,7 @@
 export const definition = {
   "pageId": "managerDashboard",
   "pageName": "Dashboard e assistente IA",
+  "baseClassName": "CafeFlowManagerDashboardBase",
   "actor": "gerente",
   "purpose": "Executar Dashboard e assistente IA.",
   "capabilities": [
@@ -83,19 +84,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-overview",
+      "id": "sec_dashboard",
       "type": "section",
-      "sectionName": "dashboardOverview",
-      "titleKey": "managerDashboard.section.overview.title",
-      "mode": "view",
-      "order": 10,
+      "sectionName": "sec_dashboard",
+      "titleKey": "sec.dashboard.title",
+      "mode": "overview",
+      "order": 0,
       "organisms": [
         {
-          "id": "org-dashboard-status",
-          "type": "data",
-          "organismName": "ViewDashboard",
-          "titleKey": "managerDashboard.organism.viewDashboard.title",
-          "purpose": "Monitorar vendas do dia e status de pedidos do turno atual",
+          "id": "org_dashboard_metrics",
+          "type": "organism",
+          "organismName": "DashboardMetrics",
+          "titleKey": "org.dashboard.metrics.title",
+          "purpose": "Exibir vendas do dia, itens mais vendidos e alertas de estoque baixo agrupados por status do pedido",
           "userActions": [
             "viewDashboard"
           ],
@@ -109,41 +110,42 @@ export const definition = {
             "status",
             "orderType",
             "createdAt",
-            "deliveredAt",
-            "shiftId"
+            "shiftId",
+            "deliveredAt"
           ],
           "writesFields": [],
           "rulesApplied": [
-            "dashboardCurrentShiftOnly",
-            "topSellersFromDayOrders"
+            "O sistema identifica o turno atualmente aberto para filtrar os dados",
+            "O sistema agrega os pedidos do turno atual calculando o total de vendas",
+            "O sistema calcula os itens mais vendidos com base nos pedidos do dia",
+            "O sistema verifica os níveis de estoque abaixo do mínimo configurado"
           ],
-          "order": 10,
+          "order": 0,
           "intentionRefs": [
             {
-              "id": "int-dashboard-status-group",
-              "intent": "workflowStatus",
+              "id": "int_view_dashboard",
+              "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.viewDashboard",
-              "action": "viewDashboard",
-              "order": 10
+              "order": 0
             }
           ]
         }
       ]
     },
     {
-      "id": "sec-ai-assistant",
+      "id": "sec_ai_assistant",
       "type": "section",
-      "sectionName": "aiAssistant",
-      "titleKey": "managerDashboard.section.aiAssistant.title",
-      "mode": "view",
-      "order": 20,
+      "sectionName": "sec_ai_assistant",
+      "titleKey": "sec.ai.assistant.title",
+      "mode": "overview",
+      "order": 1,
       "organisms": [
         {
-          "id": "org-ai-sales-summary",
-          "type": "data",
-          "organismName": "RequestAiSalesSummary",
-          "titleKey": "managerDashboard.organism.aiSalesSummary.title",
-          "purpose": "Solicitar e visualizar resumo de vendas do dia por IA",
+          "id": "org_ai_sales_summary",
+          "type": "organism",
+          "organismName": "AiSalesSummary",
+          "titleKey": "org.ai.sales.summary.title",
+          "purpose": "Solicitar e exibir o resumo de vendas do dia gerado pelo assistente IA",
           "userActions": [
             "requestAiSalesSummary"
           ],
@@ -162,34 +164,25 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "dashboardCurrentShiftOnly",
-            "aiConsumesDomainData",
-            "topSellersFromDayOrders"
+            "O sistema identifica o turno atualmente aberto e agrega os pedidos do dia corrente",
+            "O assistente IA processa os dados agregados de pedidos e estoque e gera o resumo de vendas"
           ],
-          "order": 10,
+          "order": 0,
           "intentionRefs": [
             {
-              "id": "int-ai-sales-action",
-              "intent": "actionList",
-              "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
-              "submitAction": "requestAiSalesSummary",
-              "order": 10
-            },
-            {
-              "id": "int-ai-sales-result",
+              "id": "int_ai_sales_summary",
               "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
-              "action": "requestAiSalesSummary",
-              "order": 20
+              "order": 0
             }
           ]
         },
         {
-          "id": "org-ai-promo-suggestions",
-          "type": "data",
-          "organismName": "RequestAiPromoSuggestions",
-          "titleKey": "managerDashboard.organism.aiPromoSuggestions.title",
-          "purpose": "Solicitar e visualizar sugestões de promoção por IA",
+          "id": "org_ai_promo_suggestions",
+          "type": "organism",
+          "organismName": "AiPromoSuggestions",
+          "titleKey": "org.ai.promo.suggestions.title",
+          "purpose": "Solicitar e exibir sugestões de promoção por item geradas pelo assistente IA",
           "userActions": [
             "requestAiPromoSuggestions"
           ],
@@ -206,48 +199,42 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "aiPromoBasedOnLast7Days",
-            "aiConsumesDomainData"
+            "O sistema agrega os dados de pedidos e itens vendidos dos últimos 7 dias e os níveis atuais de estoque",
+            "O assistente IA analisa os dados agregados do domínio e gera sugestões de promoção por item"
           ],
-          "order": 20,
+          "order": 1,
           "intentionRefs": [
             {
-              "id": "int-ai-promo-action",
-              "intent": "actionList",
-              "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
-              "submitAction": "requestAiPromoSuggestions",
-              "order": 10
-            },
-            {
-              "id": "int-ai-promo-result",
+              "id": "int_ai_promo_suggestions",
               "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
-              "action": "requestAiPromoSuggestions",
-              "order": 20
+              "order": 0
             }
           ]
         }
       ]
     }
   ],
+  "templateId": "status_overview",
+  "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "layout": {
-    "id": "managerDashboard.page11",
+    "id": "status_overview_page11",
     "type": "page",
     "sections": [
       {
-        "id": "sec-overview",
+        "id": "sec_dashboard",
         "type": "section",
-        "sectionName": "dashboardOverview",
-        "titleKey": "managerDashboard.section.overview.title",
-        "mode": "view",
-        "order": 10,
+        "sectionName": "sec_dashboard",
+        "titleKey": "sec.dashboard.title",
+        "mode": "overview",
+        "order": 0,
         "organisms": [
           {
-            "id": "org-dashboard-status",
-            "type": "data",
-            "organismName": "ViewDashboard",
-            "titleKey": "managerDashboard.organism.viewDashboard.title",
-            "purpose": "Monitorar vendas do dia e status de pedidos do turno atual",
+            "id": "org_dashboard_metrics",
+            "type": "organism",
+            "organismName": "DashboardMetrics",
+            "titleKey": "org.dashboard.metrics.title",
+            "purpose": "Exibir vendas do dia, itens mais vendidos e alertas de estoque baixo agrupados por status do pedido",
             "userActions": [
               "viewDashboard"
             ],
@@ -261,79 +248,82 @@ export const definition = {
               "status",
               "orderType",
               "createdAt",
-              "deliveredAt",
-              "shiftId"
+              "shiftId",
+              "deliveredAt"
             ],
             "writesFields": [],
             "rulesApplied": [
-              "dashboardCurrentShiftOnly",
-              "topSellersFromDayOrders"
+              "O sistema identifica o turno atualmente aberto para filtrar os dados",
+              "O sistema agrega os pedidos do turno atual calculando o total de vendas",
+              "O sistema calcula os itens mais vendidos com base nos pedidos do dia",
+              "O sistema verifica os níveis de estoque abaixo do mínimo configurado"
             ],
-            "order": 10,
+            "order": 0,
             "intentions": [
               {
-                "id": "int-dashboard-status-group",
-                "intent": "workflowStatus",
-                "order": 10,
-                "titleKey": "managerDashboard.intent.dashboardStatus.title",
+                "id": "int_view_dashboard",
+                "intent": "queryList",
+                "order": 0,
+                "titleKey": "organism.dashboardMetrics.title",
                 "source": "ui.managerDashboard.data.viewDashboard",
-                "binding": "viewDashboard",
-                "action": "viewDashboard",
-                "emptyKey": "managerDashboard.intent.dashboardStatus.empty",
-                "displayHint": "statusGroup",
+                "emptyKey": "empty.viewDashboard",
+                "displayHint": "statusGroups",
                 "stateKey": "ui.managerDashboard.data.viewDashboard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-order-status",
+                    "id": "col_vd_status",
                     "field": "status",
-                    "labelKey": "managerDashboard.field.status",
-                    "order": 10,
+                    "labelKey": "column.status",
+                    "order": 0,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-order-type",
+                    "id": "col_vd_orderType",
                     "field": "orderType",
-                    "labelKey": "managerDashboard.field.orderType",
-                    "order": 20,
+                    "labelKey": "column.orderType",
+                    "order": 1,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-order-created",
+                    "id": "col_vd_createdAt",
                     "field": "createdAt",
-                    "labelKey": "managerDashboard.field.createdAt",
-                    "order": 30,
+                    "labelKey": "column.createdAt",
+                    "order": 2,
                     "required": false,
-                    "format": "datetime",
+                    "inputType": "datetime",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-order-delivered",
-                    "field": "deliveredAt",
-                    "labelKey": "managerDashboard.field.deliveredAt",
-                    "order": 40,
-                    "required": false,
-                    "format": "datetime",
-                    "stateKey": "ui.managerDashboard.data.viewDashboard"
-                  },
-                  {
-                    "id": "col-order-shift",
+                    "id": "col_vd_shiftId",
                     "field": "shiftId",
-                    "labelKey": "managerDashboard.field.shiftId",
-                    "order": 50,
+                    "labelKey": "column.shiftId",
+                    "order": 3,
                     "required": false,
+                    "inputType": "text",
+                    "stateKey": "ui.managerDashboard.data.viewDashboard"
+                  },
+                  {
+                    "id": "col_vd_deliveredAt",
+                    "field": "deliveredAt",
+                    "labelKey": "column.deliveredAt",
+                    "order": 4,
+                    "required": false,
+                    "inputType": "datetime",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   }
                 ],
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb-refresh-dashboard",
+                    "id": "tb_vd_refresh",
                     "action": "viewDashboard",
-                    "labelKey": "managerDashboard.action.refreshDashboard",
-                    "order": 10,
+                    "labelKey": "action.viewDashboard.label",
+                    "order": 0,
                     "displayHint": "primary",
                     "actionKey": "viewDashboard"
                   }
@@ -346,19 +336,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-ai-assistant",
+        "id": "sec_ai_assistant",
         "type": "section",
-        "sectionName": "aiAssistant",
-        "titleKey": "managerDashboard.section.aiAssistant.title",
-        "mode": "view",
-        "order": 20,
+        "sectionName": "sec_ai_assistant",
+        "titleKey": "sec.ai.assistant.title",
+        "mode": "overview",
+        "order": 1,
         "organisms": [
           {
-            "id": "org-ai-sales-summary",
-            "type": "data",
-            "organismName": "RequestAiSalesSummary",
-            "titleKey": "managerDashboard.organism.aiSalesSummary.title",
-            "purpose": "Solicitar e visualizar resumo de vendas do dia por IA",
+            "id": "org_ai_sales_summary",
+            "type": "organism",
+            "organismName": "AiSalesSummary",
+            "titleKey": "org.ai.sales.summary.title",
+            "purpose": "Solicitar e exibir o resumo de vendas do dia gerado pelo assistente IA",
             "userActions": [
               "requestAiSalesSummary"
             ],
@@ -377,106 +367,90 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "dashboardCurrentShiftOnly",
-              "aiConsumesDomainData",
-              "topSellersFromDayOrders"
+              "O sistema identifica o turno atualmente aberto e agrega os pedidos do dia corrente",
+              "O assistente IA processa os dados agregados de pedidos e estoque e gera o resumo de vendas"
             ],
-            "order": 10,
+            "order": 0,
             "intentions": [
               {
-                "id": "int-ai-sales-action",
-                "intent": "actionList",
-                "order": 10,
-                "titleKey": "managerDashboard.intent.aiSalesAction.title",
-                "submitAction": "requestAiSalesSummary",
-                "emptyKey": "managerDashboard.intent.aiSalesAction.empty",
-                "displayHint": "actionPanel",
-                "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
-                "fields": [],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": [
-                  {
-                    "id": "act-request-sales-summary",
-                    "action": "requestAiSalesSummary",
-                    "labelKey": "managerDashboard.action.requestAiSalesSummary",
-                    "order": 10,
-                    "displayHint": "primary",
-                    "actionKey": "requestAiSalesSummary"
-                  }
-                ]
-              },
-              {
-                "id": "int-ai-sales-result",
+                "id": "int_ai_sales_summary",
                 "intent": "queryList",
-                "order": 20,
-                "titleKey": "managerDashboard.intent.aiSalesResult.title",
+                "order": 0,
+                "titleKey": "organism.aiSalesSummary.title",
                 "source": "ui.managerDashboard.data.requestAiSalesSummary",
-                "binding": "requestAiSalesSummary",
-                "action": "requestAiSalesSummary",
-                "emptyKey": "managerDashboard.intent.aiSalesResult.empty",
-                "displayHint": "list",
+                "emptyKey": "empty.requestAiSalesSummary",
+                "displayHint": "summaryList",
                 "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-ai-sales-orderId",
+                    "id": "col_as_orderId",
                     "field": "orderId",
-                    "labelKey": "managerDashboard.field.orderId",
-                    "order": 10,
+                    "labelKey": "column.orderId",
+                    "order": 0,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ai-sales-status",
+                    "id": "col_as_status",
                     "field": "status",
-                    "labelKey": "managerDashboard.field.status",
-                    "order": 20,
+                    "labelKey": "column.status",
+                    "order": 1,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ai-sales-type",
+                    "id": "col_as_orderType",
                     "field": "orderType",
-                    "labelKey": "managerDashboard.field.orderType",
-                    "order": 30,
+                    "labelKey": "column.orderType",
+                    "order": 2,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ai-sales-created",
+                    "id": "col_as_createdAt",
                     "field": "createdAt",
-                    "labelKey": "managerDashboard.field.createdAt",
-                    "order": 40,
+                    "labelKey": "column.createdAt",
+                    "order": 3,
                     "required": false,
-                    "format": "datetime",
+                    "inputType": "datetime",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ai-sales-delivered",
+                    "id": "col_as_deliveredAt",
                     "field": "deliveredAt",
-                    "labelKey": "managerDashboard.field.deliveredAt",
-                    "order": 50,
+                    "labelKey": "column.deliveredAt",
+                    "order": 4,
                     "required": false,
-                    "format": "datetime",
+                    "inputType": "datetime",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   }
                 ],
                 "filters": [],
-                "toolbar": [],
+                "toolbar": [
+                  {
+                    "id": "tb_as_request",
+                    "action": "requestAiSalesSummary",
+                    "labelKey": "action.requestAiSalesSummary.label",
+                    "order": 0,
+                    "displayHint": "primary",
+                    "actionKey": "requestAiSalesSummary"
+                  }
+                ],
                 "rowActions": [],
                 "actions": []
               }
             ]
           },
           {
-            "id": "org-ai-promo-suggestions",
-            "type": "data",
-            "organismName": "RequestAiPromoSuggestions",
-            "titleKey": "managerDashboard.organism.aiPromoSuggestions.title",
-            "purpose": "Solicitar e visualizar sugestões de promoção por IA",
+            "id": "org_ai_promo_suggestions",
+            "type": "organism",
+            "organismName": "AiPromoSuggestions",
+            "titleKey": "org.ai.promo.suggestions.title",
+            "purpose": "Solicitar e exibir sugestões de promoção por item geradas pelo assistente IA",
             "userActions": [
               "requestAiPromoSuggestions"
             ],
@@ -493,85 +467,70 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "aiPromoBasedOnLast7Days",
-              "aiConsumesDomainData"
+              "O sistema agrega os dados de pedidos e itens vendidos dos últimos 7 dias e os níveis atuais de estoque",
+              "O assistente IA analisa os dados agregados do domínio e gera sugestões de promoção por item"
             ],
-            "order": 20,
+            "order": 1,
             "intentions": [
               {
-                "id": "int-ai-promo-action",
-                "intent": "actionList",
-                "order": 10,
-                "titleKey": "managerDashboard.intent.aiPromoAction.title",
-                "submitAction": "requestAiPromoSuggestions",
-                "emptyKey": "managerDashboard.intent.aiPromoAction.empty",
-                "displayHint": "actionPanel",
-                "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
-                "fields": [],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": [
-                  {
-                    "id": "act-request-promo",
-                    "action": "requestAiPromoSuggestions",
-                    "labelKey": "managerDashboard.action.requestAiPromoSuggestions",
-                    "order": 10,
-                    "displayHint": "primary",
-                    "actionKey": "requestAiPromoSuggestions"
-                  }
-                ]
-              },
-              {
-                "id": "int-ai-promo-result",
+                "id": "int_ai_promo_suggestions",
                 "intent": "queryList",
-                "order": 20,
-                "titleKey": "managerDashboard.intent.aiPromoResult.title",
+                "order": 0,
+                "titleKey": "organism.aiPromoSuggestions.title",
                 "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
-                "binding": "requestAiPromoSuggestions",
-                "action": "requestAiPromoSuggestions",
-                "emptyKey": "managerDashboard.intent.aiPromoResult.empty",
-                "displayHint": "list",
+                "emptyKey": "empty.requestAiPromoSuggestions",
+                "displayHint": "suggestionList",
                 "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-ai-promo-orderId",
+                    "id": "col_ps_orderId",
                     "field": "orderId",
-                    "labelKey": "managerDashboard.field.orderId",
-                    "order": 10,
+                    "labelKey": "column.orderId",
+                    "order": 0,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-ai-promo-type",
+                    "id": "col_ps_orderType",
                     "field": "orderType",
-                    "labelKey": "managerDashboard.field.orderType",
-                    "order": 20,
+                    "labelKey": "column.orderType",
+                    "order": 1,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-ai-promo-status",
+                    "id": "col_ps_status",
                     "field": "status",
-                    "labelKey": "managerDashboard.field.status",
-                    "order": 30,
+                    "labelKey": "column.status",
+                    "order": 2,
                     "required": false,
+                    "inputType": "text",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-ai-promo-created",
+                    "id": "col_ps_createdAt",
                     "field": "createdAt",
-                    "labelKey": "managerDashboard.field.createdAt",
-                    "order": 40,
+                    "labelKey": "column.createdAt",
+                    "order": 3,
                     "required": false,
-                    "format": "datetime",
+                    "inputType": "datetime",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   }
                 ],
                 "filters": [],
-                "toolbar": [],
+                "toolbar": [
+                  {
+                    "id": "tb_ps_request",
+                    "action": "requestAiPromoSuggestions",
+                    "labelKey": "action.requestAiPromoSuggestions.label",
+                    "order": 0,
+                    "displayHint": "primary",
+                    "actionKey": "requestAiPromoSuggestions"
+                  }
+                ],
                 "rowActions": [],
                 "actions": []
               }
@@ -583,29 +542,29 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "db-viewDashboard",
-      "source": "command",
+      "id": "bind_viewDashboard",
+      "source": "ui.managerDashboard.data.viewDashboard",
       "entity": "Order",
       "command": "viewDashboard",
-      "description": "Dados do dashboard do turno",
+      "description": "Dados agregados do dashboard do dia (pedidos por status, itens mais vendidos, alertas de estoque)",
       "stateKey": "ui.managerDashboard.data.viewDashboard",
       "inputStateKeys": []
     },
     {
-      "id": "db-requestAiSalesSummary",
-      "source": "command",
+      "id": "bind_requestAiSalesSummary",
+      "source": "ui.managerDashboard.data.requestAiSalesSummary",
       "entity": "Order",
       "command": "requestAiSalesSummary",
-      "description": "Resumo de vendas por IA",
+      "description": "Resumo de vendas gerado pelo assistente IA",
       "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
       "inputStateKeys": []
     },
     {
-      "id": "db-requestAiPromoSuggestions",
-      "source": "command",
+      "id": "bind_requestAiPromoSuggestions",
+      "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
       "entity": "Order",
       "command": "requestAiPromoSuggestions",
-      "description": "Sugestões de promoção por IA",
+      "description": "Sugestões de promoção geradas pelo assistente IA",
       "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
       "inputStateKeys": []
     }

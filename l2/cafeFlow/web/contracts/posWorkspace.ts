@@ -38,7 +38,9 @@ export interface CafeFlowViewOrderBoardOutput {
   pageSize?: number;
 }
 
-export interface CafeFlowDeliverOrderInput {}
+export interface CafeFlowDeliverOrderInput {
+  orderId: string;
+}
 
 export interface CafeFlowDeliverOrderOutput {
   orderId: string;
