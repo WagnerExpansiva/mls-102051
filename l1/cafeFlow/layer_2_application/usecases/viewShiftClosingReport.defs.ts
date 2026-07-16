@@ -25,7 +25,7 @@ export const viewShiftClosingReportUsecase = {
         "input": [
           {
             "name": "shiftId",
-            "type": "uuid",
+            "type": "string",
             "required": true,
             "ofEntity": "ShiftClosingReport",
             "description": "Identificador do turno fechado cujo relatório de fechamento será exibido."
@@ -34,14 +34,14 @@ export const viewShiftClosingReportUsecase = {
         "output": [
           {
             "name": "shiftClosingReportId",
-            "type": "uuid",
+            "type": "string",
             "required": true,
             "ofEntity": "ShiftClosingReport",
             "description": "Identificador único do relatório de fechamento."
           },
           {
             "name": "shiftId",
-            "type": "uuid",
+            "type": "string",
             "required": true,
             "ofEntity": "ShiftClosingReport",
             "description": "Identificador do turno ao qual o relatório pertence."
@@ -51,14 +51,14 @@ export const viewShiftClosingReportUsecase = {
             "type": "number",
             "required": true,
             "ofEntity": "ShiftClosingReport",
-            "description": "Total apurado do turno — soma da receita registrada conforme a regra shiftClosingRecordsRevenue."
+            "description": "Total apurado do turno para conferência do gerente."
           },
           {
             "name": "paidOrderCount",
             "type": "number",
             "required": true,
             "ofEntity": "ShiftClosingReport",
-            "description": "Quantidade de pedidos pagos consolidados no período do turno conforme a regra shiftClosingConsolidatesPaidOrders."
+            "description": "Quantidade de pedidos pagos consolidados no período do turno."
           },
           {
             "name": "createdAt",
@@ -85,13 +85,14 @@ export const viewShiftClosingReportUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Load the Shift aggregate via Shift port using shiftId to verify the shift exists and its status is 'closed' — a closing report is only available for a closed shift.",
+          "1. Load the Shift aggregate by shiftId via the Shift port to verify the shift exists and its status is 'closed'.",
           "2. If the Shift is not found, return a validation error indicating the shift does not exist.",
-          "3. If the Shift status is not 'closed', return a validation error indicating the closing report is only available for closed shifts (rule: shiftClosingRecordsRevenue requires a finalized shift).",
-          "4. Load the ShiftClosingReport aggregate via ShiftClosingReport port using shiftId as the key field (getById pattern).",
+          "3. If the Shift status is not 'closed', return a validation error indicating the report is only available for closed shifts (rule: shiftClosingRecordsRevenue requires a closed shift with consolidated revenue).",
+          "4. Load the ShiftClosingReport by shiftId via the ShiftClosingReport port (getById using shiftId as key).",
           "5. If no ShiftClosingReport is found for the given shiftId, return an empty/not-found result.",
-          "6. Verify the returned report's totalApurado reflects the revenue recorded for the shift (rule: shiftClosingRecordsRevenue) and paidOrderCount consolidates only paid orders (rule: shiftClosingConsolidatesPaidOrders) — these invariants were enforced at report creation; on read, validate that totalApurado >= 0 and paidOrderCount >= 0, returning a data-integrity error otherwise.",
-          "7. Return the ShiftClosingReport fields: shiftClosingReportId, shiftId, totalApurado, paidOrderCount, createdAt, updatedAt."
+          "6. Apply rule shiftClosingRecordsRevenue: verify the report's totalApurado field is present and reflects the revenue recorded for the closed shift.",
+          "7. Apply rule shiftClosingConsolidatesPaidOrders: verify the report's paidOrderCount field is present and reflects only paid orders consolidated during the shift period (non-paid orders and orders from other shifts are excluded).",
+          "8. Return the ShiftClosingReport fields: shiftClosingReportId, shiftId, totalApurado, paidOrderCount, createdAt, updatedAt."
         ]
       }
     ],

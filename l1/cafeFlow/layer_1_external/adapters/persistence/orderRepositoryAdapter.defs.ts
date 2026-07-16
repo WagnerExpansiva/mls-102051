@@ -18,10 +18,9 @@ export const orderRepositoryAdapter = {
     "tableRef": "orders",
     "mdmReads": [],
     "notes": [
-      "Domain aggregate Order <-> orders table row",
+      "Local table via ctx.data.moduleData.orders",
       "Real columns: order_id, shift_id, status, order_type, created_at",
-      "details JSONB contains: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt, items (embedded OrderItem[])",
-      "Uses ctx.data.moduleData.orders"
+      "Details JSONB: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt, items (OrderItem[])"
     ]
   }
 } as const;

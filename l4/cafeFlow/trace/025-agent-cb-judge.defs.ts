@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:32:25.376Z",
+  "savedAt": "2026-07-16T17:29:49.164Z",
   "agentName": "agentCbJudge",
   "stepId": 25,
   "planning": {
@@ -20,21 +20,28 @@
         "result": {
           "findings": [
             {
-              "ownerId": "browseMenuItems",
+              "ownerId": "viewKitchenBoard",
               "type": "estrutural",
               "severity": "error",
-              "message": "acceptanceAssertions[0] ('A lista retornada contém apenas itens do cardápio pertencentes à empresa ativa do gerente') is not satisfiable: the generated usecase step 2 explicitly does NOT apply the company filter, citing a modeling gap (MenuItem has no companyId field). The L4 contextResolution requires scoping the query by businessContext.activeCompanyId. The usecase should implement this resolution, e.g. by joining MenuItem.menuCategoryId → MenuCategory to filter by the active company, rather than skipping it entirely.",
-              "suggestion": "Implement the contextResolution by resolving activeCompanyId from ctx.sessionContext.businessContext.activeCompanyId and filtering MenuItems through their associated MenuCategory's company scope (or equivalent path), so that acceptance assertion #1 is satisfiable."
+              "message": "Function input is empty [] but L4 declares 'shiftId' as a required input (fieldRef=Order.shiftId, source=activeLifecycleInstance). The usecase must receive shiftId as a context-resolved input; instead it tries to resolve it internally by querying Shift, which is not in the ports list. Missing required input.",
+              "suggestion": "Add shiftId (string, required, resolved from activeLifecycleInstance context) to the function input fields. Remove the internal Shift resolution from steps — the framework resolves shiftId and injects it."
+            },
+            {
+              "ownerId": "viewKitchenBoard",
+              "type": "estrutural",
+              "severity": "warning",
+              "message": "Top-level ports include 'StockConsumption' which is not in the L4 reads (Order, OrderItem) or writes (none). This port is not used by any function and does not correspond to any entity the operation accesses.",
+              "suggestion": "Remove 'StockConsumption' from the top-level ports; the only port needed is 'Order' (OrderItem is a child of the Order aggregate)."
             }
           ]
         },
         "questions": [],
         "trace": [
-          "Checked ports: MenuItem and MenuCategory are MDM entities → ports:[] is correct, no invented ports.",
-          "Checked rulesApplied: 'simpleItemsOnly' present in generated usecase — matches L4.",
-          "Checked inputs: statusFilter and menuCategoryIdFilter match L4 inputs[] exactly, both optional userInput — OK.",
-          "Checked contextResolution: L4 requires scoping by businessContext.activeCompanyId; generated usecase step 2 explicitly skips this filter due to modeling gap — not implemented.",
-          "Checked acceptanceAssertions: assertion #1 requires company-scoped results but usecase does not filter by company → unsatisfiable. Assertions #2–#5 are satisfiable by declared steps/outputs."
+          "Checked ports: function-level ports ['Order'] are correct (OrderItem is child of Order aggregate). Top-level ports include extra 'StockConsumption' not in L4 reads/writes.",
+          "Checked rulesApplied: both fifoKitchenQueue and dashboardCurrentShiftOnly present and applicable. OK.",
+          "Checked inputs vs accessPattern: L4 declares shiftId (required, source=activeLifecycleInstance) and statusFilter (optional, source=systemDefault). Function input is empty [] — shiftId is missing. The usecase tries to resolve shiftId internally by querying Shift (not in ports) instead of receiving it as a context-resolved input. Missing required input -> estrutural error.",
+          "Checked acceptanceAssertions: all 5 assertions are satisfiable by the declared function output (orders collection with status filter, shift filter, priority+receivedAt sort, and embedded items). OK.",
+          "No backend orchestration / HTTP / persistence internals to flag as fora_de_escopo."
         ]
       }
     },

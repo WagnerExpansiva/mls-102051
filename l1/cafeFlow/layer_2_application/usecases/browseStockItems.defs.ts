@@ -27,21 +27,32 @@ export const browseStockItemsUsecase = {
             "type": "string",
             "required": false,
             "description": "Termo de busca opcional para filtrar itens de estoque pelo nome."
+          },
+          {
+            "name": "page",
+            "type": "number",
+            "required": false,
+            "description": "Número da página para paginação opcional (base 1)."
+          },
+          {
+            "name": "pageSize",
+            "type": "number",
+            "required": false,
+            "description": "Quantidade de itens por página para paginação opcional."
           }
         ],
         "output": [
           {
-            "name": "items",
+            "name": "stockItems",
             "type": "array",
             "required": true,
-            "description": "Lista de itens de estoque com nome, unidade, limite mínimo, quantidade atual e flag de alerta de estoque baixo.",
-            "ofEntity": "StockItem"
+            "description": "Lista de itens de estoque ordenados por nome. Cada item contém: stockItemId (string, ofEntity StockItem), name (string, ofEntity StockItem), unit (string, ofEntity StockItem), minimumLevel (number, ofEntity StockItem), createdAt (string, ofEntity StockItem), updatedAt (string, ofEntity StockItem), currentQuantity (number, ofEntity StockLevel), isLowStock (boolean, computed)."
           },
           {
             "name": "total",
             "type": "number",
             "required": true,
-            "description": "Número total de itens retornados na lista."
+            "description": "Total de itens de estoque encontrados antes da paginação."
           }
         ],
         "ports": [
@@ -52,14 +63,15 @@ export const browseStockItemsUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolver o actorId a partir de ctx.sessionContext para autorização do gerente autenticado.",
-          "2. Listar todos os StockItems do MDM via ctx.mdm.collection.listByType({ type: 'StockItem' }).",
-          "3. Se searchTerm foi informado, filtrar os itens cujo name contém o termo (case-insensitive).",
-          "4. Ordenar os itens resultantes por name em ordem ascendente.",
-          "5. Coletar todos os stockItemId dos itens filtrados e buscar os StockLevels correspondentes em lote através da porta StockLevel (list/find by stockItemId).",
-          "6. Para cada StockItem, localizar seu StockLevel correspondente e aplicar a regra lowStockAlertCalculation: se currentQuantity <= minimumLevel, marcar lowStockAlert = true; caso contrário false.",
-          "7. Montar a lista de saída com stockItemId, name, unit, minimumLevel, createdAt, updatedAt, currentQuantity e lowStockAlert para cada item.",
-          "8. Retornar { items, total } onde total é o número de itens na lista."
+          "Extrair actorId de ctx.sessionContext para autorização do gerente autenticado (contexto de sessão, não input público).",
+          "Listar itens de estoque (StockItem) do MDM via ctx.mdm.collection.listByType({ type: 'StockItem' }); se searchTerm fornecido, filtrar resultados em memória por name contendo o termo (case-insensitive).",
+          "Coletar stockItemIds dos resultados do MDM.",
+          "Consultar níveis de estoque (StockLevel) via porta StockLevel para os stockItemIds obtidos — listar StockLevels e filtrar por stockItemId em memória (ou usar método de listagem com filtro se disponível na porta).",
+          "Criar mapa stockItemId -> StockLevel para junção eficiente.",
+          "Para cada StockItem, juntar com StockLevel correspondente (se existir) e aplicar regra lowStockAlertCalculation: isLowStock = (stockLevel.currentQuantity <= stockItem.minimumLevel). Se não houver StockLevel, isLowStock = false e currentQuantity = null.",
+          "Ordenar lista resultante por name (ascendente, case-insensitive).",
+          "Aplicar paginação opcional: se page e pageSize fornecidos, fatiar a lista ordenada; caso contrário retornar todos os itens.",
+          "Retornar { stockItems, total } onde total é o count antes da paginação."
         ]
       }
     ],

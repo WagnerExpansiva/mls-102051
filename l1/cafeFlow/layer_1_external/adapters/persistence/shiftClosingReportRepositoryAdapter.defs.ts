@@ -18,10 +18,9 @@ export const shiftClosingReportRepositoryAdapter = {
     "tableRef": "shift_closing_reports",
     "mdmReads": [],
     "notes": [
-      "Domain aggregate ShiftClosingReport <-> shift_closing_reports table row",
+      "Local table via ctx.data.moduleData.shift_closing_reports",
       "Real columns: shift_closing_report_id, shift_id, created_at",
-      "details JSONB contains: totalApurado, paidOrderCount, updatedAt",
-      "Uses ctx.data.moduleData.shift_closing_reports"
+      "Details JSONB: totalApurado, paidOrderCount, updatedAt"
     ]
   }
 } as const;

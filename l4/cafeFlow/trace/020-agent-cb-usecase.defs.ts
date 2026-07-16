@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:29:11.765Z",
+  "savedAt": "2026-07-16T17:24:03.714Z",
   "agentName": "agentCbUsecase",
   "stepId": 20,
   "planning": null,
@@ -21,44 +21,32 @@
             {
               "functionName": "requestAiPromoSuggestions",
               "inputTypeName": "RequestAiPromoSuggestionsInput",
-              "outputTypeName": "AiPromoSuggestion",
+              "outputTypeName": "RequestAiPromoSuggestionsOutput",
               "input": [],
               "output": [
                 {
-                  "name": "menuItemId",
+                  "name": "suggestions",
                   "type": "string",
                   "required": true,
-                  "description": "ID do item de menu sugerido para promoção"
+                  "description": "JSON-encoded array of promo suggestion objects, each containing menuItemId, suggestedPromoType, reason, currentStockLevel, and recentSalesQuantity derived from the last 7 days of domain data"
                 },
                 {
-                  "name": "totalQuantitySold",
-                  "type": "number",
-                  "required": true,
-                  "description": "Quantidade total vendida do item nos últimos 7 dias"
-                },
-                {
-                  "name": "currentStockQuantity",
-                  "type": "number",
-                  "required": true,
-                  "description": "Quantidade atual em estoque do item"
-                },
-                {
-                  "name": "stockUnit",
+                  "name": "windowStart",
                   "type": "string",
                   "required": true,
-                  "description": "Unidade de medida do estoque (kg, liter, portion, unit)"
+                  "description": "ISO datetime marking the start of the 7-day analysis window (now - 7 days)"
                 },
                 {
-                  "name": "suggestionReason",
+                  "name": "windowEnd",
                   "type": "string",
                   "required": true,
-                  "description": "Motivo da sugestão derivado do padrão de vendas e nível de estoque"
+                  "description": "ISO datetime marking the end of the analysis window (current timestamp)"
                 },
                 {
-                  "name": "suggestedDiscountPercent",
+                  "name": "analyzedOrderCount",
                   "type": "number",
-                  "required": false,
-                  "description": "Percentual de desconto sugerido com base no volume de vendas e estoque"
+                  "required": true,
+                  "description": "Number of orders found within the 7-day analysis window"
                 }
               ],
               "ports": [
@@ -69,42 +57,41 @@
                 "aiPromoBasedOnLast7Days",
                 "aiConsumesDomainData"
               ],
-              "transactional": true,
+              "transactional": false,
               "steps": [
-                "Resolve windowStart = ctx.clock.now() minus 7 days (rule aiPromoBasedOnLast7Days) — this is the analysis window; no user input needed",
-                "Resolve actorId from ctx.sessionContext for audit and permission context",
-                "Query Order port for all orders with createdAt >= windowStart (last 7 days only)",
-                "From each loaded Order aggregate, collect embedded OrderItems and aggregate total quantity by menuItemId across the entire window",
-                "Query StockLevel port for all current stock levels to cross-reference with aggregated sales data (rule aiConsumesDomainData — only domain data from Order, OrderItem, StockLevel is consumed, no external sources)",
-                "Cross-reference: items with high sales volume AND sufficient stock (currentQuantity > minimumLevel) are promo candidates; items with low stock (currentQuantity <= minimumLevel) are excluded to avoid supply constraints",
-                "Compute suggestedDiscountPercent proportional to sales volume and stock surplus — higher volume + higher surplus yields larger suggested discount",
-                "Build the promo suggestion list with menuItemId, totalQuantitySold, currentStockQuantity, stockUnit, suggestionReason, and suggestedDiscountPercent",
-                "Append audit event to StockConsumption port recording the AI suggestion request (actorId, windowStart, suggestionCount) — note: StockConsumption port is referenced by eventWrites but not present in provided ports; this is a modeling gap that should be resolved by adding StockConsumption to ports",
-                "Return the list of promo suggestions as the operation result — no Order, OrderItem, or StockLevel records are modified (strictly read-only)"
+                "Resolve actorId from ctx.sessionContext for audit context (no public input required)",
+                "Compute windowEnd = ctx.clock.now() and windowStart = windowEnd minus 7 days (systemDefault resolution)",
+                "Load Orders via Order port filtered by createdAt >= windowStart (rule aiPromoBasedOnLast7Days: only orders within the 7-day window are considered)",
+                "Extract embedded OrderItem collections from each loaded Order; aggregate total quantity sold per menuItemId across the window",
+                "Load all StockLevel records via StockLevel port to obtain currentQuantity and minimumLevel per stock item",
+                "Apply rule aiPromoBasedOnLast7Days: identify promo candidates — items with high recent sales volume (top sellers that could benefit from promotional bundling) and items with currentQuantity well above minimumLevel (overstock that needs movement)",
+                "Apply rule aiConsumesDomainData: ensure every suggestion is derived exclusively from Order, OrderItem, and StockLevel domain data — no external data sources are consulted",
+                "Build suggestion objects: { menuItemId, suggestedPromoType (e.g. 'bundle', 'discount', 'featured'), reason (human-readable rationale from sales/stock data), currentStockLevel, recentSalesQuantity }",
+                "Serialize suggestions array as JSON string and return alongside windowStart, windowEnd, and analyzedOrderCount",
+                "Note: eventWrites declares a StockConsumption audit event (port StockConsumption) but that port is not in the available ports set and the operation is strictly read-only (writes: []) — this is a modeling gap; no aggregate mutation occurs so no event is emitted"
               ]
             }
           ],
           "mdmRefs": []
         },
         "questions": [
-          "The eventWrite references port 'StockConsumption' but it is not included in the provided ports array (only 'Order' and 'StockLevel' are listed). Should 'StockConsumption' be added to ports, or should the audit event be omitted for this read-only query operation?",
-          "The accessPattern declares keyField 'Order.orderId' (lookup kind), but the actual operation analyzes all orders in a 7-day window rather than looking up a single order by id. Should the accessPattern kind be 'list' instead of 'lookup' to better reflect the window-based query?"
+          "The eventWrites section declares a StockConsumption audit event on port StockConsumption, but that port is not included in the available ports (only Order and StockLevel are provided) and the operation is strictly read-only (writes: []). Should the StockConsumption port be added to ports, or should the audit event be removed since no aggregate mutation occurs?",
+          "OrderItem appears in reads but not in ports. It is treated as a child entity embedded in the Order aggregate (accessed through the Order port). Is this assumption correct, or should OrderItem have its own port?"
         ],
         "trace": [
-          "Analyzed owner: operation 'requestAiPromoSuggestions', opKind=query, entity=Order, reads=[Order, OrderItem, StockLevel], writes=[]",
-          "Identified both inputs (actorId from actorSession, windowStart from systemDefault) as context-resolved — no public user input surface",
-          "Access pattern is lookup but actual behavior is a 7-day window analysis query; treated as a context-driven aggregate query",
-          "OrderItem is a child of Order aggregate (has orderId FK) — accessed through Order port, no separate OrderItem port needed",
-          "Applied rule aiPromoBasedOnLast7Days: windowStart computed as now - 7 days, only orders within window are analyzed",
-          "Applied rule aiConsumesDomainData: all data sourced from Order, OrderItem, StockLevel ports only; no external AI data sources",
-          "Output defined as promo suggestion collection with menuItemId, totalQuantitySold, currentStockQuantity, stockUnit, suggestionReason, suggestedDiscountPercent",
-          "Event write for StockConsumption audit included in steps but flagged as modeling gap since port is not in provided ports list",
-          "Operation is transactional=true to wrap the audit event append in the same transaction"
+          "Parsed owner: operation query requestAiPromoSuggestions on entity Order",
+          "Identified ports: Order, StockLevel (OrderItem accessed as embedded child of Order aggregate)",
+          "Analyzed inputs: actorId (source actorSession) and windowStart (source systemDefault) — both are context-resolved, NOT public inputs; input[] is empty",
+          "accessPattern is lookup but no orderId is provided as public input; the operation is a time-window query resolved entirely from context",
+          "Rules: aiPromoBasedOnLast7Days (filter orders to last 7 days from now) and aiConsumesDomainData (suggestions derive only from Order/OrderItem/StockLevel)",
+          "Read-only operation: no mutations, transactional=false",
+          "Detected modeling gap: eventWrites references StockConsumption port not present in available ports; operation is read-only so no event emitted",
+          "Designed output: JSON-encoded suggestions array + window boundaries + analyzed order count"
         ]
       }
     },
     "status": "completed",
-    "stepId": 29,
+    "stepId": 6,
     "interaction": null,
     "nextSteps": null
   }

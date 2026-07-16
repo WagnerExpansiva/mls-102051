@@ -27,17 +27,9 @@ export const viewOrderBoardUsecase = {
         "output": [
           {
             "name": "orders",
-            "type": "Order[]",
-            "ofEntity": "Order",
+            "type": "array",
             "required": true,
-            "description": "Pedidos do turno atual aberto, ordenados por createdAt crescente (FIFO)"
-          },
-          {
-            "name": "currentShiftId",
-            "type": "string",
-            "ofEntity": "Shift",
-            "required": false,
-            "description": "ID do turno aberto resolvido em runtime; ausente quando nenhum turno está aberto"
+            "description": "Collection of orders for the current open shift, sorted by createdAt ascending (FIFO). Each item contains orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, createdAt."
           }
         ],
         "ports": [
@@ -51,13 +43,13 @@ export const viewOrderBoardUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolver o turno atualmente aberto consultando o port Shift por status='open' (regra dashboardCurrentShiftOnly)",
-          "2. Se nenhum turno aberto for encontrado, retornar lista vazia sem erro (regra dashboardCurrentShiftOnly)",
-          "3. Consultar o port Order filtrando por shiftId igual ao shiftId do turno aberto resolvido no passo 1",
-          "4. Ordenar os resultados por Order.createdAt em ordem crescente (regra fifoKitchenQueue)",
-          "5. Validar que cada Order.status pertence ao enum permitido [registered, received, inPreparation, ready, delivered] (regra orderStatusFlow); pedidos com status inválido são filtrados e não exibidos",
-          "6. Projetar os campos orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, createdAt para cada pedido",
-          "7. Retornar a lista projetada junto com o currentShiftId resolvido"
+          "Resolve the currently open Shift by querying the Shift port for the single record with status='open' (dashboardCurrentShiftOnly rule). If multiple open shifts exist, use the most recently opened one.",
+          "If no open Shift is found, return an empty orders list — the dashboard shows nothing for closed/previous shifts (dashboardCurrentShiftOnly rule).",
+          "Query the Order port filtering by shiftId equal to the resolved open Shift's shiftId to retrieve only orders belonging to the current shift.",
+          "Sort the returned orders by createdAt in ascending order so the oldest order appears first (fifoKitchenQueue rule).",
+          "Validate each order's status is one of the allowed values: registered, received, inPreparation, ready, delivered (orderStatusFlow rule). Orders with an unexpected status are excluded from the result.",
+          "Project each order to include only: orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, createdAt.",
+          "Return the projected and sorted order list as the orders output field."
         ]
       }
     ],

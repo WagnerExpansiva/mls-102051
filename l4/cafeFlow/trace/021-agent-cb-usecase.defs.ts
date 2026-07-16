@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:29:14.212Z",
+  "savedAt": "2026-07-16T17:24:09.436Z",
   "agentName": "agentCbUsecase",
   "stepId": 21,
   "planning": null,
@@ -15,72 +15,46 @@
           "ports": [
             "Order",
             "Shift",
-            "StockLevel"
+            "StockLevel",
+            "StockConsumption"
           ],
           "functions": [
             {
               "functionName": "requestAiSalesSummary",
-              "inputTypeName": "AiSalesSummaryRequest",
-              "outputTypeName": "AiSalesSummaryResult",
+              "inputTypeName": "RequestAiSalesSummaryInput",
+              "outputTypeName": "AiSalesSummary",
               "input": [],
               "output": [
                 {
                   "name": "shiftId",
                   "type": "string",
                   "required": true,
-                  "description": "ID of the currently open shift used to scope the summary",
-                  "ofEntity": "Shift"
+                  "ofEntity": "Shift",
+                  "description": "ID of the currently open shift used to scope the summary"
                 },
                 {
                   "name": "totalOrders",
                   "type": "number",
                   "required": true,
-                  "description": "Total number of orders in the current open shift"
-                },
-                {
-                  "name": "totalRevenue",
-                  "type": "number",
-                  "required": true,
-                  "description": "Sum of revenue across all orders in the current shift"
-                },
-                {
-                  "name": "deliveredCount",
-                  "type": "number",
-                  "required": true,
-                  "description": "Count of orders with status 'delivered'"
-                },
-                {
-                  "name": "inPreparationCount",
-                  "type": "number",
-                  "required": true,
-                  "description": "Count of orders with status 'inPreparation'"
-                },
-                {
-                  "name": "readyCount",
-                  "type": "number",
-                  "required": true,
-                  "description": "Count of orders with status 'ready'"
-                },
-                {
-                  "name": "topSellers",
-                  "type": "array",
-                  "required": true,
-                  "description": "Top selling menu items aggregated from current shift orders: [{ menuItemId: string, totalQuantity: number, totalRevenue: number }]",
-                  "ofEntity": "OrderItem"
-                },
-                {
-                  "name": "stockAlerts",
-                  "type": "array",
-                  "required": true,
-                  "description": "Stock items at or below minimum level: [{ stockItemId: string, currentQuantity: number, minimumLevel: number, unit: string }]",
-                  "ofEntity": "StockLevel"
+                  "description": "Total count of orders in the current open shift"
                 },
                 {
                   "name": "orders",
                   "type": "array",
                   "required": true,
-                  "description": "List of orders from the current shift: [{ orderId: string, status: string, orderType: string, createdAt: string, deliveredAt: string }]",
-                  "ofEntity": "Order"
+                  "description": "List of order projections from the current shift, each containing orderId, status, orderType, createdAt, deliveredAt"
+                },
+                {
+                  "name": "topSellers",
+                  "type": "array",
+                  "required": true,
+                  "description": "Computed top-selling items aggregated by menuItemId with totalQuantity, derived from OrderItems of the current shift orders"
+                },
+                {
+                  "name": "stockAlerts",
+                  "type": "array",
+                  "required": true,
+                  "description": "Stock items where currentQuantity is at or below minimumLevel, each containing stockItemId, currentQuantity, minimumLevel, unit"
                 }
               ],
               "ports": [
@@ -95,38 +69,37 @@
               ],
               "transactional": false,
               "steps": [
-                "1. Resolve the currently open Shift by querying the Shift port for status='open' (rule: dashboardCurrentShiftOnly). If multiple open shifts exist, use the most recently opened one. If none is open, return an empty summary with shiftId=null, zero counts, and empty arrays.",
-                "2. Load all Orders for the resolved shiftId via the Order port (list by shiftId filter). Each Order aggregate includes its embedded OrderItem collection.",
-                "3. Collect all OrderItems from the loaded Orders. Aggregate by menuItemId: sum quantity into totalQuantity and sum (quantity * unitPrice) into totalRevenue. Sort descending by totalQuantity to produce topSellers (rule: topSellersFromDayOrders).",
-                "4. Compute summary metrics from the loaded orders: totalOrders = count, totalRevenue = sum of all OrderItem subtotals, deliveredCount/inPreparationCount/readyCount = counts by status.",
-                "5. Load all StockLevels via the StockLevel port. Filter to stockAlerts where currentQuantity <= minimumLevel.",
-                "6. Build the orders projection array with fields orderId, status, orderType, createdAt, deliveredAt for each order in the current shift.",
-                "7. Assemble the AiSalesSummaryResult using only data obtained from domain ports (Order, Shift, StockLevel) — no external data sources are consulted (rule: aiConsumesDomainData).",
-                "8. Return the summary result. No historical or multi-shift data is included — the summary is strictly scoped to the single open shift (rule: dashboardCurrentShiftOnly)."
+                "1. Resolve the active open Shift by querying the Shift port for status='open' (rule: dashboardCurrentShiftOnly). If no open shift exists, return an empty summary with shiftId=null, totalOrders=0, empty orders/topSellers/stockAlerts.",
+                "2. Load all Orders for the resolved open shift via the Order port, filtered by shiftId equal to the open shift's shiftId.",
+                "3. From the loaded Orders, collect all embedded OrderItems and aggregate quantity by menuItemId to compute topSellers (rule: topSellersFromDayOrders). Sort descending by totalQuantity.",
+                "4. Query the StockLevel port for all stock levels where currentQuantity <= minimumLevel to build stockAlerts.",
+                "5. Assemble the AiSalesSummary result containing shiftId, totalOrders (count of loaded orders), orders (projected to orderId/status/orderType/createdAt/deliveredAt), topSellers, and stockAlerts. All data originates exclusively from domain ports — no external sources are consulted (rule: aiConsumesDomainData).",
+                "6. Return the summary. No aggregate mutation occurs; the StockConsumption audit event declared in eventWrites is not emitted because this is a read-only query with no state transition on the owning Order aggregate. The StockConsumption port is also not present in the available ports list, confirming no event append is expected here."
               ]
             }
-          ]
+          ],
+          "mdmRefs": []
         },
         "questions": [
-          "The eventWrites declare a StockConsumption audit event (port=StockConsumption) but 'StockConsumption' is not in the provided ports list (Order, Shift, StockLevel). Since this is a read-only query with writes=[], the audit event port is unavailable. Should StockConsumption be added to ports, or should the audit be handled as a reaction via the platform outbox instead?",
-          "OrderItem appears in reads but not in ports. It is assumed to be an embedded child of the Order aggregate (accessed through the Order port). Is this correct, or does OrderItem have its own repository port?"
+          "The eventWrites declare a StockConsumption audit event with port 'StockConsumption', but that port is not in the available ports list (Order, Shift, StockLevel). Since this is a read-only query with no aggregate mutation, no event is emitted. Should the StockConsumption audit event instead be emitted by a separate mutation usecase (e.g., order delivery)?",
+          "OrderItem appears in reads but not in ports. It is treated as an embedded child of the Order aggregate and accessed through the Order port. Is this the correct modeling assumption, or should OrderItem have its own port?"
         ],
         "trace": [
-          "Analyzed usecase requestAiSalesSummary: query operation, entity=Order, reads=[Order, OrderItem, Shift, StockLevel], writes=[], ports=[Order, Shift, StockLevel]",
-          "Identified both inputs (shiftId, actorId) as context-resolved (activeLifecycleInstance, actorSession) — neither is a public user input, so function input[] is empty",
-          "Resolved activeLifecycleInstance: query Shift port for status='open' to obtain shiftId; actorSession.actorId used for authorization context only, not exposed as input",
-          "Applied rule dashboardCurrentShiftOnly: all order queries filtered by the single open shift; no historical/multi-shift access permitted",
-          "Applied rule topSellersFromDayOrders: top sellers computed by aggregating OrderItem quantities from current shift orders only",
-          "Applied rule aiConsumesDomainData: summary built exclusively from Order, Shift, and StockLevel port data; no external sources",
-          "Noted modeling gap: eventWrites references port 'StockConsumption' which is not in the provided ports list — audit event cannot be written through an unavailable port; flagged in questions",
-          "Noted modeling assumption: OrderItem is embedded in Order aggregate and accessed through the Order port (no separate OrderItem port); flagged in questions",
-          "Designed output as a flat summary with scalar metrics (totalOrders, totalRevenue, status counts) plus array projections (topSellers, stockAlerts, orders) scoped to the current open shift",
-          "Set transactional=false: read-only query with no aggregate mutations"
+          "Parsed owner: usecaseId=requestAiSalesSummary, opKind=query, entity=Order, parentAggregate=Order",
+          "Identified ports: Order, Shift, StockLevel (OrderItem in reads but not ports — treated as embedded child of Order)",
+          "Analyzed inputs: shiftId (source=activeLifecycleInstance) and actorId (source=actorSession) — both context-resolved, NOT public input surface",
+          "Determined public input[] is empty: no userInput, selectedEntity, or routeParam sources present",
+          "Applied rule dashboardCurrentShiftOnly: resolve open Shift via Shift port, filter Orders by that shiftId only",
+          "Applied rule topSellersFromDayOrders: aggregate OrderItem quantities by menuItemId from current-shift orders",
+          "Applied rule aiConsumesDomainData: all data sourced from domain ports (Order, Shift, StockLevel), no external calls",
+          "Designed output: shiftId, totalOrders, orders (list projection), topSellers (computed), stockAlerts (computed from StockLevel)",
+          "Evaluated eventWrites: StockConsumption audit event not emitted — query usecase with no mutation, and StockConsumption port not in available ports",
+          "Set transactional=false: read-only query, no aggregate writes"
         ]
       }
     },
     "status": "completed",
-    "stepId": 6,
+    "stepId": 25,
     "interaction": null,
     "nextSteps": null
   }

@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:29:14.326Z",
+  "savedAt": "2026-07-16T17:24:05.551Z",
   "agentName": "agentCbUsecase",
   "stepId": 15,
   "planning": null,
@@ -11,139 +11,100 @@
       "arguments": {
         "status": "ok",
         "result": {
-          "usecaseId": "createOrder",
+          "usecaseId": "viewShiftClosingReport",
           "ports": [
-            "Order",
-            "StockLevel",
-            "Shift",
-            "StockConsumption"
+            "ShiftClosingReport",
+            "Shift"
           ],
           "functions": [
             {
-              "functionName": "createOrder",
-              "inputTypeName": "CreateOrderInput",
-              "outputTypeName": "CreateOrderOutput",
+              "functionName": "viewShiftClosingReport",
+              "inputTypeName": "ViewShiftClosingReportInput",
+              "outputTypeName": "ViewShiftClosingReportOutput",
               "input": [
                 {
-                  "name": "orderType",
+                  "name": "shiftId",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "Order",
-                  "description": "Tipo do pedido: 'table' (consumo na mesa) ou 'takeout' (para viagem)"
-                },
-                {
-                  "name": "tableNumber",
-                  "type": "string",
-                  "required": false,
-                  "ofEntity": "Order",
-                  "description": "Número da mesa; obrigatório quando orderType = 'table', nulo quando orderType = 'takeout'"
-                },
-                {
-                  "name": "orderItems",
-                  "type": "array",
-                  "required": true,
-                  "ofEntity": "OrderItem",
-                  "description": "Lista de itens do cardápio selecionados, cada item contém { menuItemId: string, quantity: number }"
-                },
-                {
-                  "name": "priority",
-                  "type": "boolean",
-                  "required": false,
-                  "ofEntity": "Order",
-                  "description": "Indica se o pedido foi marcado como prioritário no preparo"
-                },
-                {
-                  "name": "priorityReason",
-                  "type": "string",
-                  "required": false,
-                  "ofEntity": "Order",
-                  "description": "Justificativa da priorização; obrigatória quando priority = true"
+                  "ofEntity": "ShiftClosingReport",
+                  "description": "Identificador do turno fechado cujo relatório de fechamento será exibido."
                 }
               ],
               "output": [
                 {
-                  "name": "orderId",
+                  "name": "shiftClosingReportId",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "Order",
-                  "description": "Identificador único gerado para o novo pedido"
+                  "ofEntity": "ShiftClosingReport",
+                  "description": "Identificador único do relatório de fechamento."
                 },
                 {
-                  "name": "status",
+                  "name": "shiftId",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "Order",
-                  "description": "Status inicial do pedido: 'registered'"
+                  "ofEntity": "ShiftClosingReport",
+                  "description": "Identificador do turno ao qual o relatório pertence."
                 },
                 {
-                  "name": "orderType",
-                  "type": "string",
+                  "name": "totalApurado",
+                  "type": "number",
                   "required": true,
-                  "ofEntity": "Order",
-                  "description": "Tipo do pedido criado"
+                  "ofEntity": "ShiftClosingReport",
+                  "description": "Total apurado do turno para conferência do gerente."
                 },
                 {
-                  "name": "tableNumber",
-                  "type": "string",
-                  "required": false,
-                  "ofEntity": "Order",
-                  "description": "Número da mesa ou nulo para takeout"
+                  "name": "paidOrderCount",
+                  "type": "number",
+                  "required": true,
+                  "ofEntity": "ShiftClosingReport",
+                  "description": "Quantidade de pedidos pagos consolidados no período do turno."
                 },
                 {
                   "name": "createdAt",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "Order",
-                  "description": "Timestamp de criação do pedido"
+                  "ofEntity": "ShiftClosingReport",
+                  "description": "Data e hora de criação do relatório."
+                },
+                {
+                  "name": "updatedAt",
+                  "type": "string",
+                  "required": true,
+                  "ofEntity": "ShiftClosingReport",
+                  "description": "Data e hora da última atualização do relatório."
                 }
               ],
               "ports": [
-                "Order",
-                "StockLevel",
-                "Shift",
-                "StockConsumption"
+                "ShiftClosingReport",
+                "Shift"
               ],
               "rulesApplied": [
-                "stockDecrementOnOrderLaunch",
-                "orderStatusFlow",
-                "fifoKitchenQueue"
+                "shiftClosingRecordsRevenue",
+                "shiftClosingConsolidatesPaidOrders"
               ],
-              "transactional": true,
+              "transactional": false,
               "steps": [
-                "1. Resolve active shift: query Shift port list with filter status='open'. If none found, throw validation error 'No open shift available for order creation'. Use the found shiftId as Order.shiftId.",
-                "2. Generate orderId = ctx.idGenerator.generate(); set now = ctx.clock.now(); createdAt = now; updatedAt = now.",
-                "3. Validate orderType is 'table' or 'takeout'; otherwise throw validation error.",
-                "4. Rule orderStatusFlow: if orderType='table' and tableNumber is null/empty → throw validation error 'tableNumber is required when orderType is table'. If orderType='takeout' → force tableNumber = null.",
-                "5. Validate priority: if priority=true and priorityReason is null/empty → throw validation error 'priorityReason is required when priority is true'.",
-                "6. Rule orderStatusFlow: set Order.status = 'registered' (initial status; flow: registered → received → inPreparation → ready → delivered).",
-                "7. Collect all menuItemIds from orderItems array. Bulk-fetch from MDM via ctx.mdm.collection.getMany({ mdmIds: menuItemIds }). Validate every menu item exists and has status='active'; otherwise throw validation error listing the inactive/missing item ids.",
-                "8. For each MenuItem, retrieve related stock-item ingredients via ctx.mdm.collection.relatedOfMany({ mdmIds: menuItemIds, relationType: 'ingredient' }). Build a consumption map: for each stockItemId, sum (ingredientQuantity × orderItem.quantity) across all order items.",
-                "9. Load all affected StockLevel records via StockLevel port (list by stockItemId filter). For each, validate currentQuantity >= required consumption; if insufficient, throw validation error 'Insufficient stock for stockItemId {id}: available {current}, required {needed}'.",
-                "10. Rule stockDecrementOnOrderLaunch: for each affected StockLevel, decrement currentQuantity by the consumed amount, set lastDecrementAt = now, updatedAt = now. Save via StockLevel port.",
-                "11. Create StockConsumption records for each consumption: stockConsumptionId = ctx.idGenerator.generate(), stockItemId, orderId, quantity, status='posted', createdAt=now. Persist each through StockConsumption port (audit event, append-only).",
-                "12. Build Order aggregate: orderId, shiftId (from step 1), status='registered', orderType, tableNumber, priority (default false), priorityReason (default null), createdAt=now, updatedAt=now. Embed OrderItem children: for each input item, orderItemId=ctx.idGenerator.generate(), orderId, menuItemId, quantity, unitPrice=MenuItem.price (from MDM fetch), createdAt=now, updatedAt=now.",
-                "13. Rule fifoKitchenQueue: the order enters the kitchen queue ordered by createdAt; no explicit queue field needed — FIFO is guaranteed by creation timestamp ordering among orders with status in {registered, received, inPreparation}.",
-                "14. Save Order aggregate (with embedded OrderItems) via Order port inside the same transaction.",
-                "15. Return { orderId, status, orderType, tableNumber, createdAt }."
+                "1. Load the Shift aggregate by shiftId via the Shift port to verify the shift exists and its status is 'closed'.",
+                "2. If the Shift is not found, return a validation error indicating the shift does not exist.",
+                "3. If the Shift status is not 'closed', return a validation error indicating the report is only available for closed shifts (rule: shiftClosingRecordsRevenue requires a closed shift with consolidated revenue).",
+                "4. Load the ShiftClosingReport by shiftId via the ShiftClosingReport port (getById using shiftId as key).",
+                "5. If no ShiftClosingReport is found for the given shiftId, return an empty/not-found result.",
+                "6. Apply rule shiftClosingRecordsRevenue: verify the report's totalApurado field is present and reflects the revenue recorded for the closed shift.",
+                "7. Apply rule shiftClosingConsolidatesPaidOrders: verify the report's paidOrderCount field is present and reflects only paid orders consolidated during the shift period (non-paid orders and orders from other shifts are excluded).",
+                "8. Return the ShiftClosingReport fields: shiftClosingReportId, shiftId, totalApurado, paidOrderCount, createdAt, updatedAt."
               ]
             }
-          ]
+          ],
+          "mdmRefs": []
         },
-        "questions": [
-          "The relationship between MenuItem and stock items (ingredients) is assumed to be modeled as MDM relationships with relationType 'ingredient'. If ingredients are modeled differently (e.g., embedded in MenuItem details), the relatedOfMany call in step 8 needs adjustment.",
-          "StockConsumption was added to ports because the eventWrite declares port 'StockConsumption' for the audit event, even though it was not in the original provided ports list. If StockConsumption events should instead be persisted through the Order port as embedded children, the port list can be reduced to the original three.",
-          "The StockLevel port is assumed to support listing/filtering by stockItemId. If the port only supports getById with stockLevelId, an alternative lookup strategy is needed."
-        ],
+        "questions": [],
         "trace": [
-          "Parsed owner: createOrder, opKind=create, entity=Order, parentAggregate=Order (Order is the root aggregate)",
-          "Identified public inputs: orderType, tableNumber, orderItems, priority, priorityReason (all source=userInput)",
-          "Identified context resolutions: shiftId (activeLifecycleInstance → query Shift port for status=open), orderId (systemDefault.uuid), createdAt/updatedAt (systemDefault.now) — excluded from public input",
-          "Identified MDM refs: MenuItem — accessed via ctx.mdm.collection.getMany and ctx.mdm.collection.relatedOfMany, never via a port",
-          "Identified event writes: StockConsumption (audit, persisted, port=StockConsumption) — added to ports list",
-          "Applied rule orderStatusFlow: status initialized to 'registered', validated tableNumber requirement for table type",
-          "Applied rule stockDecrementOnOrderLaunch: stock decremented at order creation, StockConsumption records created with status 'posted'",
-          "Applied rule fifoKitchenQueue: FIFO ordering by createdAt, no explicit queue field in entity model",
-          "Declared single function createOrder with 5 input fields and 5 output fields, transactional=true"
+          "Parsed owner: viewShiftClosingReport, opKind=view, entity=ShiftClosingReport (root aggregate), accessPattern=getById by shiftId",
+          "Identified public input: shiftId (routeParam, required) — no context resolution needed beyond route param",
+          "Ports: ShiftClosingReport (for report lookup by shiftId) and Shift (to verify shift is closed before showing report)",
+          "Rules: shiftClosingRecordsRevenue (report must show total apurado for the closed shift) and shiftClosingConsolidatesPaidOrders (report must show only paid orders consolidated in the shift period)",
+          "No writes, no eventWrites — pure read operation",
+          "Output projected from accessPattern.output: shiftClosingReportId, shiftId, totalApurado, paidOrderCount, createdAt, updatedAt"
         ]
       }
     },

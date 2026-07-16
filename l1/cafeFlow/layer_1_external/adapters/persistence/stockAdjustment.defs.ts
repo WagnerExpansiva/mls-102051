@@ -31,13 +31,13 @@ export const stockAdjustmentTableDefinition = {
         "name": "status",
         "type": "text",
         "nullable": false,
-        "description": "adjustment status"
+        "description": "Adjustment status (active/voided)"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "ordering timestamp"
+        "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
@@ -54,27 +54,30 @@ export const stockAdjustmentTableDefinition = {
         "indexName": "idx_stock_adjustment_stock_item_id",
         "columns": [
           "stock_item_id"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_stock_adjustment_status",
         "columns": [
           "status"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_stock_adjustment_created_at",
         "columns": [
           "created_at"
-        ]
+        ],
+        "unique": false
       }
     ],
     "detailsColumn": {
       "enabled": true,
       "childCollections": []
     },
-    "purpose": "controle",
     "appendOnly": true,
+    "purpose": "controle",
     "retentionDays": 365
   }
 } as const;

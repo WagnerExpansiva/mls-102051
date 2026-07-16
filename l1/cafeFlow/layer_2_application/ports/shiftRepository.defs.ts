@@ -19,7 +19,7 @@ export const shiftRepositoryPort = {
         "name": "getById",
         "returns": "Shift",
         "params": [
-          "id: ShiftId"
+          "shiftId: ShiftId"
         ]
       },
       {
@@ -37,16 +37,24 @@ export const shiftRepositoryPort = {
         ]
       },
       {
-        "name": "findOpenShift",
-        "returns": "Shift | null",
-        "params": []
-      },
-      {
-        "name": "listByDate",
+        "name": "findByEmployeeId",
         "returns": "Shift[]",
         "params": [
-          "date: LocalDate"
+          "employeeId: EmployeeId"
         ]
+      },
+      {
+        "name": "findByPeriod",
+        "returns": "Shift[]",
+        "params": [
+          "start: Date",
+          "end: Date"
+        ]
+      },
+      {
+        "name": "findOpenShifts",
+        "returns": "Shift[]",
+        "params": []
       }
     ]
   }

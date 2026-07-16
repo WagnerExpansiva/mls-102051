@@ -19,14 +19,7 @@ export const stockAdjustmentRepositoryPort = {
         "name": "append",
         "returns": "void",
         "params": [
-          "adjustment: StockAdjustment"
-        ]
-      },
-      {
-        "name": "listByPeriod",
-        "returns": "StockAdjustment[]",
-        "params": [
-          "period: DateRange"
+          "record: StockAdjustment"
         ]
       },
       {
@@ -34,6 +27,14 @@ export const stockAdjustmentRepositoryPort = {
         "returns": "StockAdjustment[]",
         "params": [
           "productId: ProductId"
+        ]
+      },
+      {
+        "name": "listByPeriod",
+        "returns": "StockAdjustment[]",
+        "params": [
+          "start: Date",
+          "end: Date"
         ]
       },
       {

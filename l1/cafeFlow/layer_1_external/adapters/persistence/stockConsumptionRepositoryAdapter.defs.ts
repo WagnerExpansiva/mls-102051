@@ -18,11 +18,10 @@ export const stockConsumptionRepositoryAdapter = {
     "tableRef": "stock_consumptions",
     "mdmReads": [],
     "notes": [
-      "Event StockConsumption <-> stock_consumptions table row",
+      "Append-only event adapter: insert row + finders only; no update/delete",
+      "Local table via ctx.data.moduleData.stock_consumptions",
       "Real columns: stock_consumption_id, stock_item_id, order_id, status, created_at",
-      "details JSONB contains: quantity, voidedAt, voidReason",
-      "Append-only: insert row only, no update/delete; provides read finders",
-      "Uses ctx.data.moduleData.stock_consumptions"
+      "Details JSONB: quantity, voidedAt, voidReason"
     ]
   }
 } as const;
