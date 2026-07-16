@@ -31,25 +31,25 @@ export const orderTableDefinition = {
         "name": "status",
         "type": "text",
         "nullable": false,
-        "description": "order lifecycle status"
+        "description": "Order lifecycle status"
       },
       {
         "name": "order_type",
         "type": "text",
         "nullable": false,
-        "description": "order type discriminator"
+        "description": "Order type (e.g. dine-in, takeaway)"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "ordering timestamp"
+        "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
         "type": "jsonb",
         "nullable": false,
-        "description": "tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + child collection OrderItem"
+        "description": "tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + OrderItem child collection"
       }
     ],
     "primaryKey": [
@@ -60,25 +60,29 @@ export const orderTableDefinition = {
         "indexName": "idx_order_shift_id",
         "columns": [
           "shift_id"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_order_status",
         "columns": [
           "status"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_order_order_type",
         "columns": [
           "order_type"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_order_created_at",
         "columns": [
           "created_at"
-        ]
+        ],
+        "unique": false
       }
     ],
     "detailsColumn": {
@@ -87,7 +91,6 @@ export const orderTableDefinition = {
         "OrderItem"
       ]
     },
-    "purpose": "operational",
     "appendOnly": false
   }
 } as const;

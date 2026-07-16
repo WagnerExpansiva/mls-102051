@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:29:44.095Z",
+  "savedAt": "2026-07-16T17:24:06.825Z",
   "agentName": "agentCbUsecase",
   "stepId": 18,
   "planning": null,
@@ -14,7 +14,8 @@
           "usecaseId": "viewOrderBoard",
           "ports": [
             "Order",
-            "Shift"
+            "Shift",
+            "StockConsumption"
           ],
           "functions": [
             {
@@ -27,21 +28,7 @@
                   "name": "orders",
                   "type": "array",
                   "required": true,
-                  "ofEntity": "Order",
-                  "description": "List of orders for the currently open shift, sorted by createdAt ascending (FIFO)"
-                },
-                {
-                  "name": "shiftId",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "Shift",
-                  "description": "The shiftId of the currently open shift used to filter orders"
-                },
-                {
-                  "name": "hasOpenShift",
-                  "type": "boolean",
-                  "required": true,
-                  "description": "Whether an open shift was found; false means no orders to display"
+                  "description": "Collection of orders for the current open shift, sorted by createdAt ascending (FIFO). Each item contains orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, createdAt."
                 }
               ],
               "ports": [
@@ -55,28 +42,31 @@
               ],
               "transactional": false,
               "steps": [
-                "1. Query the Shift port for the single Shift with status='open' (activeLifecycleInstance resolution). If none found, return { orders: [], shiftId: null, hasOpenShift: false } — dashboardCurrentShiftOnly rule: no orders from closed/previous shifts are shown.",
-                "2. Using the found open shift's shiftId, query the Order port for all Orders where shiftId equals the open shift's id (dashboardCurrentShiftOnly: filter strictly to current shift).",
-                "3. Sort the returned orders by createdAt in ascending order to satisfy the fifoKitchenQueue rule (oldest first = FIFO kitchen queue).",
-                "4. For each order, validate that its status is one of the allowed values in the orderStatusFlow enum [registered, received, inPreparation, ready, delivered]; include the status as-is in the projection.",
-                "5. Project each order to the output fields: orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, createdAt. Orders with priority=true carry the priority indicator for the board.",
-                "6. Return { orders: projectedSortedOrders, shiftId: openShift.shiftId, hasOpenShift: true }."
+                "Resolve the currently open Shift by querying the Shift port for the single record with status='open' (dashboardCurrentShiftOnly rule). If multiple open shifts exist, use the most recently opened one.",
+                "If no open Shift is found, return an empty orders list — the dashboard shows nothing for closed/previous shifts (dashboardCurrentShiftOnly rule).",
+                "Query the Order port filtering by shiftId equal to the resolved open Shift's shiftId to retrieve only orders belonging to the current shift.",
+                "Sort the returned orders by createdAt in ascending order so the oldest order appears first (fifoKitchenQueue rule).",
+                "Validate each order's status is one of the allowed values: registered, received, inPreparation, ready, delivered (orderStatusFlow rule). Orders with an unexpected status are excluded from the result.",
+                "Project each order to include only: orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, createdAt.",
+                "Return the projected and sorted order list as the orders output field."
               ]
             }
-          ]
+          ],
+          "mdmRefs": []
         },
-        "questions": [
-          "The eventWrites entry references StockConsumption (port StockConsumption) which is not in the provided ports list [Order, Shift]. Since this is a view-only operation with no writes, no events are emitted. Should StockConsumption be added to ports, or is this eventWrite intended for a different usecase?"
-        ],
+        "questions": [],
         "trace": [
-          "Parsed owner: viewOrderBoard, opKind=view, entity=Order, parentAggregate=Order (root aggregate)",
-          "Identified ports: Order, Shift",
-          "shiftId input has source=activeLifecycleInstance → resolved server-side by querying Shift port for status='open'; NOT a public input",
-          "No public user inputs (all inputs are context-resolved), so input[] is empty",
-          "Output projection derived from accessPattern.output: orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, createdAt",
-          "Rules applied inline: dashboardCurrentShiftOnly (filter by open shift), fifoKitchenQueue (sort by createdAt ASC), orderStatusFlow (validate status enum)",
-          "No MDM refs to handle",
-          "No writes → transactional=false, no event emission despite eventWrites listing (view-only operation, StockConsumption port not available)"
+          "Parsed owner spec: viewOrderBoard is a view/list operation on Order entity with parentAggregate=Order (root aggregate, no child embedding).",
+          "Identified ports: Order and Shift (both aggregate roots).",
+          "Identified input shiftId has source 'activeLifecycleInstance' — this is CONTEXT resolved server-side, NOT public input. Excluded from function input[].",
+          "Context resolution: Order.shiftId is resolved by querying Shift port for status='open' and using that shift's shiftId. No public input required.",
+          "No MDM refs to handle.",
+          "Event writes: StockConsumption audit event listed in spec, but this is a read-only view operation (writes: []) with no mutations — no events are emitted.",
+          "Applied rule dashboardCurrentShiftOnly: filter orders to only those belonging to the currently open shift; return empty if no open shift.",
+          "Applied rule fifoKitchenQueue: sort orders by createdAt ascending (oldest first).",
+          "Applied rule orderStatusFlow: validate each order status is within the allowed enum before including in the result.",
+          "Output is a single collection field 'orders' (type array) containing projected Order fields per the accessPattern output list.",
+          "No transactional wrapper needed — read-only operation."
         ]
       }
     },

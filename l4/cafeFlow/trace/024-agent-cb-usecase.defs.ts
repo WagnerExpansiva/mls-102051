@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:31:47.473Z",
+  "savedAt": "2026-07-16T17:28:05.664Z",
   "agentName": "agentCbUsecase",
   "stepId": 24,
   "planning": null,
@@ -11,74 +11,52 @@
       "arguments": {
         "status": "ok",
         "result": {
-          "usecaseId": "browseMenuItems",
-          "ports": [],
+          "usecaseId": "viewKitchenBoard",
+          "ports": [
+            "Order",
+            "Shift"
+          ],
           "functions": [
             {
-              "functionName": "browseMenuItems",
-              "inputTypeName": "BrowseMenuItemsInput",
-              "outputTypeName": "BrowseMenuItemsOutput",
-              "input": [
-                {
-                  "name": "statusFilter",
-                  "type": "string",
-                  "required": false,
-                  "ofEntity": "MenuItem",
-                  "description": "Filtro opcional por status do item (draft, active, inactive)"
-                },
-                {
-                  "name": "menuCategoryIdFilter",
-                  "type": "string",
-                  "required": false,
-                  "ofEntity": "MenuItem",
-                  "description": "Filtro opcional por categoria do item (menuCategoryId)"
-                }
-              ],
+              "functionName": "viewKitchenBoard",
+              "inputTypeName": "ViewKitchenBoardInput",
+              "outputTypeName": "ViewKitchenBoardOutput",
+              "input": [],
               "output": [
                 {
-                  "name": "items",
-                  "type": "MenuItem[]",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "Lista de itens do cardápio no escopo da empresa ativa, contendo menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt"
-                },
-                {
-                  "name": "totalCount",
-                  "type": "number",
-                  "required": true,
-                  "description": "Total de itens retornados na lista"
+                  "name": "orders",
+                  "type": "Order[]",
+                  "ofEntity": "Order",
+                  "description": "Collection of kitchen-board orders for the current shift, each carrying projected fields (orderId, status, orderType, tableNumber, priority, priorityReason, receivedAt, inPreparationAt, createdAt) and its embedded order items (orderItemId, menuItemId, quantity, unitPrice)"
                 }
               ],
-              "ports": [],
+              "ports": [
+                "Order",
+                "Shift"
+              ],
               "rulesApplied": [
-                "simpleItemsOnly"
+                "fifoKitchenQueue",
+                "dashboardCurrentShiftOnly"
               ],
               "transactional": false,
               "steps": [
-                "1. Resolver activeCompanyId a partir de ctx.sessionContext.businessContext.activeCompanyId (contextResolution businessContext.activeCompanyId)",
-                "2. Consultar entidades relacionadas à empresa ativa via ctx.mdm.collection.relatedOfMany({ mdmIds: [activeCompanyId] }) para obter MenuCategories vinculadas à empresa ativa",
-                "3. Filtrar os resultados de relatedOfMany para apenas entidades do tipo MenuCategory e coletar seus menuCategoryIds no conjunto companyCategoryIds",
-                "4. Se companyCategoryIds estiver vazio, retornar lista vazia com totalCount 0 (nenhuma categoria vinculada à empresa ativa)",
-                "5. Listar todos os MenuItems via ctx.mdm.collection.listByType({ type: 'MenuItem' })",
-                "6. Filtrar MenuItems cujo menuCategoryId pertença ao conjunto companyCategoryIds — este é o filtro de escopo por businessContext.activeCompanyId exigido pelo contextResolution, garantindo que apenas itens pertencentes à empresa ativa sejam retornados",
-                "7. Aplicar filtro opcional por status: se statusFilter informado, reter apenas itens cujo status === statusFilter",
-                "8. Aplicar filtro opcional por categoria: se menuCategoryIdFilter informado, reter apenas itens cujo menuCategoryId === menuCategoryIdFilter (o filtro adicional ainda deve respeitar o escopo da empresa ativa, ou seja, menuCategoryIdFilter deve estar em companyCategoryIds)",
-                "9. Aplicar regra simpleItemsOnly: todos os itens (simple e variant) aparecem na lista como entradas individuais separadas, sem expansão ou agrupamento de variantes — o sistema suporta apenas itens simples, então itens variant são listados como linhas individuais sem detalhamento de suas variações",
-                "10. Projetar campos de cada item: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt",
-                "11. Retornar { items, totalCount } com a lista projetada e o total de itens"
+                "1. Resolve the active open Shift: query the Shift port for the single Shift with status='open' (activeLifecycleInstance resolution). If none is open, return an empty orders collection — rule dashboardCurrentShiftOnly blocks showing orders from a non-existent or closed shift.",
+                "2. Using the resolved shiftId, query the Order port for all Orders where shiftId equals the active shift id AND status IN ('received','inPreparation') — the statusFilter is a systemDefault applied server-side, never requested from the client.",
+                "3. Apply rule fifoKitchenQueue: sort the resulting orders so that priority=true orders appear first, then by receivedAt ascending (oldest first) within each priority group.",
+                "4. For each Order in the sorted list, load its embedded OrderItem collection through the Order aggregate (OrderItem is a child entity of the Order aggregate root).",
+                "5. Project each order to the kitchen-board view: orderId, status, orderType, tableNumber (only when orderType='table'), priority, priorityReason, receivedAt, inPreparationAt, createdAt, plus the array of items [{ orderItemId, menuItemId, quantity, unitPrice }].",
+                "6. Return the projected collection as the orders output field."
               ]
             }
           ]
         },
         "questions": [],
         "trace": [
-          "Analyzed owner: browseMenuItems (query/list, entity=MenuItem, parentAggregate=MenuItem)",
-          "Identified MenuItem and MenuCategory as MDM refs (mdmRefs) — no ports needed, all access via ctx.mdm",
-          "Identified repair finding: previous attempt skipped company-scoped filtering due to missing companyId field on MenuItem, making acceptanceAssertions[0] unsatisfiable",
-          "Resolved company scoping via MDM relationships: use ctx.mdm.collection.relatedOfMany({ mdmIds: [activeCompanyId] }) to find MenuCategories linked to the active company, then filter MenuItems by those category ids — this honors contextResolution businessContext.activeCompanyId without requiring a companyId field on MenuItem",
-          "Applied rule simpleItemsOnly: all items listed as individual entries without variant expansion, satisfying assertion about variant items appearing as separate items",
-          "Declared public inputs: statusFilter and menuCategoryIdFilter (both optional, source=userInput) — activeCompanyId resolved from session context, not exposed as input",
-          "Projected output fields per accessPattern.output: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt"
+          "Repair attempt 0: Added 'Shift' to ports array so dashboardCurrentShiftOnly rule can resolve the active open Shift and filter orders by shiftId.",
+          "Both declared inputs (shiftId from activeLifecycleInstance, statusFilter from systemDefault) are context-resolved server-side — no public input fields exposed to the client.",
+          "Output is a single collection field 'orders' of type Order[] carrying projected Order fields plus embedded OrderItem children.",
+          "No event writes emitted: this is a read-only view operation with no aggregate mutations.",
+          "fifoKitchenQueue applied as sort: priority=true first, then receivedAt ascending."
         ]
       }
     },

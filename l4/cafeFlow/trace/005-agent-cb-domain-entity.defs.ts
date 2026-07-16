@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:24:53.263Z",
+  "savedAt": "2026-07-16T17:20:12.016Z",
   "agentName": "agentCbDomainEntity",
   "stepId": 5,
   "planning": {
@@ -124,13 +124,12 @@
                 "tableNumber must be null when orderType is 'takeout'",
                 "priorityReason is required when priority is true",
                 "Status transitions must follow the sequence: registered → received → inPreparation → ready → delivered",
-                "receivedAt must be set when status transitions to 'received'",
-                "inPreparationAt must be set when status transitions to 'inPreparation'",
-                "readyAt must be set when status transitions to 'ready'",
-                "deliveredAt must be set when status transitions to 'delivered'",
-                "Order must belong to a shift whose status is 'open'",
-                "Order must contain at least one OrderItem",
-                "Timestamps must be chronologically ordered: receivedAt ≤ inPreparationAt ≤ readyAt ≤ deliveredAt"
+                "receivedAt must be set when status is 'received' or beyond",
+                "inPreparationAt must be set when status is 'inPreparation' or beyond",
+                "readyAt must be set when status is 'ready' or beyond",
+                "deliveredAt must be set when status is 'delivered'",
+                "Order must belong to an open shift (shiftId references an open Shift)",
+                "Order must contain at least one OrderItem"
               ],
               "valueObjects": [
                 {
@@ -256,12 +255,12 @@
                 "closed"
               ],
               "invariants": [
-                "closedAt is required when status is 'closed'",
-                "closedBy is required when status is 'closed'",
-                "closedAt must be after openedAt",
-                "A closed shift cannot be reopened",
+                "closedAt and closedBy are required when status is 'closed'",
+                "closedAt and closedBy must be null when status is 'open'",
+                "closedAt must be greater than or equal to openedAt",
+                "Only one shift may be open at a time",
                 "totalApurado is required when status is 'closed'",
-                "Only one shift may be open at a time"
+                "Status transition: open → closed (no reopening)"
               ],
               "valueObjects": []
             },
@@ -329,11 +328,12 @@
                   "description": "Data e hora da última atualização do nível de estoque"
                 }
               ],
+              "statusEnum": [],
               "invariants": [
-                "currentQuantity must be >= 0",
-                "minimumLevel must be >= 0",
-                "Low-stock alert is triggered when currentQuantity <= minimumLevel",
-                "unit cannot be changed after creation"
+                "currentQuantity must not be negative",
+                "minimumLevel must be greater than or equal to zero",
+                "When currentQuantity falls below minimumLevel, a low-stock alert is triggered",
+                "There is exactly one StockLevel per stockItemId"
               ],
               "valueObjects": []
             },
@@ -377,11 +377,12 @@
                   "description": "Data e hora da última atualização do relatório de fechamento."
                 }
               ],
+              "statusEnum": [],
               "invariants": [
-                "Referenced shift must have status 'closed' before generating the report",
-                "totalApurado must be >= 0",
-                "paidOrderCount must be >= 0",
-                "Only one ShiftClosingReport per shift"
+                "shiftId must reference a Shift with status 'closed'",
+                "totalApurado must be greater than or equal to zero",
+                "paidOrderCount must be greater than or equal to zero",
+                "There is at most one ShiftClosingReport per shiftId"
               ],
               "valueObjects": []
             },
@@ -513,16 +514,21 @@
             }
           ]
         },
-        "questions": [],
+        "questions": [
+          "Should OrderItem.unitPrice be modeled as a Money value object (amount + currency) or kept as a primitive money type as provided?",
+          "Is there a business rule that prevents voiding a StockConsumption after the parent Order has been delivered, or can consumptions be voided at any time?",
+          "Should ShiftClosingReport.totalApurado be validated against the sum of delivered Order totals for the shift, or is it purely a manually entered value?"
+        ],
         "trace": [
           "Parsed 4 aggregate roots: Order, Shift, StockLevel, ShiftClosingReport",
           "Parsed 2 append-only event records: StockAdjustment, StockConsumption",
-          "Order: embedded OrderItem mapped as valueObject with collection=true",
-          "Shift: no embedded members, invariants derived from open/closed lifecycle",
-          "StockLevel: invariants for non-negative quantities and low-stock alert threshold",
-          "ShiftClosingReport: invariant requiring referenced shift to be closed",
-          "StockAdjustment and StockConsumption: append-only events with no invariants beyond fields",
-          "All field names preserved in camelCase from ontology, entityId in PascalCase"
+          "Order: embedded member OrderItem mapped as valueObject with collection=true (oneToMany)",
+          "Shift: no embedded members, added invariants for open/closed lifecycle and single-open-shift rule",
+          "StockLevel: added invariants for non-negative currentQuantity and low-stock alert threshold",
+          "ShiftClosingReport: added invariants linking to closed Shift and uniqueness per shift",
+          "StockAdjustment: append-only event, no invariants beyond fields",
+          "StockConsumption: append-only event owned by Order, no invariants beyond fields",
+          "All field names preserved in camelCase from ontology, entityIds in PascalCase"
         ]
       }
     },

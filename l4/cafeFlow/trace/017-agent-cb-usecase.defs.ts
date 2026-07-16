@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:28:56.981Z",
+  "savedAt": "2026-07-16T17:23:40.592Z",
   "agentName": "agentCbUsecase",
   "stepId": 17,
   "planning": null,
@@ -12,7 +12,9 @@
         "status": "ok",
         "result": {
           "usecaseId": "manageMenuItem",
-          "ports": [],
+          "ports": [
+            "menuItemIngredientPort"
+          ],
           "functions": [
             {
               "functionName": "manageMenuItem",
@@ -66,7 +68,7 @@
                   "type": "string",
                   "required": true,
                   "ofEntity": "MenuItem",
-                  "description": "Status do item: draft, active ou inactive"
+                  "description": "Status do item: rascunho, ativo ou inativo"
                 }
               ],
               "output": [
@@ -75,109 +77,115 @@
                   "type": "string",
                   "required": true,
                   "ofEntity": "MenuItem",
-                  "description": "Identificador do item atualizado"
+                  "description": "Identificador do item do cardápio atualizado"
                 },
                 {
                   "name": "name",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Nome do item do cardápio"
                 },
                 {
                   "name": "description",
                   "type": "string",
                   "required": false,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Descrição detalhada do item do cardápio"
                 },
                 {
                   "name": "menuCategoryId",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Categoria de classificação à qual o item pertence"
                 },
                 {
                   "name": "price",
                   "type": "number",
                   "required": true,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Preço de venda do item do cardápio"
                 },
                 {
                   "name": "itemType",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Tipo do item"
                 },
                 {
                   "name": "status",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Status do item"
                 },
                 {
                   "name": "activatedAt",
                   "type": "string",
                   "required": false,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Timestamp de ativação do item"
                 },
                 {
                   "name": "inactivatedAt",
                   "type": "string",
                   "required": false,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Timestamp de inativação do item"
                 },
                 {
                   "name": "updatedAt",
                   "type": "string",
                   "required": true,
-                  "ofEntity": "MenuItem"
+                  "ofEntity": "MenuItem",
+                  "description": "Timestamp da última atualização"
                 }
               ],
-              "ports": [],
+              "ports": [
+                "menuItemIngredientPort"
+              ],
               "rulesApplied": [
                 "simpleItemsOnly",
                 "menuItemRequiresIngredient"
               ],
               "transactional": true,
               "steps": [
-                "1. Resolve actorId from ctx.sessionContext and now from ctx.clock (systemDefault for updatedAt).",
-                "2. Load existing MenuItem via ctx.mdm.entity.get({ mdmId: menuItemId }). If not found, throw validation error 'MenuItem not found'.",
-                "3. Validate menuCategoryId exists via ctx.mdm.entity.get({ mdmId: menuCategoryId }) (MenuCategory is an MDM ref). If not found, throw validation error 'MenuCategory not found'.",
-                "4. Apply rule simpleItemsOnly: if itemType !== 'simple', throw validation error with ruleId 'simpleItemsOnly' — 'Only simple items are allowed in this phase'.",
-                "5. Determine status transition from existing.status to input.status:",
-                "   5a. If transitioning from 'draft' or 'inactive' to 'active': set activatedAt = now (ctx.clock).",
-                "   5b. If transitioning from 'active' to 'inactive': set inactivatedAt = now (ctx.clock).",
-                "   5c. If status remains unchanged, preserve existing activatedAt/inactivatedAt.",
-                "6. Apply rule menuItemRequiresIngredient: if the resulting status is 'active', query MenuItemIngredient via ctx.mdm.collection.listByType({ type: 'MenuItemIngredient', filter: { menuItemId } }). If the returned collection is empty, throw validation error with ruleId 'menuItemRequiresIngredient' — 'Cannot activate a MenuItem without at least one ingredient'.",
-                "7. Build the update payload: name, description, menuCategoryId, price, itemType, status, activatedAt (if set), inactivatedAt (if set), updatedAt = now.",
-                "8. Persist via ctx.mdm.entity.update({ mdmId: menuItemId, details: updatePayload }) inside a single ctx.data transaction wrapper.",
+                "1. Load existing MenuItem via ctx.mdm.entity.get({ mdmId: menuItemId }) to obtain current state (previousStatus, activatedAt, inactivatedAt).",
+                "2. Validate MenuCategory exists and is active via ctx.mdm.entity.get({ mdmId: menuCategoryId }); reject with validation error if not found.",
+                "3. Apply rule simpleItemsOnly: if itemType !== 'simple', throw validation error with ruleId 'simpleItemsOnly'.",
+                "4. Determine status transition: if previousStatus !== 'active' and status === 'active', this is an activation transition; if previousStatus === 'active' and status === 'inactive', this is an inactivation transition.",
+                "5. Apply rule menuItemRequiresIngredient: if status is transitioning to 'active', query menuItemIngredientPort to find MenuItemIngredient records where menuItemId === input.menuItemId. If none found, throw validation error with ruleId 'menuItemRequiresIngredient'.",
+                "6. Compute lifecycle timestamps: if activation transition, set activatedAt = ctx.clock.now(); if inactivation transition, set inactivatedAt = ctx.clock.now(); otherwise preserve existing activatedAt/inactivatedAt from the loaded entity.",
+                "7. Set updatedAt = ctx.clock.now().",
+                "8. Update MenuItem via ctx.mdm.entity.update({ mdmId: menuItemId, details: { name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt } }) inside a single ctx.data transaction wrapper.",
                 "9. Return the updated MenuItem projection: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt."
               ]
             }
-          ],
-          "mdmRefs": [
-            "MenuItem",
-            "MenuCategory"
           ]
         },
         "questions": [
-          "MenuItemIngredient is listed in reads but is neither in mdmRefs nor in ports. I assumed it is an MDM entity accessible via ctx.mdm.collection.listByType({ type: 'MenuItemIngredient' }). If it is actually a domain entity with its own repository port, a port should be declared so the usecase can query it properly.",
-          "ports was provided as empty []. Since MenuItem and MenuCategory are MDM refs (accessed via ctx.mdm) and no domain ports were declared, the usecase operates entirely through ctx.mdm. If a domain port for MenuItem was intended, it should be added to the ports array."
+          "MenuItemIngredient is listed in reads but not in mdmRefs and ports is empty — I added a 'menuItemIngredientPort' to query ingredients for the menuItemRequiresIngredient rule. Is MenuItemIngredient a runtime entity with its own repository port, or should it be accessed through MDM relationships (ctx.mdm.collection.relatedOfMany) instead?",
+          "MenuCategory is in mdmRefs — should the usecase validate that the category is active (field 'active' === true) before allowing a MenuItem to be assigned to it, or is existence check sufficient?"
         ],
         "trace": [
-          "Parsed owner: manageMenuItem, opKind=update, entity=MenuItem, parentAggregate=MenuItem (root aggregate, no child embedding).",
-          "Identified mdmRefs: MenuItem, MenuCategory — accessed via ctx.mdm.entity.get/update, never via ports.",
-          "Identified reads: MenuItemIngredient — not in mdmRefs nor ports; assumed MDM entity, accessed via ctx.mdm.collection.listByType.",
-          "Public inputs (userInput/selectedEntity): menuItemId, name, description, menuCategoryId, price, itemType, status.",
-          "Context-resolved (excluded from public input): actorId (actorSession -> ctx.sessionContext), updatedAt (systemDefault -> ctx.clock).",
-          "Rules: simpleItemsOnly (itemType must be 'simple'), menuItemRequiresIngredient (active status requires >=1 ingredient).",
-          "Status transition logic: draft/inactive->active sets activatedAt; active->inactive sets inactivatedAt; updatedAt always set to now.",
-          "No eventWrites declared for this owner, so no event append step.",
-          "All MDM operations wrapped in a single ctx.data transaction (transactional=true)."
+          "Parsed owner: usecaseId=manageMenuItem, opKind=update, entity=MenuItem (own aggregate root), parentAggregate=MenuItem",
+          "Identified MDM entities: MenuItem, MenuCategory (in mdmRefs) → accessed via ctx.mdm.entity.get/update",
+          "Identified runtime entity: MenuItemIngredient (in reads, NOT in mdmRefs) → requires port 'menuItemIngredientPort' for ingredient existence check",
+          "Mapped public inputs from inputs[] where source is userInput or selectedEntity: menuItemId, name, description, menuCategoryId, price, itemType, status",
+          "Excluded context-only inputs: actorId (actorSession) and updatedAt (systemDefault) — resolved server-side, not in public input[]",
+          "Mapped output fields from accessPattern.output: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt",
+          "Applied rule simpleItemsOnly: inline validation that itemType === 'simple', throw error with ruleId if violated",
+          "Applied rule menuItemRequiresIngredient: when status transitions to 'active', query menuItemIngredientPort for linked ingredients; throw error with ruleId if none found",
+          "Handled lifecycle timestamps: activatedAt set on transition to 'active', inactivatedAt set on transition to 'inactive', updatedAt always set to ctx.clock.now()",
+          "No eventWrites declared by owner — no events emitted",
+          "Marked transactional=true for the MDM update operation"
         ]
       }
     },
     "status": "completed",
-    "stepId": 27,
+    "stepId": 23,
     "interaction": null,
     "nextSteps": null
   }

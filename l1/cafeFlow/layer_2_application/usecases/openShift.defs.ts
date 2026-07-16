@@ -43,7 +43,7 @@ export const openShiftUsecase = {
             "type": "string",
             "required": true,
             "ofEntity": "Shift",
-            "description": "Situação do turno, sempre 'open' após a criação."
+            "description": "Situação do turno, sempre 'open' após a abertura."
           },
           {
             "name": "openedAt",
@@ -68,13 +68,14 @@ export const openShiftUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Query the Shift port for any existing Shift with status 'open' (singleOpenShift rule). If one is found, reject the operation with a validation error referencing rule 'singleOpenShift'.",
-          "2. Generate a new UUID for shiftId via ctx.idGenerator.",
-          "3. Resolve openedBy from ctx.sessionContext.actorId (actorSession).",
-          "4. Set status = 'open', openedAt = ctx.clock.now(), createdAt = ctx.clock.now(), updatedAt = ctx.clock.now().",
-          "5. Build the Shift aggregate with the provided notes (optional) and all resolved fields; closedAt, closedBy and totalApurado remain null.",
-          "6. Persist the Shift through its port inside a single transaction (ctx.data transaction wrapper).",
-          "7. Return shiftId, status, openedAt, openedBy."
+          "1. Resolve openedBy from ctx.sessionContext.actorId (actorSession).",
+          "2. Generate shiftId via ctx.idGenerator.uuid().",
+          "3. Resolve openedAt, createdAt, updatedAt via ctx.clock.now() (systemDefault).",
+          "4. Set status to 'open' (systemDefault).",
+          "5. Apply rule singleOpenShift: query the Shift port for any existing Shift with status 'open' (list by status filter). If one or more are found, reject with validation error referencing rule 'singleOpenShift'.",
+          "6. Build the new Shift aggregate with shiftId, status='open', openedAt, openedBy, notes (if provided), createdAt, updatedAt; leave closedAt, closedBy, totalApurado null.",
+          "7. Persist the Shift aggregate through its port inside a single transaction (ctx.data transaction wrapper).",
+          "8. Return shiftId, status, openedAt, openedBy."
         ]
       }
     ],

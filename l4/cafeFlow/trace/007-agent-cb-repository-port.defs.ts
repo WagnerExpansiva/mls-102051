@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:25:39.264Z",
+  "savedAt": "2026-07-16T17:20:40.174Z",
   "agentName": "agentCbRepositoryPort",
   "stepId": 7,
   "planning": {
@@ -17,10 +17,10 @@
       "toolName": "submitRepositoryPorts",
       "arguments": {
         "status": "ok",
-        "trace": [
-          "Generated 4 aggregate repository ports and 2 append-only event repository ports in domain terms."
-        ],
         "questions": [],
+        "trace": [
+          "generated repository ports for 4 aggregates and 2 append-only events"
+        ],
         "result": {
           "items": [
             {
@@ -31,7 +31,7 @@
                   "name": "getById",
                   "returns": "Order",
                   "params": [
-                    "id: OrderId"
+                    "orderId: OrderId"
                   ]
                 },
                 {
@@ -49,17 +49,25 @@
                   ]
                 },
                 {
-                  "name": "findByOrderNumber",
-                  "returns": "Order | null",
+                  "name": "findByCustomerId",
+                  "returns": "Order[]",
                   "params": [
-                    "orderNumber: OrderNumber"
+                    "customerId: CustomerId"
                   ]
                 },
                 {
-                  "name": "listByShiftId",
+                  "name": "findByStatus",
                   "returns": "Order[]",
                   "params": [
-                    "shiftId: ShiftId"
+                    "status: OrderStatus"
+                  ]
+                },
+                {
+                  "name": "findByPeriod",
+                  "returns": "Order[]",
+                  "params": [
+                    "start: Date",
+                    "end: Date"
                   ]
                 }
               ]
@@ -72,7 +80,7 @@
                   "name": "getById",
                   "returns": "Shift",
                   "params": [
-                    "id: ShiftId"
+                    "shiftId: ShiftId"
                   ]
                 },
                 {
@@ -90,16 +98,24 @@
                   ]
                 },
                 {
-                  "name": "findOpenShift",
-                  "returns": "Shift | null",
-                  "params": []
-                },
-                {
-                  "name": "listByDate",
+                  "name": "findByEmployeeId",
                   "returns": "Shift[]",
                   "params": [
-                    "date: LocalDate"
+                    "employeeId: EmployeeId"
                   ]
+                },
+                {
+                  "name": "findByPeriod",
+                  "returns": "Shift[]",
+                  "params": [
+                    "start: Date",
+                    "end: Date"
+                  ]
+                },
+                {
+                  "name": "findOpenShifts",
+                  "returns": "Shift[]",
+                  "params": []
                 }
               ]
             },
@@ -111,7 +127,7 @@
                   "name": "getById",
                   "returns": "StockLevel",
                   "params": [
-                    "id: StockLevelId"
+                    "stockLevelId: StockLevelId"
                   ]
                 },
                 {
@@ -129,16 +145,16 @@
                   ]
                 },
                 {
-                  "name": "findByProductId",
-                  "returns": "StockLevel | null",
-                  "params": [
-                    "productId: ProductId"
-                  ]
-                },
-                {
-                  "name": "listLowStock",
+                  "name": "findBelowMinimum",
                   "returns": "StockLevel[]",
                   "params": []
+                },
+                {
+                  "name": "findByLocation",
+                  "returns": "StockLevel[]",
+                  "params": [
+                    "location: Location"
+                  ]
                 }
               ]
             },
@@ -150,7 +166,7 @@
                   "name": "getById",
                   "returns": "ShiftClosingReport",
                   "params": [
-                    "id: ShiftClosingReportId"
+                    "reportId: ShiftClosingReportId"
                   ]
                 },
                 {
@@ -169,9 +185,17 @@
                 },
                 {
                   "name": "findByShiftId",
-                  "returns": "ShiftClosingReport | null",
+                  "returns": "ShiftClosingReport[]",
                   "params": [
                     "shiftId: ShiftId"
+                  ]
+                },
+                {
+                  "name": "findByPeriod",
+                  "returns": "ShiftClosingReport[]",
+                  "params": [
+                    "start: Date",
+                    "end: Date"
                   ]
                 }
               ]
@@ -184,14 +208,7 @@
                   "name": "append",
                   "returns": "void",
                   "params": [
-                    "adjustment: StockAdjustment"
-                  ]
-                },
-                {
-                  "name": "listByPeriod",
-                  "returns": "StockAdjustment[]",
-                  "params": [
-                    "period: DateRange"
+                    "record: StockAdjustment"
                   ]
                 },
                 {
@@ -199,6 +216,14 @@
                   "returns": "StockAdjustment[]",
                   "params": [
                     "productId: ProductId"
+                  ]
+                },
+                {
+                  "name": "listByPeriod",
+                  "returns": "StockAdjustment[]",
+                  "params": [
+                    "start: Date",
+                    "end: Date"
                   ]
                 },
                 {
@@ -218,7 +243,7 @@
                   "name": "append",
                   "returns": "void",
                   "params": [
-                    "consumption: StockConsumption"
+                    "record: StockConsumption"
                   ]
                 },
                 {
@@ -232,7 +257,8 @@
                   "name": "listByPeriod",
                   "returns": "StockConsumption[]",
                   "params": [
-                    "period: DateRange"
+                    "start: Date",
+                    "end: Date"
                   ]
                 },
                 {

@@ -18,10 +18,9 @@ export const shiftRepositoryAdapter = {
     "tableRef": "shifts",
     "mdmReads": [],
     "notes": [
-      "Domain aggregate Shift <-> shifts table row",
+      "Local table via ctx.data.moduleData.shifts",
       "Real columns: shift_id, status, created_at",
-      "details JSONB contains: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt",
-      "Uses ctx.data.moduleData.shifts"
+      "Details JSONB: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt"
     ]
   }
 } as const;

@@ -25,13 +25,13 @@ export const shiftTableDefinition = {
         "name": "status",
         "type": "text",
         "nullable": false,
-        "description": "shift lifecycle status"
+        "description": "Shift lifecycle status"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "ordering timestamp"
+        "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
@@ -48,20 +48,21 @@ export const shiftTableDefinition = {
         "indexName": "idx_shift_status",
         "columns": [
           "status"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_shift_created_at",
         "columns": [
           "created_at"
-        ]
+        ],
+        "unique": false
       }
     ],
     "detailsColumn": {
       "enabled": true,
       "childCollections": []
     },
-    "purpose": "operational",
     "appendOnly": false
   }
 } as const;

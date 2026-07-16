@@ -20,8 +20,8 @@ export const manageMenuItemController = {
       {
         "handlerName": "cafeFlowManageMenuItemHandler",
         "command": "manageMenuItem",
-        "usecaseRef": "manageMenuItem",
-        "inputTypeName": "ManageMenuItemInput",
+        "usecaseRef": "updateMenuItem",
+        "inputTypeName": "UpdateMenuItemInput",
         "kind": "update",
         "inputContract": [
           {

@@ -19,7 +19,7 @@ export const stockConsumptionRepositoryPort = {
         "name": "append",
         "returns": "void",
         "params": [
-          "consumption: StockConsumption"
+          "record: StockConsumption"
         ]
       },
       {
@@ -33,7 +33,8 @@ export const stockConsumptionRepositoryPort = {
         "name": "listByPeriod",
         "returns": "StockConsumption[]",
         "params": [
-          "period: DateRange"
+          "start: Date",
+          "end: Date"
         ]
       },
       {

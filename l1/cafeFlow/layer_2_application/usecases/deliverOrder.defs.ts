@@ -25,7 +25,7 @@ export const deliverOrderUsecase = {
         "input": [
           {
             "name": "orderId",
-            "type": "uuid",
+            "type": "string",
             "required": true,
             "ofEntity": "Order",
             "description": "Pedido selecionado pelo atendente no painel para entrega"
@@ -34,32 +34,35 @@ export const deliverOrderUsecase = {
         "output": [
           {
             "name": "orderId",
-            "type": "uuid",
+            "type": "string",
             "required": true,
-            "ofEntity": "Order"
+            "ofEntity": "Order",
+            "description": "Identificador do pedido entregue"
           },
           {
             "name": "status",
             "type": "string",
             "required": true,
-            "ofEntity": "Order"
+            "ofEntity": "Order",
+            "description": "Status final do pedido após a entrega"
           },
           {
             "name": "deliveredAt",
-            "type": "datetime",
+            "type": "string",
             "required": true,
-            "ofEntity": "Order"
+            "ofEntity": "Order",
+            "description": "Momento em que o pedido foi entregue ao cliente"
           },
           {
             "name": "updatedAt",
-            "type": "datetime",
+            "type": "string",
             "required": true,
-            "ofEntity": "Order"
+            "ofEntity": "Order",
+            "description": "Momento da última atualização do registro do pedido"
           }
         ],
         "ports": [
-          "Order",
-          "StockConsumption"
+          "Order"
         ],
         "rulesApplied": [
           "orderStatusFlow",
@@ -67,13 +70,13 @@ export const deliverOrderUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "Load the Order aggregate by orderId via OrderPort.getById(orderId); throw NotFoundError if absent.",
-          "Apply rule readyBeforeDelivered: verify order.status === 'ready'; if not, throw ValidationError with detail { rule: 'readyBeforeDelivered', currentStatus: order.status, expectedStatus: 'ready' }.",
-          "Apply rule orderStatusFlow: verify the transition 'ready' -> 'delivered' is permitted in the status flow enum [registered, received, inPreparation, ready, delivered]; if not allowed, throw ValidationError with detail { rule: 'orderStatusFlow', from: order.status, to: 'delivered' }.",
-          "Mutate the Order in memory: set status = 'delivered', deliveredAt = ctx.clock.now(), updatedAt = ctx.clock.now().",
-          "Persist the updated Order via OrderPort.save(order) inside the transaction.",
-          "Append a StockConsumption audit event record (entityId: StockConsumption, owner: Order, purpose: audit) through the StockConsumption port inside the same transaction, capturing the orderId, previous status 'ready', new status 'delivered', and deliveredAt timestamp.",
-          "Return { orderId, status: 'delivered', deliveredAt, updatedAt }."
+          "1. Load the Order aggregate by orderId through the Order port (getById).",
+          "2. Validate rule readyBeforeDelivered: the loaded Order.status MUST equal 'ready'. If any other status, throw a validation error with rule id 'readyBeforeDelivered' and reject the operation.",
+          "3. Validate rule orderStatusFlow: the transition 'ready' -> 'delivered' is permitted by the status enum flow. If the current status does not allow transitioning to 'delivered', throw a validation error with rule id 'orderStatusFlow'.",
+          "4. Mutate the Order in memory: set status = 'delivered', set deliveredAt = ctx.clock.now() (systemDefault), set updatedAt = ctx.clock.now() (systemDefault).",
+          "5. Persist the mutated Order through the Order port (save) inside a single transaction (ctx.data transaction wrapper).",
+          "6. Append a StockConsumption audit event (purpose: audit, persisted: true) through its port inside the same transaction, recording the delivery transition for the Order. NOTE: the StockConsumption port is not present in the provided ports list — this is a modeling gap; the event write is described here for completeness but cannot be executed without the port.",
+          "7. Return { orderId, status, deliveredAt, updatedAt } as the operation result."
         ]
       }
     ],

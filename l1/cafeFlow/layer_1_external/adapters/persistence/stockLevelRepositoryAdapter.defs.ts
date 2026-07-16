@@ -20,11 +20,10 @@ export const stockLevelRepositoryAdapter = {
       "StockItem"
     ],
     "notes": [
-      "Domain aggregate StockLevel <-> stock_levels table row",
+      "Local table via ctx.data.moduleData.stock_levels",
       "Real columns: stock_level_id, stock_item_id, unit, created_at",
-      "details JSONB contains: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt",
-      "MDM ref StockItem resolved via ctx.mdm.collection.getMany/hydrateMany using stock_item_id (bulk load, never in loop)",
-      "Uses ctx.data.moduleData.stock_levels"
+      "Details JSONB: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt",
+      "Hydrate StockItem via ctx.mdm.collection.getMany/hydrateMany(batch stock_item_ids); never ctx.mdm.entity.get in loop"
     ]
   }
 } as const;

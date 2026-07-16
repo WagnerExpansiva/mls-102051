@@ -22,53 +22,40 @@ export const requestAiSalesSummaryUsecase = {
     "functions": [
       {
         "functionName": "requestAiSalesSummary",
-        "inputTypeName": "AiSalesSummaryInput",
-        "outputTypeName": "AiSalesSummaryOutput",
+        "inputTypeName": "RequestAiSalesSummaryInput",
+        "outputTypeName": "AiSalesSummary",
         "input": [],
         "output": [
           {
             "name": "shiftId",
             "type": "string",
             "required": true,
+            "ofEntity": "Shift",
             "description": "ID of the currently open shift used to scope the summary"
-          },
-          {
-            "name": "shiftOpenedAt",
-            "type": "string",
-            "required": true,
-            "description": "Timestamp when the current shift was opened"
           },
           {
             "name": "totalOrders",
             "type": "number",
             "required": true,
-            "description": "Total count of orders placed during the current open shift"
-          },
-          {
-            "name": "totalRevenue",
-            "type": "number",
-            "required": true,
-            "description": "Sum of revenue across all orders in the current shift"
+            "description": "Total count of orders in the current open shift"
           },
           {
             "name": "orders",
             "type": "array",
-            "ofEntity": "Order",
             "required": true,
-            "description": "Orders from the current shift projected as {orderId, status, orderType, createdAt, deliveredAt}"
+            "description": "List of order projections from the current shift, each containing orderId, status, orderType, createdAt, deliveredAt"
           },
           {
             "name": "topSellers",
             "type": "array",
             "required": true,
-            "description": "Top-selling items aggregated from day orders: {menuItemId, totalQuantity, totalRevenue} sorted by totalQuantity descending"
+            "description": "Computed top-selling items aggregated by menuItemId with totalQuantity, derived from OrderItems of the current shift orders"
           },
           {
-            "name": "stockLevels",
+            "name": "stockAlerts",
             "type": "array",
-            "ofEntity": "StockLevel",
             "required": true,
-            "description": "Current stock levels projected as {stockItemId, currentQuantity, minimumLevel, unit} for AI consumption"
+            "description": "Stock items where currentQuantity is at or below minimumLevel, each containing stockItemId, currentQuantity, minimumLevel, unit"
           }
         ],
         "ports": [
@@ -83,21 +70,14 @@ export const requestAiSalesSummaryUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolve the active lifecycle instance: query the Shift port for the single Shift with status='open' (rule: dashboardCurrentShiftOnly). If no open shift is found, return an empty summary with shiftId=null, zero counts, and empty arrays — never expose historical or multi-shift data.",
-          "2. Extract the resolved shiftId and shiftOpenedAt from the open Shift record.",
-          "3. Load all Orders for the resolved shiftId via the Order port (list filtered by shiftId). Each Order aggregate includes its embedded OrderItem collection.",
-          "4. Project each Order to {orderId, status, orderType, createdAt, deliveredAt} for the orders output array.",
-          "5. Aggregate OrderItems across all loaded Orders: group by menuItemId, sum quantity into totalQuantity and sum (quantity * unitPrice) into totalRevenue. Sort descending by totalQuantity to produce topSellers (rule: topSellersFromDayOrders).",
-          "6. Compute totalOrders as the count of loaded Orders and totalRevenue as the sum of all OrderItem subtotals.",
-          "7. Load all StockLevel records via the StockLevel port and project each to {stockItemId, currentQuantity, minimumLevel, unit} for the stockLevels output array.",
-          "8. Assemble and return the AiSalesSummaryOutput containing only domain-sourced data — no external APIs, no historical periods, no multi-shift consolidation (rule: aiConsumesDomainData)."
+          "1. Resolve the active open Shift by querying the Shift port for status='open' (rule: dashboardCurrentShiftOnly). If no open shift exists, return an empty summary with shiftId=null, totalOrders=0, empty orders/topSellers/stockAlerts.",
+          "2. Load all Orders for the resolved open shift via the Order port, filtered by shiftId equal to the open shift's shiftId.",
+          "3. From the loaded Orders, collect all embedded OrderItems and aggregate quantity by menuItemId to compute topSellers (rule: topSellersFromDayOrders). Sort descending by totalQuantity.",
+          "4. Query the StockLevel port for all stock levels where currentQuantity <= minimumLevel to build stockAlerts.",
+          "5. Assemble the AiSalesSummary result containing shiftId, totalOrders (count of loaded orders), orders (projected to orderId/status/orderType/createdAt/deliveredAt), topSellers, and stockAlerts. All data originates exclusively from domain ports — no external sources are consulted (rule: aiConsumesDomainData).",
+          "6. Return the summary. No aggregate mutation occurs; the StockConsumption audit event declared in eventWrites is not emitted because this is a read-only query with no state transition on the owning Order aggregate. The StockConsumption port is also not present in the available ports list, confirming no event append is expected here."
         ]
       }
-    ],
-    "rulesApplied": [
-      "dashboardCurrentShiftOnly",
-      "aiConsumesDomainData",
-      "topSellersFromDayOrders"
     ],
     "mdmRefs": []
   }
@@ -126,11 +106,6 @@ export const pipeline = [
       "_102021_/l2/agentChangeBackend/skills/architecture.md",
       "_102021_/l2/agentChangeBackend/skills/applicationUsecase.md",
       "_102034_.d.ts"
-    ],
-    "rulesApplied": [
-      "dashboardCurrentShiftOnly",
-      "aiConsumesDomainData",
-      "topSellersFromDayOrders"
     ],
     "agent": "agentCbMaterialize"
   }

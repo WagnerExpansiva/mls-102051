@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:29:40.378Z",
+  "savedAt": "2026-07-16T17:24:54.026Z",
   "agentName": "agentCbUsecase",
   "stepId": 13,
   "planning": null,
@@ -11,100 +11,87 @@
       "arguments": {
         "status": "ok",
         "result": {
-          "usecaseId": "viewShiftClosingReport",
+          "usecaseId": "browseStockItems",
           "ports": [
-            "ShiftClosingReport",
-            "Shift"
+            "StockLevel"
           ],
           "functions": [
             {
-              "functionName": "viewShiftClosingReport",
-              "inputTypeName": "ViewShiftClosingReportInput",
-              "outputTypeName": "ViewShiftClosingReportOutput",
+              "functionName": "browseStockItems",
+              "inputTypeName": "BrowseStockItemsInput",
+              "outputTypeName": "BrowseStockItemsOutput",
               "input": [
                 {
-                  "name": "shiftId",
-                  "type": "uuid",
-                  "required": true,
-                  "ofEntity": "ShiftClosingReport",
-                  "description": "Identificador do turno fechado cujo relatório de fechamento será exibido."
+                  "name": "searchTerm",
+                  "type": "string",
+                  "required": false,
+                  "description": "Termo de busca opcional para filtrar itens de estoque pelo nome."
+                },
+                {
+                  "name": "page",
+                  "type": "number",
+                  "required": false,
+                  "description": "Número da página para paginação opcional (base 1)."
+                },
+                {
+                  "name": "pageSize",
+                  "type": "number",
+                  "required": false,
+                  "description": "Quantidade de itens por página para paginação opcional."
                 }
               ],
               "output": [
                 {
-                  "name": "shiftClosingReportId",
-                  "type": "uuid",
+                  "name": "stockItems",
+                  "type": "array",
                   "required": true,
-                  "ofEntity": "ShiftClosingReport",
-                  "description": "Identificador único do relatório de fechamento."
+                  "description": "Lista de itens de estoque ordenados por nome. Cada item contém: stockItemId (string, ofEntity StockItem), name (string, ofEntity StockItem), unit (string, ofEntity StockItem), minimumLevel (number, ofEntity StockItem), createdAt (string, ofEntity StockItem), updatedAt (string, ofEntity StockItem), currentQuantity (number, ofEntity StockLevel), isLowStock (boolean, computed)."
                 },
                 {
-                  "name": "shiftId",
-                  "type": "uuid",
-                  "required": true,
-                  "ofEntity": "ShiftClosingReport",
-                  "description": "Identificador do turno ao qual o relatório pertence."
-                },
-                {
-                  "name": "totalApurado",
+                  "name": "total",
                   "type": "number",
                   "required": true,
-                  "ofEntity": "ShiftClosingReport",
-                  "description": "Total apurado do turno — soma da receita registrada conforme a regra shiftClosingRecordsRevenue."
-                },
-                {
-                  "name": "paidOrderCount",
-                  "type": "number",
-                  "required": true,
-                  "ofEntity": "ShiftClosingReport",
-                  "description": "Quantidade de pedidos pagos consolidados no período do turno conforme a regra shiftClosingConsolidatesPaidOrders."
-                },
-                {
-                  "name": "createdAt",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "ShiftClosingReport",
-                  "description": "Data e hora de criação do relatório."
-                },
-                {
-                  "name": "updatedAt",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "ShiftClosingReport",
-                  "description": "Data e hora da última atualização do relatório."
+                  "description": "Total de itens de estoque encontrados antes da paginação."
                 }
               ],
               "ports": [
-                "ShiftClosingReport",
-                "Shift"
+                "StockLevel"
               ],
               "rulesApplied": [
-                "shiftClosingRecordsRevenue",
-                "shiftClosingConsolidatesPaidOrders"
+                "lowStockAlertCalculation"
               ],
               "transactional": false,
               "steps": [
-                "1. Load the Shift aggregate via Shift port using shiftId to verify the shift exists and its status is 'closed' — a closing report is only available for a closed shift.",
-                "2. If the Shift is not found, return a validation error indicating the shift does not exist.",
-                "3. If the Shift status is not 'closed', return a validation error indicating the closing report is only available for closed shifts (rule: shiftClosingRecordsRevenue requires a finalized shift).",
-                "4. Load the ShiftClosingReport aggregate via ShiftClosingReport port using shiftId as the key field (getById pattern).",
-                "5. If no ShiftClosingReport is found for the given shiftId, return an empty/not-found result.",
-                "6. Verify the returned report's totalApurado reflects the revenue recorded for the shift (rule: shiftClosingRecordsRevenue) and paidOrderCount consolidates only paid orders (rule: shiftClosingConsolidatesPaidOrders) — these invariants were enforced at report creation; on read, validate that totalApurado >= 0 and paidOrderCount >= 0, returning a data-integrity error otherwise.",
-                "7. Return the ShiftClosingReport fields: shiftClosingReportId, shiftId, totalApurado, paidOrderCount, createdAt, updatedAt."
+                "Extrair actorId de ctx.sessionContext para autorização do gerente autenticado (contexto de sessão, não input público).",
+                "Listar itens de estoque (StockItem) do MDM via ctx.mdm.collection.listByType({ type: 'StockItem' }); se searchTerm fornecido, filtrar resultados em memória por name contendo o termo (case-insensitive).",
+                "Coletar stockItemIds dos resultados do MDM.",
+                "Consultar níveis de estoque (StockLevel) via porta StockLevel para os stockItemIds obtidos — listar StockLevels e filtrar por stockItemId em memória (ou usar método de listagem com filtro se disponível na porta).",
+                "Criar mapa stockItemId -> StockLevel para junção eficiente.",
+                "Para cada StockItem, juntar com StockLevel correspondente (se existir) e aplicar regra lowStockAlertCalculation: isLowStock = (stockLevel.currentQuantity <= stockItem.minimumLevel). Se não houver StockLevel, isLowStock = false e currentQuantity = null.",
+                "Ordenar lista resultante por name (ascendente, case-insensitive).",
+                "Aplicar paginação opcional: se page e pageSize fornecidos, fatiar a lista ordenada; caso contrário retornar todos os itens.",
+                "Retornar { stockItems, total } onde total é o count antes da paginação."
               ]
             }
           ],
-          "mdmRefs": []
+          "mdmRefs": [
+            "StockItem"
+          ]
         },
-        "questions": [],
+        "questions": [
+          "StockItem é referenciado em mdmRefs e acessado via ctx.mdm.collection.listByType — confirme se o typeId correto é 'StockItem' ou se há outro identificador de tipo no catálogo MDM.",
+          "A porta StockLevel possui um método de listagem com filtro por stockItemId, ou devo listar todos os StockLevels e filtrar em memória?",
+          "A entidade StockItem não possui campos de escopo de negócio (companyId/unitId) — confirmar que não há necessidade de filtrar por workspace/empresa ativa, ou isso é uma lacuna de modelagem a ser registrada?"
+        ],
         "trace": [
-          "Parsed owner: viewShiftClosingReport, opKind=view, accessPattern=getById, entity=ShiftClosingReport (root aggregate).",
-          "Identified public input: shiftId (routeParam, required) — the only user-facing input.",
-          "No contextResolution items requiring server-side context (routeParam is already a public input).",
-          "No MDM refs, no eventWrites (read-only view operation).",
-          "Ports: ShiftClosingReport (primary read) and Shift (verification that shift exists and is closed).",
-          "Rules shiftClosingRecordsRevenue and shiftClosingConsolidatesPaidOrders applied as read-time validation of report data integrity (totalApurado >= 0, paidOrderCount >= 0) and shift-closed precondition.",
-          "Declared single function viewShiftClosingReport with explicit input (shiftId) and output (6 ShiftClosingReport fields)."
+          "Identified entity StockItem as MDM master data (mdmRefs) — accessed via ctx.mdm, not via a port.",
+          "Identified StockLevel as a domain aggregate with its own port — accessed via the StockLevel port.",
+          "Public input surface: only searchTerm (userInput). actorId is actorSession context — resolved from ctx.sessionContext, NOT declared as public input.",
+          "Pagination is optional per accessPattern — included page/pageSize as optional public inputs.",
+          "No business scope fields (companyId/unitId) exist on StockItem or StockLevel entity models — skipped business context filter (modeling gap noted, no invented fields).",
+          "Rule lowStockAlertCalculation applied inline: isLowStock = currentQuantity <= minimumLevel, computed per item after joining StockItem with StockLevel.",
+          "Output is a collection projection (stockItems array) plus total count — no ofEntity on collection/aggregation fields per conventions.",
+          "Read-only query — transactional = false, no eventWrites needed."
         ]
       }
     },

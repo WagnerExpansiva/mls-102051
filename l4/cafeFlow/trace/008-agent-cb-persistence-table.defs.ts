@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:26:35.552Z",
+  "savedAt": "2026-07-16T17:21:44.447Z",
   "agentName": "agentCbPersistenceTable",
   "stepId": 8,
   "planning": {
@@ -39,25 +39,25 @@
                   "name": "status",
                   "type": "text",
                   "nullable": false,
-                  "description": "order lifecycle status"
+                  "description": "Order lifecycle status"
                 },
                 {
                   "name": "order_type",
                   "type": "text",
                   "nullable": false,
-                  "description": "order type discriminator"
+                  "description": "Order type (e.g. dine-in, takeaway)"
                 },
                 {
                   "name": "created_at",
                   "type": "timestamp",
                   "nullable": false,
-                  "description": "ordering timestamp"
+                  "description": "Creation timestamp for ordering"
                 },
                 {
                   "name": "details",
                   "type": "jsonb",
                   "nullable": false,
-                  "description": "tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + child collection OrderItem"
+                  "description": "tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + OrderItem child collection"
                 }
               ],
               "primaryKey": [
@@ -68,25 +68,29 @@
                   "indexName": "idx_order_shift_id",
                   "columns": [
                     "shift_id"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_order_status",
                   "columns": [
                     "status"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_order_order_type",
                   "columns": [
                     "order_type"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_order_created_at",
                   "columns": [
                     "created_at"
-                  ]
+                  ],
+                  "unique": false
                 }
               ],
               "detailsColumn": {
@@ -95,7 +99,6 @@
                   "OrderItem"
                 ]
               },
-              "purpose": "operational",
               "appendOnly": false
             },
             {
@@ -112,13 +115,13 @@
                   "name": "status",
                   "type": "text",
                   "nullable": false,
-                  "description": "shift lifecycle status"
+                  "description": "Shift lifecycle status"
                 },
                 {
                   "name": "created_at",
                   "type": "timestamp",
                   "nullable": false,
-                  "description": "ordering timestamp"
+                  "description": "Creation timestamp for ordering"
                 },
                 {
                   "name": "details",
@@ -135,20 +138,21 @@
                   "indexName": "idx_shift_status",
                   "columns": [
                     "status"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_shift_created_at",
                   "columns": [
                     "created_at"
-                  ]
+                  ],
+                  "unique": false
                 }
               ],
               "detailsColumn": {
                 "enabled": true,
                 "childCollections": []
               },
-              "purpose": "operational",
               "appendOnly": false
             },
             {
@@ -171,13 +175,13 @@
                   "name": "unit",
                   "type": "text",
                   "nullable": false,
-                  "description": "unit of measure discriminator"
+                  "description": "Unit of measure (filterable)"
                 },
                 {
                   "name": "created_at",
                   "type": "timestamp",
                   "nullable": false,
-                  "description": "ordering timestamp"
+                  "description": "Creation timestamp for ordering"
                 },
                 {
                   "name": "details",
@@ -194,26 +198,28 @@
                   "indexName": "idx_stock_level_stock_item_id",
                   "columns": [
                     "stock_item_id"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_stock_level_unit",
                   "columns": [
                     "unit"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_stock_level_created_at",
                   "columns": [
                     "created_at"
-                  ]
+                  ],
+                  "unique": false
                 }
               ],
               "detailsColumn": {
                 "enabled": true,
                 "childCollections": []
               },
-              "purpose": "operational",
               "appendOnly": false
             },
             {
@@ -224,7 +230,7 @@
                   "name": "shift_closing_report_id",
                   "type": "text",
                   "nullable": false,
-                  "description": "PK – unique report identifier"
+                  "description": "PK – unique closing report identifier"
                 },
                 {
                   "name": "shift_id",
@@ -236,7 +242,7 @@
                   "name": "created_at",
                   "type": "timestamp",
                   "nullable": false,
-                  "description": "ordering timestamp"
+                  "description": "Creation timestamp for ordering"
                 },
                 {
                   "name": "details",
@@ -253,20 +259,21 @@
                   "indexName": "idx_shift_closing_report_shift_id",
                   "columns": [
                     "shift_id"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_shift_closing_report_created_at",
                   "columns": [
                     "created_at"
-                  ]
+                  ],
+                  "unique": false
                 }
               ],
               "detailsColumn": {
                 "enabled": true,
                 "childCollections": []
               },
-              "purpose": "operational",
               "appendOnly": false
             },
             {
@@ -289,13 +296,13 @@
                   "name": "status",
                   "type": "text",
                   "nullable": false,
-                  "description": "adjustment status"
+                  "description": "Adjustment status (active/voided)"
                 },
                 {
                   "name": "created_at",
                   "type": "timestamp",
                   "nullable": false,
-                  "description": "ordering timestamp"
+                  "description": "Creation timestamp for ordering"
                 },
                 {
                   "name": "details",
@@ -312,27 +319,30 @@
                   "indexName": "idx_stock_adjustment_stock_item_id",
                   "columns": [
                     "stock_item_id"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_stock_adjustment_status",
                   "columns": [
                     "status"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_stock_adjustment_created_at",
                   "columns": [
                     "created_at"
-                  ]
+                  ],
+                  "unique": false
                 }
               ],
               "detailsColumn": {
                 "enabled": true,
                 "childCollections": []
               },
-              "purpose": "controle",
               "appendOnly": true,
+              "purpose": "controle",
               "retentionDays": 365
             },
             {
@@ -355,19 +365,19 @@
                   "name": "order_id",
                   "type": "text",
                   "nullable": false,
-                  "description": "FK to order"
+                  "description": "FK to order that triggered consumption"
                 },
                 {
                   "name": "status",
                   "type": "text",
                   "nullable": false,
-                  "description": "consumption status"
+                  "description": "Consumption status (active/voided)"
                 },
                 {
                   "name": "created_at",
                   "type": "timestamp",
                   "nullable": false,
-                  "description": "ordering timestamp"
+                  "description": "Creation timestamp for ordering"
                 },
                 {
                   "name": "details",
@@ -384,44 +394,47 @@
                   "indexName": "idx_stock_consumption_stock_item_id",
                   "columns": [
                     "stock_item_id"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_stock_consumption_order_id",
                   "columns": [
                     "order_id"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_stock_consumption_status",
                   "columns": [
                     "status"
-                  ]
+                  ],
+                  "unique": false
                 },
                 {
                   "indexName": "idx_stock_consumption_created_at",
                   "columns": [
                     "created_at"
-                  ]
+                  ],
+                  "unique": false
                 }
               ],
               "detailsColumn": {
                 "enabled": true,
                 "childCollections": []
               },
-              "purpose": "controle",
               "appendOnly": true,
+              "purpose": "controle",
               "retentionDays": 365
             }
           ]
         },
         "questions": [],
         "trace": [
-          "Parsed 6 table definitions: 4 operational (Order, Shift, StockLevel, ShiftClosingReport) + 2 append-only event tables (StockAdjustment, StockConsumption)",
-          "Mapped indexed fields to real columns; all detailsFields + childCollections routed to details JSONB column",
-          "Primary keys: order_id, shift_id, stock_level_id, shift_closing_report_id, stock_adjustment_id, stock_consumption_id",
-          "Indexes created for FK fields, status discriminators, and ordering timestamps",
-          "Event tables flagged appendOnly=true, purpose=controle, retentionDays=365"
+          "Derived 6 table definitions from indexed-column analysis",
+          "Permanent tables: order, shift, stock_level, shift_closing_report – details JSONB holds non-indexed fields + child collections",
+          "Append-only event tables: stock_adjustment, stock_consumption – appendOnly=true, purpose=controle, retentionDays=365",
+          "Each table: PK from entity's own ID, FK columns indexed separately, status/ordering columns indexed, remaining fields in details JSONB"
         ]
       }
     },

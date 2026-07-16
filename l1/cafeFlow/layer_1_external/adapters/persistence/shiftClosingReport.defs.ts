@@ -19,7 +19,7 @@ export const shiftClosingReportTableDefinition = {
         "name": "shift_closing_report_id",
         "type": "text",
         "nullable": false,
-        "description": "PK – unique report identifier"
+        "description": "PK – unique closing report identifier"
       },
       {
         "name": "shift_id",
@@ -31,7 +31,7 @@ export const shiftClosingReportTableDefinition = {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "ordering timestamp"
+        "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
@@ -48,20 +48,21 @@ export const shiftClosingReportTableDefinition = {
         "indexName": "idx_shift_closing_report_shift_id",
         "columns": [
           "shift_id"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_shift_closing_report_created_at",
         "columns": [
           "created_at"
-        ]
+        ],
+        "unique": false
       }
     ],
     "detailsColumn": {
       "enabled": true,
       "childCollections": []
     },
-    "purpose": "operational",
     "appendOnly": false
   }
 } as const;

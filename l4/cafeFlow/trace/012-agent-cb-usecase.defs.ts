@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:28:57.065Z",
+  "savedAt": "2026-07-16T17:24:12.042Z",
   "agentName": "agentCbUsecase",
   "stepId": 12,
   "planning": null,
@@ -23,87 +23,29 @@
                   "name": "statusFilter",
                   "type": "string",
                   "required": false,
-                  "ofEntity": "MenuItem",
                   "description": "Filtro opcional por status do item (draft, active, inactive)"
                 },
                 {
                   "name": "menuCategoryIdFilter",
                   "type": "string",
                   "required": false,
-                  "ofEntity": "MenuItem",
                   "description": "Filtro opcional por categoria do item (menuCategoryId)"
                 }
               ],
               "output": [
                 {
-                  "name": "menuItemId",
-                  "type": "string",
+                  "name": "items",
+                  "type": "MenuItem[]",
                   "required": true,
                   "ofEntity": "MenuItem",
-                  "description": "ID do item do cardápio"
+                  "description": "Lista de itens do cardápio com campos projetados: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt"
                 },
                 {
-                  "name": "name",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "Nome do item"
-                },
-                {
-                  "name": "description",
-                  "type": "string",
+                  "name": "categories",
+                  "type": "MenuCategory[]",
                   "required": false,
-                  "ofEntity": "MenuItem",
-                  "description": "Descrição do item"
-                },
-                {
-                  "name": "menuCategoryId",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "ID da categoria do item"
-                },
-                {
-                  "name": "price",
-                  "type": "number",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "Preço do item"
-                },
-                {
-                  "name": "itemType",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "Tipo do item (simple ou variant)"
-                },
-                {
-                  "name": "status",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "Status do item (draft, active, inactive)"
-                },
-                {
-                  "name": "activatedAt",
-                  "type": "string",
-                  "required": false,
-                  "ofEntity": "MenuItem",
-                  "description": "Data de ativação do item"
-                },
-                {
-                  "name": "createdAt",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "Data de criação do item"
-                },
-                {
-                  "name": "updatedAt",
-                  "type": "string",
-                  "required": true,
-                  "ofEntity": "MenuItem",
-                  "description": "Data de atualização do item"
+                  "ofEntity": "MenuCategory",
+                  "description": "Categorias hidratadas para exibição do nome da categoria junto ao menuCategoryId de cada item"
                 }
               ],
               "ports": [],
@@ -113,36 +55,35 @@
               "transactional": false,
               "steps": [
                 "1. Resolver activeCompanyId a partir de ctx.sessionContext.businessContext.activeCompanyId para escopo da consulta",
-                "2. MODELING GAP: MenuItem não possui campo companyId em seu modelo de entidade — o filtro de escopo por empresa ativa NÃO pode ser aplicado. Registrar a lacuna e prosseguir sem o filtro de empresa",
-                "3. Listar registros MDM do tipo MenuItem via ctx.mdm.collection.listByType({ type: 'MenuItem' })",
-                "4. Aplicar regra simpleItemsOnly: todos os itens (simple e variant) aparecem na lista como entradas separadas — a regra garante que itens variant sejam tratados como itens individuais na listagem, sem agrupamento de sub-variantes. Nenhum item é filtrado por tipo na listagem de browse",
-                "5. Se statusFilter foi informado, filtrar a lista mantendo apenas itens cujo status corresponde ao valor informado (validar que statusFilter está no enum: draft, active, inactive)",
-                "6. Se menuCategoryIdFilter foi informado, validar que a categoria existe consultando ctx.mdm.entity.get({ mdmId: menuCategoryIdFilter }) do tipo MenuCategory; se não existir, retornar lista vazia com aviso",
-                "7. Projetar cada item para os campos de saída: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt",
-                "8. Retornar a coleção de itens projetados ordenados por createdAt descendente"
+                "2. MODELING GAP: MenuItem nao possui campo companyId nem MenuCategory possui companyId; o filtro de escopo por empresa ativa nao pode ser aplicado diretamente — registrar a lacuna e seguir sem o filtro de empresa",
+                "3. Listar registros MDM de MenuItem via ctx.mdm.collection.listByType({ type: 'MenuItem' })",
+                "4. Aplicar filtro opcional statusFilter quando informado: manter apenas itens cujo status corresponde ao valor",
+                "5. Aplicar filtro opcional menuCategoryIdFilter quando informado: manter apenas itens cujo menuCategoryId corresponde ao valor",
+                "6. Aplicar regra simpleItemsOnly: garantir que itens do tipo variant sejam listados como entradas separadas e planas (sem agrupamento sob um item pai). Como o MDM retorna cada MenuItem como registro individual, a listagem ja e plana; a regra e satisfeita nao realizando nenhum agrupamento ou aninhamento de variantes",
+                "7. Coletar menuCategoryIds unicos dos itens resultantes e hidratar categorias via ctx.mdm.collection.getMany({ mdmIds: uniqueCategoryIds, type: 'MenuCategory' }) para enriquecer a exibicao",
+                "8. Projetar cada item com os campos: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt",
+                "9. Retornar { items, categories }"
               ]
             }
           ]
         },
         "questions": [
-          "MenuItem não possui campo companyId em seu modelo de entidade, mas o contextResolution indica que a consulta deve ser limitada à empresa ativa do gerente. Isso é uma lacuna de modelagem — o filtro de empresa foi pulado. Deve-se adicionar um campo companyId ao modelo MenuItem ou a filtragem por empresa deve ocorrer indiretamente via MenuCategory (que também não possui companyId)?",
-          "A regra simpleItemsOnly deve apenas garantir que itens variant apareçam como entradas separadas na listagem, ou deve também filtrar/excluir itens variant do resultado de browse?"
+          "MODELING GAP: MenuItem e MenuCategory nao possuem campo companyId. O contextResolution indica que a consulta deveria ser limitada pela empresa ativa (businessContext.activeCompanyId), mas nao ha campo na entidade para aplicar esse filtro. A lacuna foi registrada e o filtro de empresa foi pulado. Confirmar se uma relacao MDM entre MenuCategory e Company deve ser modelada para suportar o escopo por empresa.",
+          "A regra simpleItemsOnly foi interpretada como: itens variant sao listados como entradas separadas/planas (sem agrupamento). Confirmar se a regra deveria FILTRAR apenas itens do tipo simple (ocultando variant) ou se deve manter todos os tipos na listagem como entradas individuais."
         ],
         "trace": [
-          "Parsed owner: browseMenuItems, opKind=query, accessPattern=list",
-          "Entity MenuItem is MDM ref (mdmRefs includes MenuItem and MenuCategory) — no ports, accessed via ctx.mdm",
-          "parentAggregate == entity (MenuItem), no embedded child pattern",
-          "Public inputs: statusFilter (userInput, optional), menuCategoryIdFilter (userInput, optional) — both included in function input[]",
-          "Context resolution: businessContext.activeCompanyId — MenuItem has no companyId field, modeling gap recorded, scope filter skipped",
-          "Rule simpleItemsOnly applied inline: variant items appear as separate entries in the list, no type-based filtering for browse",
-          "Output projected from accessPattern.output: 10 MenuItem fields",
-          "No eventWrites (read-only query, no mutations)",
-          "No ports declared — all entities are MDM refs, ports must not contain mdmRefs"
+          "Analisado usecaseId browseMenuItems: operacao de query/list sobre MenuItem (MDM ref)",
+          "Identificado que MenuItem e MenuCategory sao mdmRefs — acesso via ctx.mdm, sem ports de repositorio",
+          "Inputs publicos: statusFilter e menuCategoryIdFilter (ambos opcionais, userInput)",
+          "ContextResolution businessContext.activeCompanyId: MODELING GAP — nem MenuItem nem MenuCategory possuem companyId; filtro de escopo pulado conforme instrucoes",
+          "Regra simpleItemsOnly aplicada inline: listagem plana sem agrupamento de variantes",
+          "Hidratacao de MenuCategory adicionada para enriquecer exibicao (reads inclui MenuCategory)",
+          "Output projetado conforme accessPattern.output: campos MenuItem + categorias hidratadas"
         ]
       }
     },
     "status": "completed",
-    "stepId": 28,
+    "stepId": 23,
     "interaction": null,
     "nextSteps": null
   }

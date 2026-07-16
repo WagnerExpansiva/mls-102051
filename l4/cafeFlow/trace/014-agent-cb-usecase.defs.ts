@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:29:52.140Z",
+  "savedAt": "2026-07-16T17:24:11.298Z",
   "agentName": "agentCbUsecase",
   "stepId": 14,
   "planning": null,
@@ -11,98 +11,89 @@
       "arguments": {
         "status": "ok",
         "result": {
-          "usecaseId": "viewDashboard",
+          "usecaseId": "updateOrderStatus",
           "ports": [
             "Order",
-            "StockLevel",
-            "Shift"
+            "Shift",
+            "StockConsumption"
           ],
           "functions": [
             {
-              "functionName": "viewDashboard",
-              "inputTypeName": "ViewDashboardInput",
-              "outputTypeName": "ViewDashboardOutput",
-              "input": [],
-              "output": [
+              "functionName": "updateOrderStatus",
+              "inputTypeName": "UpdateOrderStatusInput",
+              "outputTypeName": "UpdateOrderStatusOutput",
+              "input": [
                 {
-                  "name": "shiftId",
+                  "name": "orderId",
                   "type": "string",
                   "required": true,
-                  "description": "Id of the currently open shift used to scope all dashboard data"
+                  "ofEntity": "Order",
+                  "description": "Pedido selecionado pelo cozinheiro na fila da cozinha"
                 },
                 {
-                  "name": "totalSales",
-                  "type": "number",
-                  "required": true,
-                  "description": "Sum of all order totals for the current shift"
-                },
-                {
-                  "name": "ordersCount",
-                  "type": "number",
-                  "required": true,
-                  "description": "Number of orders registered in the current shift"
-                },
-                {
-                  "name": "topSellers",
-                  "type": "array",
-                  "required": true,
-                  "ofEntity": "OrderItem",
-                  "description": "Aggregated top-selling items from current shift orders, each entry contains menuItemId, totalQuantity and totalRevenue"
-                },
-                {
-                  "name": "lowStockAlerts",
-                  "type": "array",
-                  "required": true,
-                  "ofEntity": "StockLevel",
-                  "description": "Stock items whose currentQuantity is below minimumLevel, each entry contains stockItemId, currentQuantity, minimumLevel and unit"
-                },
-                {
-                  "name": "orders",
-                  "type": "array",
+                  "name": "status",
+                  "type": "string",
                   "required": true,
                   "ofEntity": "Order",
-                  "description": "Projected orders of the current shift with orderId, status, orderType, createdAt and deliveredAt"
+                  "description": "Novo status que o cozinheiro deseja atribuir ao pedido (inPreparation ou ready)"
+                }
+              ],
+              "output": [
+                {
+                  "name": "orderId",
+                  "type": "string",
+                  "required": true,
+                  "ofEntity": "Order",
+                  "description": "ID do pedido atualizado"
+                },
+                {
+                  "name": "status",
+                  "type": "string",
+                  "required": true,
+                  "ofEntity": "Order",
+                  "description": "Status final do pedido após a atualização"
+                },
+                {
+                  "name": "updatedAt",
+                  "type": "string",
+                  "required": true,
+                  "ofEntity": "Order",
+                  "description": "Timestamp da última atualização"
                 }
               ],
               "ports": [
                 "Order",
-                "StockLevel",
                 "Shift"
               ],
               "rulesApplied": [
-                "dashboardCurrentShiftOnly",
-                "topSellersFromDayOrders"
+                "orderStatusFlow",
+                "inProgressBeforeReady"
               ],
-              "transactional": false,
+              "transactional": true,
               "steps": [
-                "Resolve the active shift by querying the Shift port for the single record with status='open' (rule: dashboardCurrentShiftOnly — only the currently open shift is used; no historical or multi-shift consolidation is allowed)",
-                "If no open shift is found, return an empty dashboard with shiftId=null, totalSales=0, ordersCount=0, empty topSellers, empty lowStockAlerts and empty orders",
-                "Extract actorId from ctx.sessionContext for authorization (the manager must be authenticated; no public input required)",
-                "Load all Orders whose shiftId matches the active shift via the Order port (list by shiftId filter); each Order aggregate includes its embedded OrderItem collection",
-                "Calculate totalSales by summing, for every loaded Order, the product of OrderItem.quantity * OrderItem.unitPrice across all its items",
-                "Compute ordersCount as the number of loaded Orders",
-                "Aggregate all OrderItems across the shift's orders grouping by menuItemId: sum quantity and sum (quantity * unitPrice) to produce topSellers sorted by totalQuantity descending (rule: topSellersFromDayOrders — only items from the current shift's orders are considered, never historical data)",
-                "Query the StockLevel port for all stock level records and filter those where currentQuantity < minimumLevel to build lowStockAlerts",
-                "Project each loaded Order into {orderId, status, orderType, createdAt, deliveredAt} for the orders array",
-                "Return the assembled dashboard projection: shiftId, totalSales, ordersCount, topSellers, lowStockAlerts, orders"
+                "1. Resolve the active (open) Shift by querying the Shift port for a single record with status='open'. If none is open, return a validation error indicating no active shift.",
+                "2. Load the Order by orderId from the Order port. If not found, return a not-found error.",
+                "3. Validate that order.shiftId === activeShift.shiftId. If the order does not belong to the active shift, return a validation error.",
+                "4. Apply rule orderStatusFlow: the status sequence must follow received → inPreparation → ready with no skips. If the requested status is 'inPreparation', the current order.status must be 'received'. If the requested status is 'ready', the current order.status must be 'inPreparation'. Any other transition is rejected with the rule id in the error detail.",
+                "5. Apply rule inProgressBeforeReady: the order can only be marked 'ready' if it is currently 'inPreparation' (already covered by step 4 but enforced explicitly).",
+                "6. Set the new status on the order. If status becomes 'inPreparation', set order.inPreparationAt = ctx.clock.now(). If status becomes 'ready', set order.readyAt = ctx.clock.now(). Always set order.updatedAt = ctx.clock.now().",
+                "7. Save the updated Order through the Order port inside the same transaction.",
+                "8. NOTE: The eventWrites contract declares a StockConsumption audit event (port 'StockConsumption'), but 'StockConsumption' is not present in the provided ports array. This is a modeling gap — the event cannot be appended without the port. Record this gap for the platform team to add the StockConsumption port."
               ]
             }
-          ]
+          ],
+          "mdmRefs": []
         },
         "questions": [
-          "The eventWrites entry for StockConsumption (audit, persisted) appears in the spec but this is a read-only view operation with writes:[] — no aggregate mutation occurs. Should the dashboard view still emit a StockConsumption audit event, or is that a modeling artifact that should be ignored for this usecase?",
-          "OrderItem is listed in reads but not in ports. Since Order is the parent aggregate and OrderItem is embedded in it, the assumption is that OrderItems are loaded through the Order port as part of each Order aggregate. Is this correct, or should OrderItem have its own port?"
+          "The eventWrites contract declares a StockConsumption audit event with port 'StockConsumption', but that port is not in the provided ports list (Order, Shift). Should StockConsumption be added as a port, or should the event write be deferred/removed?"
         ],
         "trace": [
-          "Parsed owner spec: usecaseId=viewDashboard, opKind=view, entity=Order, parentAggregate=Order (no child-through-parent pattern)",
-          "Identified ports: Order, StockLevel, Shift (OrderItem accessed through Order aggregate)",
-          "Analyzed inputs: shiftId source=activeLifecycleInstance (CONTEXT), actorId source=actorSession (CONTEXT) — neither is public input, so input[] is empty",
-          "Resolved activeLifecycleInstance: query Shift port for status='open' to get shiftId server-side",
-          "Applied rule dashboardCurrentShiftOnly: filter all data by the single open shift; no historical or multi-shift consolidation",
-          "Applied rule topSellersFromDayOrders: aggregate OrderItems from current shift orders only, group by menuItemId, sort by quantity descending",
-          "Designed output: shiftId, totalSales, ordersCount, topSellers (array of OrderItem), lowStockAlerts (array of StockLevel), orders (array of Order projections)",
-          "Set transactional=false since this is a read-only view with no mutations",
-          "Skipped eventWrites because writes=[] and no aggregate mutation occurs in a dashboard view"
+          "Parsed owner: updateOrderStatus, entity=Order, parentAggregate=Order (direct port operation, no child embedding).",
+          "Public inputs identified: orderId (selectedEntity, required), status (userInput, required). All other inputs are context resolutions.",
+          "Context resolutions: shiftId resolved from activeLifecycleInstance (query Shift port for status='open'); inPreparationAt, readyAt, updatedAt resolved from systemDefault.now via ctx.clock.",
+          "Rules to apply inline: orderStatusFlow (received → inPreparation → ready, no skips) and inProgressBeforeReady (ready requires inPreparation).",
+          "Event write StockConsumption (audit, persisted, port 'StockConsumption') detected but port not in provided ports list — modeling gap recorded.",
+          "Built single function updateOrderStatus with input [orderId, status] and output [orderId, status, updatedAt], transactional, ports [Order, Shift]."
         ]
       }
     },

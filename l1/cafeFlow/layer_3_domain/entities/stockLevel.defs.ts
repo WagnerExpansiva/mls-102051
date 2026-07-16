@@ -75,11 +75,12 @@ export const stockLevelDomainEntity = {
         "description": "Data e hora da última atualização do nível de estoque"
       }
     ],
+    "statusEnum": [],
     "invariants": [
-      "currentQuantity must be >= 0",
-      "minimumLevel must be >= 0",
-      "Low-stock alert is triggered when currentQuantity <= minimumLevel",
-      "unit cannot be changed after creation"
+      "currentQuantity must not be negative",
+      "minimumLevel must be greater than or equal to zero",
+      "When currentQuantity falls below minimumLevel, a low-stock alert is triggered",
+      "There is exactly one StockLevel per stockItemId"
     ],
     "valueObjects": []
   }

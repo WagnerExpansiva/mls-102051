@@ -116,13 +116,12 @@ export const orderDomainEntity = {
       "tableNumber must be null when orderType is 'takeout'",
       "priorityReason is required when priority is true",
       "Status transitions must follow the sequence: registered → received → inPreparation → ready → delivered",
-      "receivedAt must be set when status transitions to 'received'",
-      "inPreparationAt must be set when status transitions to 'inPreparation'",
-      "readyAt must be set when status transitions to 'ready'",
-      "deliveredAt must be set when status transitions to 'delivered'",
-      "Order must belong to a shift whose status is 'open'",
-      "Order must contain at least one OrderItem",
-      "Timestamps must be chronologically ordered: receivedAt ≤ inPreparationAt ≤ readyAt ≤ deliveredAt"
+      "receivedAt must be set when status is 'received' or beyond",
+      "inPreparationAt must be set when status is 'inPreparation' or beyond",
+      "readyAt must be set when status is 'ready' or beyond",
+      "deliveredAt must be set when status is 'delivered'",
+      "Order must belong to an open shift (shiftId references an open Shift)",
+      "Order must contain at least one OrderItem"
     ],
     "valueObjects": [
       {

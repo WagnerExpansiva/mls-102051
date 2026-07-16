@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-07-16T00:27:43.196Z",
+  "savedAt": "2026-07-16T17:22:30.429Z",
   "agentName": "agentCbRepositoryAdapter",
   "stepId": 9,
   "planning": {
@@ -17,14 +17,14 @@
       "toolName": "submitRepositoryAdapters",
       "arguments": {
         "status": "ok",
-        "questions": [],
         "trace": [
-          "Analyzed 4 aggregates and 2 append-only events",
-          "Mapped columns to snake_case real columns; detailsFields + embeddedMembers go into JSONB details",
-          "Identified StockLevel MDM ref to StockItem to be resolved via ctx.mdm.collection.getMany/hydrateMany (bulk, no loop)",
-          "Configured append-only insert-only + finders for StockAdjustment and StockConsumption",
-          "Assigned ctx.data.moduleData for all local module table access per constraints"
+          "Identified 4 aggregates and 2 append-only events from input",
+          "Mapped declared columns to snake_case real columns; declared detailsFields + embeddedMembers route to details JSONB",
+          "StockLevel mdmRef StockItem resolved via ctx.mdm batch reads (getMany/hydrateMany), never in loop",
+          "All adapters use ctx.data.moduleData for local module tables; no raw MDM runtime primitives used",
+          "Event adapters configured append-only (insert + finders only, no update/delete)"
         ],
+        "questions": [],
         "result": {
           "items": [
             {
@@ -34,10 +34,9 @@
               "tableRef": "orders",
               "mdmReads": [],
               "notes": [
-                "Domain aggregate Order <-> orders table row",
+                "Local table via ctx.data.moduleData.orders",
                 "Real columns: order_id, shift_id, status, order_type, created_at",
-                "details JSONB contains: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt, items (embedded OrderItem[])",
-                "Uses ctx.data.moduleData.orders"
+                "Details JSONB: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt, items (OrderItem[])"
               ]
             },
             {
@@ -47,10 +46,9 @@
               "tableRef": "shifts",
               "mdmReads": [],
               "notes": [
-                "Domain aggregate Shift <-> shifts table row",
+                "Local table via ctx.data.moduleData.shifts",
                 "Real columns: shift_id, status, created_at",
-                "details JSONB contains: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt",
-                "Uses ctx.data.moduleData.shifts"
+                "Details JSONB: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt"
               ]
             },
             {
@@ -62,11 +60,10 @@
                 "StockItem"
               ],
               "notes": [
-                "Domain aggregate StockLevel <-> stock_levels table row",
+                "Local table via ctx.data.moduleData.stock_levels",
                 "Real columns: stock_level_id, stock_item_id, unit, created_at",
-                "details JSONB contains: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt",
-                "MDM ref StockItem resolved via ctx.mdm.collection.getMany/hydrateMany using stock_item_id (bulk load, never in loop)",
-                "Uses ctx.data.moduleData.stock_levels"
+                "Details JSONB: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt",
+                "Hydrate StockItem via ctx.mdm.collection.getMany/hydrateMany(batch stock_item_ids); never ctx.mdm.entity.get in loop"
               ]
             },
             {
@@ -76,10 +73,9 @@
               "tableRef": "shift_closing_reports",
               "mdmReads": [],
               "notes": [
-                "Domain aggregate ShiftClosingReport <-> shift_closing_reports table row",
+                "Local table via ctx.data.moduleData.shift_closing_reports",
                 "Real columns: shift_closing_report_id, shift_id, created_at",
-                "details JSONB contains: totalApurado, paidOrderCount, updatedAt",
-                "Uses ctx.data.moduleData.shift_closing_reports"
+                "Details JSONB: totalApurado, paidOrderCount, updatedAt"
               ]
             },
             {
@@ -89,11 +85,10 @@
               "tableRef": "stock_adjustments",
               "mdmReads": [],
               "notes": [
-                "Event StockAdjustment <-> stock_adjustments table row",
+                "Append-only event adapter: insert row + finders only; no update/delete",
+                "Local table via ctx.data.moduleData.stock_adjustments",
                 "Real columns: stock_adjustment_id, stock_item_id, status, created_at",
-                "details JSONB contains: quantity, reason, voidedAt, voidedReason",
-                "Append-only: insert row only, no update/delete; provides read finders",
-                "Uses ctx.data.moduleData.stock_adjustments"
+                "Details JSONB: quantity, reason, voidedAt, voidedReason"
               ]
             },
             {
@@ -103,11 +98,10 @@
               "tableRef": "stock_consumptions",
               "mdmReads": [],
               "notes": [
-                "Event StockConsumption <-> stock_consumptions table row",
+                "Append-only event adapter: insert row + finders only; no update/delete",
+                "Local table via ctx.data.moduleData.stock_consumptions",
                 "Real columns: stock_consumption_id, stock_item_id, order_id, status, created_at",
-                "details JSONB contains: quantity, voidedAt, voidReason",
-                "Append-only: insert row only, no update/delete; provides read finders",
-                "Uses ctx.data.moduleData.stock_consumptions"
+                "Details JSONB: quantity, voidedAt, voidReason"
               ]
             }
           ]

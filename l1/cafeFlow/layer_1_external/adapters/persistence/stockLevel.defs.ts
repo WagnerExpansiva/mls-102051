@@ -31,13 +31,13 @@ export const stockLevelTableDefinition = {
         "name": "unit",
         "type": "text",
         "nullable": false,
-        "description": "unit of measure discriminator"
+        "description": "Unit of measure (filterable)"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "ordering timestamp"
+        "description": "Creation timestamp for ordering"
       },
       {
         "name": "details",
@@ -54,26 +54,28 @@ export const stockLevelTableDefinition = {
         "indexName": "idx_stock_level_stock_item_id",
         "columns": [
           "stock_item_id"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_stock_level_unit",
         "columns": [
           "unit"
-        ]
+        ],
+        "unique": false
       },
       {
         "indexName": "idx_stock_level_created_at",
         "columns": [
           "created_at"
-        ]
+        ],
+        "unique": false
       }
     ],
     "detailsColumn": {
       "enabled": true,
       "childCollections": []
     },
-    "purpose": "operational",
     "appendOnly": false
   }
 } as const;
