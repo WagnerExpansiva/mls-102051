@@ -1,25 +1,10 @@
 {
-  "savedAt": "2026-07-16T00:38:08.564Z",
-  "outcome": "failed",
-  "reason": "1 finding(s) are defs-level (not repairable by re-materialization)",
+  "savedAt": "2026-07-16T17:42:29.466Z",
+  "outcome": "passed",
   "l1Defs": 58,
-  "findings": [
-    "orphan generated ts -> cafeFlow/layer_1_external/adapters/persistence/seeds.ts has no matching .defs.ts (manual deletion required)"
-  ],
-  "unmapped": [
-    "orphan generated ts -> cafeFlow/layer_1_external/adapters/persistence/seeds.ts has no matching .defs.ts (manual deletion required)"
-  ],
+  "findings": [],
   "warnings": [],
-  "repairHistory": [
-    "2026-07-16T00:28:42.229Z :: usecase-defs:browseStockItems :: attempt 1 :: usecase defs validation failed: usecase browseStockItems.browseStockItems: StockItem.searchTerm is not declared by the entity",
-    "2026-07-16T00:28:57.027Z :: usecase-defs:browseMenuItems :: attempt 1 :: usecase defs validation failed: usecase browseMenuItems.browseMenuItems: MenuItem.statusFilter is not declared by the entity; usecase browseMenuItems.browseMenuItems: MenuItem.menuCategoryIdFilter is not declared by the entity",
-    "2026-07-16T00:29:14.171Z :: usecase-defs:requestAiSalesSummary :: attempt 1 :: usecase defs validation failed: usecase requestAiSalesSummary.requestAiSalesSummary: OrderItem.topSellers is not declared by the entity; usecase requestAiSalesSummary.requestAiSalesSummary: StockLevel.stockAlerts is not declared by the entity; usecase requestAiSalesSummary.requestAiSalesSummary: Order.orders is not declared by the entity",
-    "2026-07-16T00:29:14.291Z :: usecase-defs:createOrder :: attempt 1 :: usecase defs validation failed: usecase createOrder.createOrder: OrderItem.orderItems is not declared by the entity",
-    "2026-07-16T00:29:44.070Z :: usecase-defs:viewOrderBoard :: attempt 1 :: usecase defs validation failed: usecase viewOrderBoard.viewOrderBoard: Order.orders is not declared by the entity",
-    "2026-07-16T00:29:52.098Z :: usecase-defs:viewDashboard :: attempt 1 :: usecase defs validation failed: usecase viewDashboard.viewDashboard: OrderItem.topSellers is not declared by the entity; usecase viewDashboard.viewDashboard: StockLevel.lowStockAlerts is not declared by the entity; usecase viewDashboard.viewDashboard: Order.orders is not declared by the entity",
-    "2026-07-16T00:30:24.817Z :: usecase-defs:viewKitchenBoard :: attempt 1 :: usecase defs validation failed: usecase viewKitchenBoard.viewKitchenBoard: OrderItem.items is not declared by the entity",
-    "2026-07-16T00:31:47.437Z :: usecase-defs:browseMenuItems :: attempt 2 :: usecase defs validation failed: usecase browseMenuItems.browseMenuItems: MenuItem.statusFilter is not declared by the entity; usecase browseMenuItems.browseMenuItems: MenuItem.menuCategoryIdFilter is not declared by the entity; usecase browseMenuItems.browseMenuItems: MenuItem.items is not declared by the entity; usecase browseMenuItems.browseMenuItems: status 'se' is not declared by any entity enum",
-    "2026-07-16T00:35:37.709Z :: _102051_/l1/cafeFlow/layer_2_application/usecases/manageStockItem.defs.ts :: attempt 1 :: compiler: TS2339: Property 'createdAt' does not exist on type 'MdmDocumentRecord'."
-  ],
-  "globalAttempts": 0
+  "repairHistory": [],
+  "globalAttempts": 0,
+  "judgeRuns": 0
 }
