@@ -1,0 +1,38 @@
+{
+  "savedAt": "2026-07-15T23:08:31.958Z",
+  "pageId": "stockManagement",
+  "genome": "page21",
+  "objective": {
+    "actor": "Cafe manager (back-office)",
+    "jobToBeDone": "Monitor stock levels, identify low-stock items, and update stock item configurations (name, unit, minimum level) without leaving the page",
+    "primaryDecision": "Identify which stock items need attention and update their minimum level or attributes inline",
+    "decisiveInfo": [
+      "name",
+      "unit",
+      "minimumLevel"
+    ],
+    "usageFrequency": "occasional/back-office — daily, a few times per day",
+    "criticalActions": [
+      {
+        "action": "browseStockItems",
+        "presentation": "master-list-with-search-and-low-stock-highlighting"
+      },
+      {
+        "action": "manageStockItem",
+        "presentation": "contextual-detail-form-for-selected-row"
+      }
+    ],
+    "informationHierarchy": [
+      "Stock items list with low-stock alerts highlighted (master)",
+      "Search/filter by name to locate a specific ingredient",
+      "Contextual edit panel for the selected item with name, unit, minimumLevel (detail)"
+    ],
+    "successCriteria": "Manager can see all stock items at a glance, identify low-stock alerts visually, search for a specific item by name, and update its configuration inline without page navigation",
+    "antiPatterns": [
+      "Separate edit form page requiring navigation",
+      "Manually typing stockItemId",
+      "Showing createdAt or updatedAt as editable inputs",
+      "Free status select for stock levels instead of derived alerts"
+    ]
+  }
+}

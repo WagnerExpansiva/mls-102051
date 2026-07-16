@@ -3,285 +3,377 @@
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { CafeFlowManagerDashboardBase } from '/_102051_/l2/cafeFlow/web/shared/managerDashboard.js';
-import type {
-  CafeFlowViewDashboardOutputItem,
-  CafeFlowRequestAiSalesSummaryOutputItem,
-  CafeFlowRequestAiPromoSuggestionsOutputItem,
-} from '/_102051_/l2/cafeFlow/web/contracts/managerDashboard.js';
 
-@customElement('cafe-flow--web--desktop--page21--manager-dashboard-102051')
+@customElement('cafeflow--web--desktop--page21--manager-dashboard-102051')
 export class CafeFlowDesktopPage21ManagerDashboardPage extends CafeFlowManagerDashboardBase {
   render() {
+    const dashData = this.viewDashboardData ?? [];
+    const dashLoading = this.viewDashboardState === 'loading';
+    const dashError = this.viewDashboardState === 'error';
+    const dashSuccess = this.viewDashboardState === 'success';
+
+    const salesData = this.requestAiSalesSummaryData ?? [];
+    const salesLoading = this.requestAiSalesSummaryState === 'loading';
+    const salesError = this.requestAiSalesSummaryState === 'error';
+    const salesSuccess = this.requestAiSalesSummaryState === 'success';
+
+    const promoData = this.requestAiPromoSuggestionsData ?? [];
+    const promoLoading = this.requestAiPromoSuggestionsState === 'loading';
+    const promoError = this.requestAiPromoSuggestionsState === 'error';
+    const promoSuccess = this.requestAiPromoSuggestionsState === 'success';
+
+    /* Summary-first: compute compact stats from dashboard data */
+    const statusCounts: Record<string, number> = {};
+    const typeCounts: Record<string, number> = {};
+    for (const item of dashData) {
+      const s: string = item.status ?? 'unknown';
+      statusCounts[s] = (statusCounts[s] ?? 0) + 1;
+      const t: string = item.orderType ?? 'unknown';
+      typeCounts[t] = (typeCounts[t] ?? 0) + 1;
+    }
+
+    const fmtDate = (val: string | undefined | null): string => {
+      if (!val) return '—';
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return val;
+      return d.toLocaleString();
+    };
+
+    const skeletonRows = [0, 1, 2];
+
     return html`
-      <div class="min-h-full bg-[var(--bg-secondary-color-lighter,#f9f9f9)]">
-        <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#0f172a)]">
-            ${this.msg['page.title']}
-          </h1>
+      <div
+        class="min-h-screen p-4 md:p-6 space-y-6 bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
+      >
+        <h1 class="text-2xl font-bold">${this.msg['page.title']}</h1>
 
-          <!-- Section: Dashboard List -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <div class="flex items-center justify-between flex-wrap gap-2">
-              <h2 class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]">
-                ${this.msg['sec.dashboard.list.title']}
-              </h2>
-              <button
-                class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890ff)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50 disabled:cursor-not-allowed"
-                ?disabled=${this.viewDashboardState === 'loading'}
-                @click=${(e: Event) => this.handleViewDashboardClick(e)}
+        <!-- ===================== Dashboard Section (summary-first) ===================== -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h2 class="text-xl font-semibold">${this.msg['section.dashboard.title']}</h2>
+            <button
+              class="px-4 py-2 rounded-lg text-white bg-[var(--active-color,#1890FF)] hover:opacity-90 disabled:opacity-50 text-sm font-medium transition-opacity"
+              @click=${this.handleViewDashboardClick}
+              ?disabled=${dashLoading}
+            >
+              ${dashLoading ? '…' : this.msg['action.viewDashboard.label']}
+            </button>
+          </div>
+
+          ${dashSuccess
+            ? html`<div
+                class="text-sm text-[var(--success-color,#52C41A)]"
               >
-                ${this.viewDashboardState === 'loading' ? this.msg['action.viewDashboard.label'] + '…' : this.msg['action.viewDashboard.label']}
-              </button>
-            </div>
+                ${this.msg['action.viewDashboard.success']}
+              </div>`
+            : ''}
+          ${dashError
+            ? html`<div
+                class="text-sm text-[var(--error-color,#FF4D4F)]"
+              >
+                ${this.msg['action.viewDashboard.error']}
+              </div>`
+            : ''}
 
-            <h3 class="text-base font-medium text-[var(--text-primary-color,#0f172a)]">
-              ${this.msg['organism.dashboardOrdersList.title']}
-            </h3>
-
-            ${this.viewDashboardState === 'loading'
+          ${dashLoading
+            ? html`
+                <div class="space-y-2">
+                  ${skeletonRows.map(
+                    (_n: number) =>
+                      html`<div
+                        class="h-12 rounded-lg bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"
+                      ></div>`,
+                  )}
+                </div>
+              `
+            : dashData.length === 0
               ? html`
-                  <div class="space-y-2">
-                    ${[0, 1, 2].map((_i: number) => html`
-                      <div class="h-10 rounded bg-[var(--grey-color-light,#f2f2f2)] animate-pulse"></div>
-                    `)}
+                  <div
+                    class="p-6 text-center text-sm text-[var(--text-primary-color-disabled,#525151)] rounded-lg border border-[var(--grey-color,#E6E6E6)]"
+                  >
+                    ${this.msg['organism.dashboard.empty']}
                   </div>
                 `
-              : this.viewDashboardData.length === 0
-              ? html`
-                  <p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">
-                    ${this.msg['organism.dashboardOrdersList.empty']}
-                  </p>
-                `
               : html`
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                      <thead>
-                        <tr
-                          class="border-b border-[var(--grey-color,#e2e8f0)] text-left text-[var(--text-primary-color-lighter,#535353)]"
+                  <!-- Summary stat cards -->
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div
+                      class="p-3 rounded-lg bg-[var(--bg-secondary-color,#E6E6E6)]"
+                    >
+                      <div
+                        class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                      >
+                        ${this.msg['column.status']}
+                      </div>
+                      <div class="text-lg font-bold">${dashData.length}</div>
+                    </div>
+                    ${Object.entries(statusCounts).map(
+                      ([status, count]: [string, number]) =>
+                        html`<div
+                          class="p-3 rounded-lg bg-[var(--bg-secondary-color,#E6E6E6)]"
                         >
-                          <th class="py-2 px-3 font-medium">${this.msg['column.status']}</th>
-                          <th class="py-2 px-3 font-medium">${this.msg['column.orderType']}</th>
-                          <th class="py-2 px-3 font-medium">${this.msg['column.createdAt']}</th>
-                          <th class="py-2 px-3 font-medium">${this.msg['column.shiftId']}</th>
-                          <th class="py-2 px-3 font-medium">${this.msg['column.deliveredAt']}</th>
+                          <div
+                            class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                          >
+                            ${status}
+                          </div>
+                          <div class="text-lg font-bold">${count}</div>
+                        </div>`,
+                    )}
+                    ${Object.entries(typeCounts).map(
+                      ([otype, count]: [string, number]) =>
+                        html`<div
+                          class="p-3 rounded-lg bg-[var(--bg-secondary-color,#E6E6E6)]"
+                        >
+                          <div
+                            class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                          >
+                            ${otype}
+                          </div>
+                          <div class="text-lg font-bold">${count}</div>
+                        </div>`,
+                    )}
+                  </div>
+
+                  <!-- Orders table -->
+                  <div
+                    class="overflow-x-auto rounded-lg border border-[var(--grey-color,#E6E6E6)]"
+                  >
+                    <table class="w-full text-sm">
+                      <thead class="bg-[var(--bg-secondary-color,#E6E6E6)]">
+                        <tr>
+                          <th class="px-3 py-2 text-left font-medium">
+                            ${this.msg['column.status']}
+                          </th>
+                          <th class="px-3 py-2 text-left font-medium">
+                            ${this.msg['column.orderType']}
+                          </th>
+                          <th class="px-3 py-2 text-left font-medium">
+                            ${this.msg['column.createdAt']}
+                          </th>
+                          <th class="px-3 py-2 text-left font-medium">
+                            ${this.msg['column.shiftId']}
+                          </th>
+                          <th class="px-3 py-2 text-left font-medium">
+                            ${this.msg['column.deliveredAt']}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        ${this.viewDashboardData.map(
-                          (row: CafeFlowViewDashboardOutputItem) => html`
-                            <tr
-                              class="border-b border-[var(--grey-color-light,#f2f2f2)] text-[var(--text-primary-color,#0f172a)]"
+                        ${dashData.map(
+                          (item) =>
+                            html`<tr
+                              class="border-t border-[var(--grey-color,#E6E6E6)]"
                             >
-                              <td class="py-2 px-3">${row.status}</td>
-                              <td class="py-2 px-3">${row.orderType}</td>
-                              <td class="py-2 px-3">${row.createdAt}</td>
-                              <td class="py-2 px-3">${row.shiftId}</td>
-                              <td class="py-2 px-3">${row.deliveredAt}</td>
-                            </tr>
-                          `,
+                              <td class="px-3 py-2">${item.status}</td>
+                              <td class="px-3 py-2">${item.orderType}</td>
+                              <td class="px-3 py-2">${fmtDate(item.createdAt)}</td>
+                              <td class="px-3 py-2">${item.shiftId}</td>
+                              <td class="px-3 py-2">
+                                ${fmtDate(item.deliveredAt)}
+                              </td>
+                            </tr>`,
                         )}
                       </tbody>
                     </table>
                   </div>
                 `}
+        </section>
 
-            ${this.viewDashboardState === 'success'
-              ? html`
-                  <div
-                    class="rounded-md border border-[var(--success-color,#52c41a)] px-3 py-2 text-sm text-[var(--success-color,#52c41a)]"
-                  >
-                    ${this.msg['action.viewDashboard.success']}
-                  </div>
-                `
-              : ''}
-            ${this.viewDashboardState === 'error'
-              ? html`
-                  <div
-                    class="rounded-md border border-[var(--error-color,#ff4d4f)] px-3 py-2 text-sm text-[var(--error-color,#ff4d4f)]"
-                  >
-                    ${this.msg['action.viewDashboard.error']}
-                  </div>
-                `
-              : ''}
-          </section>
+        <!-- ===================== AI Assistant Section (on-demand panels) ===================== -->
+        <section class="space-y-4">
+          <h2 class="text-xl font-semibold">
+            ${this.msg['section.aiAssistant.title']}
+          </h2>
 
-          <!-- Section: AI Assistant -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]">
-              ${this.msg['sec.ai.assistant.title']}
-            </h2>
-
-            <!-- AI Sales Summary -->
-            <div class="space-y-3">
+          <div class="grid md:grid-cols-2 gap-4">
+            <!-- ---- AI Sales Summary Panel ---- -->
+            <div
+              class="space-y-3 p-4 rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)]"
+            >
               <div class="flex items-center justify-between flex-wrap gap-2">
-                <h3 class="text-base font-medium text-[var(--text-primary-color,#0f172a)]">
-                  ${this.msg['organism.aiSalesSummary.title']}
+                <h3 class="text-lg font-medium">
+                  ${this.msg['organism.aiSales.title']}
                 </h3>
                 <button
-                  class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890ff)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50 disabled:cursor-not-allowed"
-                  ?disabled=${this.requestAiSalesSummaryState === 'loading'}
-                  @click=${(e: Event) => this.handleRequestAiSalesSummaryClick(e)}
+                  class="px-3 py-1.5 rounded-lg text-white bg-[var(--active-color,#1890FF)] hover:opacity-90 disabled:opacity-50 text-sm font-medium transition-opacity"
+                  @click=${this.handleRequestAiSalesSummaryClick}
+                  ?disabled=${salesLoading}
                 >
-                  ${this.requestAiSalesSummaryState === 'loading'
-                    ? this.msg['action.requestAiSalesSummary.label'] + '…'
-                    : this.msg['action.requestAiSalesSummary.label']}
+                  ${salesLoading ? '…' : this.msg['action.requestAiSalesSummary.label']}
                 </button>
               </div>
 
-              ${this.requestAiSalesSummaryState === 'loading'
+              ${salesSuccess
+                ? html`<div
+                    class="text-xs text-[var(--success-color,#52C41A)]"
+                  >
+                    ${this.msg['action.requestAiSalesSummary.success']}
+                  </div>`
+                : ''}
+              ${salesError
+                ? html`<div
+                    class="text-xs text-[var(--error-color,#FF4D4F)]"
+                  >
+                    ${this.msg['action.requestAiSalesSummary.error']}
+                  </div>`
+                : ''}
+
+              ${salesLoading
                 ? html`
                     <div class="space-y-2">
-                      ${[0, 1, 2].map((_i: number) => html`
-                        <div class="h-10 rounded bg-[var(--grey-color-light,#f2f2f2)] animate-pulse"></div>
-                      `)}
+                      ${[0, 1].map(
+                        (_n: number) =>
+                          html`<div
+                            class="h-8 rounded bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"
+                          ></div>`,
+                      )}
                     </div>
                   `
-                : this.requestAiSalesSummaryData.length === 0
-                ? html`
-                    <p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">
-                      ${this.msg['organism.aiSalesSummary.empty']}
-                    </p>
-                  `
-                : html`
-                    <div class="overflow-x-auto">
-                      <table class="w-full text-sm">
-                        <thead>
-                          <tr
-                            class="border-b border-[var(--grey-color,#e2e8f0)] text-left text-[var(--text-primary-color-lighter,#535353)]"
-                          >
-                            <th class="py-2 px-3 font-medium">${this.msg['column.orderId']}</th>
-                            <th class="py-2 px-3 font-medium">${this.msg['column.status']}</th>
-                            <th class="py-2 px-3 font-medium">${this.msg['column.orderType']}</th>
-                            <th class="py-2 px-3 font-medium">${this.msg['column.createdAt']}</th>
-                            <th class="py-2 px-3 font-medium">${this.msg['column.deliveredAt']}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          ${this.requestAiSalesSummaryData.map(
-                            (row: CafeFlowRequestAiSalesSummaryOutputItem) => html`
-                              <tr
-                                class="border-b border-[var(--grey-color-light,#f2f2f2)] text-[var(--text-primary-color,#0f172a)]"
-                              >
-                                <td class="py-2 px-3">${row.orderId}</td>
-                                <td class="py-2 px-3">${row.status}</td>
-                                <td class="py-2 px-3">${row.orderType}</td>
-                                <td class="py-2 px-3">${row.createdAt}</td>
-                                <td class="py-2 px-3">${row.deliveredAt}</td>
-                              </tr>
-                            `,
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  `}
-
-              ${this.requestAiSalesSummaryState === 'success'
-                ? html`
-                    <div
-                      class="rounded-md border border-[var(--success-color,#52c41a)] px-3 py-2 text-sm text-[var(--success-color,#52c41a)]"
-                    >
-                      ${this.msg['action.requestAiSalesSummary.success']}
-                    </div>
-                  `
-                : ''}
-              ${this.requestAiSalesSummaryState === 'error'
-                ? html`
-                    <div
-                      class="rounded-md border border-[var(--error-color,#ff4d4f)] px-3 py-2 text-sm text-[var(--error-color,#ff4d4f)]"
-                    >
-                      ${this.msg['action.requestAiSalesSummary.error']}
-                    </div>
-                  `
-                : ''}
+                : salesData.length === 0
+                  ? html`
+                      <div
+                        class="p-4 text-center text-sm text-[var(--text-primary-color-disabled,#525151)]"
+                      >
+                        ${this.msg['organism.aiSalesSummary.empty']}
+                      </div>
+                    `
+                  : html`
+                      <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                          <thead class="bg-[var(--bg-secondary-color,#E6E6E6)]">
+                            <tr>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.orderId']}
+                              </th>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.status']}
+                              </th>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.orderType']}
+                              </th>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.createdAt']}
+                              </th>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.deliveredAt']}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${salesData.map(
+                              (item) =>
+                                html`<tr
+                                  class="border-t border-[var(--grey-color,#E6E6E6)]"
+                                >
+                                  <td class="px-2 py-1.5">${item.orderId}</td>
+                                  <td class="px-2 py-1.5">${item.status}</td>
+                                  <td class="px-2 py-1.5">${item.orderType}</td>
+                                  <td class="px-2 py-1.5">
+                                    ${fmtDate(item.createdAt)}
+                                  </td>
+                                  <td class="px-2 py-1.5">
+                                    ${fmtDate(item.deliveredAt)}
+                                  </td>
+                                </tr>`,
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    `}
             </div>
 
-            <!-- AI Promo Suggestions -->
-            <div class="space-y-3">
+            <!-- ---- AI Promo Suggestions Panel ---- -->
+            <div
+              class="space-y-3 p-4 rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)]"
+            >
               <div class="flex items-center justify-between flex-wrap gap-2">
-                <h3 class="text-base font-medium text-[var(--text-primary-color,#0f172a)]">
-                  ${this.msg['organism.aiPromoSuggestions.title']}
+                <h3 class="text-lg font-medium">
+                  ${this.msg['organism.aiPromo.title']}
                 </h3>
                 <button
-                  class="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-[var(--bg-primary-color,#ffffff)] bg-[var(--active-color,#1890ff)] hover:bg-[var(--active-color-hover,#1a99ff)] disabled:opacity-50 disabled:cursor-not-allowed"
-                  ?disabled=${this.requestAiPromoSuggestionsState === 'loading'}
-                  @click=${(e: Event) => this.handleRequestAiPromoSuggestionsClick(e)}
+                  class="px-3 py-1.5 rounded-lg text-white bg-[var(--active-color,#1890FF)] hover:opacity-90 disabled:opacity-50 text-sm font-medium transition-opacity"
+                  @click=${this.handleRequestAiPromoSuggestionsClick}
+                  ?disabled=${promoLoading}
                 >
-                  ${this.requestAiPromoSuggestionsState === 'loading'
-                    ? this.msg['action.requestAiPromoSuggestions.label'] + '…'
-                    : this.msg['action.requestAiPromoSuggestions.label']}
+                  ${promoLoading ? '…' : this.msg['action.requestAiPromoSuggestions.label']}
                 </button>
               </div>
 
-              ${this.requestAiPromoSuggestionsState === 'loading'
+              ${promoSuccess
+                ? html`<div
+                    class="text-xs text-[var(--success-color,#52C41A)]"
+                  >
+                    ${this.msg['action.requestAiPromoSuggestions.success']}
+                  </div>`
+                : ''}
+              ${promoError
+                ? html`<div
+                    class="text-xs text-[var(--error-color,#FF4D4F)]"
+                  >
+                    ${this.msg['action.requestAiPromoSuggestions.error']}
+                  </div>`
+                : ''}
+
+              ${promoLoading
                 ? html`
                     <div class="space-y-2">
-                      ${[0, 1, 2].map((_i: number) => html`
-                        <div class="h-10 rounded bg-[var(--grey-color-light,#f2f2f2)] animate-pulse"></div>
-                      `)}
+                      ${[0, 1].map(
+                        (_n: number) =>
+                          html`<div
+                            class="h-8 rounded bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"
+                          ></div>`,
+                      )}
                     </div>
                   `
-                : this.requestAiPromoSuggestionsData.length === 0
-                ? html`
-                    <p class="text-sm text-[var(--text-primary-color-lighter,#535353)]">
-                      ${this.msg['organism.aiPromoSuggestions.empty']}
-                    </p>
-                  `
-                : html`
-                    <div class="overflow-x-auto">
-                      <table class="w-full text-sm">
-                        <thead>
-                          <tr
-                            class="border-b border-[var(--grey-color,#e2e8f0)] text-left text-[var(--text-primary-color-lighter,#535353)]"
-                          >
-                            <th class="py-2 px-3 font-medium">${this.msg['column.orderId']}</th>
-                            <th class="py-2 px-3 font-medium">${this.msg['column.orderType']}</th>
-                            <th class="py-2 px-3 font-medium">${this.msg['column.status']}</th>
-                            <th class="py-2 px-3 font-medium">${this.msg['column.createdAt']}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          ${this.requestAiPromoSuggestionsData.map(
-                            (row: CafeFlowRequestAiPromoSuggestionsOutputItem) => html`
-                              <tr
-                                class="border-b border-[var(--grey-color-light,#f2f2f2)] text-[var(--text-primary-color,#0f172a)]"
-                              >
-                                <td class="py-2 px-3">${row.orderId}</td>
-                                <td class="py-2 px-3">${row.orderType}</td>
-                                <td class="py-2 px-3">${row.status}</td>
-                                <td class="py-2 px-3">${row.createdAt}</td>
-                              </tr>
-                            `,
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  `}
-
-              ${this.requestAiPromoSuggestionsState === 'success'
-                ? html`
-                    <div
-                      class="rounded-md border border-[var(--success-color,#52c41a)] px-3 py-2 text-sm text-[var(--success-color,#52c41a)]"
-                    >
-                      ${this.msg['action.requestAiPromoSuggestions.success']}
-                    </div>
-                  `
-                : ''}
-              ${this.requestAiPromoSuggestionsState === 'error'
-                ? html`
-                    <div
-                      class="rounded-md border border-[var(--error-color,#ff4d4f)] px-3 py-2 text-sm text-[var(--error-color,#ff4d4f)]"
-                    >
-                      ${this.msg['action.requestAiPromoSuggestions.error']}
-                    </div>
-                  `
-                : ''}
+                : promoData.length === 0
+                  ? html`
+                      <div
+                        class="p-4 text-center text-sm text-[var(--text-primary-color-disabled,#525151)]"
+                      >
+                        ${this.msg['organism.aiPromoSuggestions.empty']}
+                      </div>
+                    `
+                  : html`
+                      <div class="overflow-x-auto">
+                        <table class="w-full text-xs">
+                          <thead class="bg-[var(--bg-secondary-color,#E6E6E6)]">
+                            <tr>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.orderId']}
+                              </th>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.orderType']}
+                              </th>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.status']}
+                              </th>
+                              <th class="px-2 py-1.5 text-left font-medium">
+                                ${this.msg['column.createdAt']}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${promoData.map(
+                              (item) =>
+                                html`<tr
+                                  class="border-t border-[var(--grey-color,#E6E6E6)]"
+                                >
+                                  <td class="px-2 py-1.5">${item.orderId}</td>
+                                  <td class="px-2 py-1.5">${item.orderType}</td>
+                                  <td class="px-2 py-1.5">${item.status}</td>
+                                  <td class="px-2 py-1.5">
+                                    ${fmtDate(item.createdAt)}
+                                  </td>
+                                </tr>`,
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    `}
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     `;
   }

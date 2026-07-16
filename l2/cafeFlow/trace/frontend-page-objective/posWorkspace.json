@@ -1,0 +1,47 @@
+{
+  "savedAt": "2026-07-15T23:06:55.200Z",
+  "pageId": "posWorkspace",
+  "genome": "page21",
+  "objective": {
+    "actor": "Atendente do POS (café/restaurante)",
+    "jobToBeDone": "Lançar novos pedidos rapidamente e acompanhar seu progresso pelo ciclo de vida da cozinha, entregando ao cliente quando prontos.",
+    "primaryDecision": "Criar um novo pedido com tipo, itens e prioridade, e entregar pedidos prontos com um único toque",
+    "decisiveInfo": [
+      "orderType",
+      "tableNumber",
+      "orderItems",
+      "priority",
+      "priorityReason",
+      "status",
+      "orderId"
+    ],
+    "usageFrequency": "Contínuo, mãos ocupadas, durante todo o turno",
+    "criticalActions": [
+      {
+        "action": "createOrder",
+        "presentation": "primary-button"
+      },
+      {
+        "action": "deliverOrder",
+        "presentation": "inline-row-command"
+      },
+      {
+        "action": "viewOrderBoard",
+        "presentation": "auto-loaded-card-board"
+      }
+    ],
+    "informationHierarchy": [
+      "Painel de pedidos com status ao vivo (sempre visível)",
+      "Ação de entrega contextual em pedidos prontos (inline no card)",
+      "Formulário rápido de criação de pedido abaixo do painel"
+    ],
+    "successCriteria": "O atendente cria pedidos em poucos toques, vê o status de todos os pedidos em tempo real no painel e entrega pedidos prontos com um único toque no card, sem digitar IDs.",
+    "antiPatterns": [
+      "Formulário separado para entrega com ID digitado manualmente",
+      "Select livre de status sobre todo o enum",
+      "ID de pedido digitado manualmente",
+      "Empilhar formulários sem conexão contextual com a lista de pedidos",
+      "Exibir campos system-owned (createdAt, status) como inputs manuais no formulário de criação"
+    ]
+  }
+}

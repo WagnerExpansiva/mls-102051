@@ -68,19 +68,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-stock-items",
+      "id": "sec-browse",
       "type": "section",
-      "sectionName": "sec-stock-items",
-      "titleKey": "sec.stock.items.title",
+      "sectionName": "sec-browse",
+      "titleKey": "sec.browse.title",
       "mode": "list",
       "order": 1,
       "organisms": [
         {
-          "id": "org-stock-items-table",
+          "id": "org-stockItemsList",
           "type": "organism",
-          "organismName": "StockItemsTable",
-          "titleKey": "org.stock.items.table.title",
-          "purpose": "Listar itens de estoque com nome, unidade e limite mínimo, destacando alertas de estoque baixo",
+          "organismName": "StockItemsList",
+          "titleKey": "org.stockItemsList.title",
+          "purpose": "Listar e buscar itens de estoque, destacando alertas de nível baixo",
           "userActions": [
             "browseStockItems"
           ],
@@ -98,17 +98,14 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "Itens cuja quantidade atual (StockLevel.currentQuantity) está abaixo ou igual ao mínimo (StockItem.minimumLevel) são destacados como alerta de estoque baixo",
-            "O gerente pode filtrar a lista por nome para localizar um ingrediente específico",
-            "Selecionar um item da lista preenche o formulário de edição com seus dados atuais"
+            "Itens cuja quantidade atual (StockLevel.currentQuantity) está abaixo ou igual ao mínimo configurado (StockItem.minimumLevel) são destacados como alerta de estoque baixo"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-browse-stock-items",
+              "id": "int-browseStockItems",
               "intent": "queryList",
               "stateKey": "ui.stockManagement.data.browseStockItems",
-              "action": "browseStockItems",
               "order": 1
             }
           ]
@@ -116,19 +113,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-manage-stock-item",
+      "id": "sec-manage",
       "type": "section",
-      "sectionName": "sec-manage-stock-item",
-      "titleKey": "sec.manage.stock.item.title",
+      "sectionName": "sec-manage",
+      "titleKey": "sec.manage.title",
       "mode": "form",
       "order": 2,
       "organisms": [
         {
-          "id": "org-stock-item-form",
+          "id": "org-manageStockItemForm",
           "type": "organism",
-          "organismName": "StockItemForm",
-          "titleKey": "org.stock.item.form.title",
-          "purpose": "Editar os dados de um item de estoque selecionado: nome, unidade de medida e limite mínimo",
+          "organismName": "ManageStockItemForm",
+          "titleKey": "org.manageStockItemForm.title",
+          "purpose": "Editar os dados de um item de estoque selecionado na lista",
           "userActions": [
             "manageStockItem"
           ],
@@ -148,15 +145,13 @@ export const definition = {
             "minimumLevel"
           ],
           "rulesApplied": [
-            "stockItemId é derivado da seleção na lista (route param), nunca digitado manualmente",
-            "Após salvar, a lista de itens de estoque é atualizada automaticamente",
-            "Os campos do formulário são pré-preenchidos com os dados atuais do item selecionado",
-            "O timestamp updatedAt é atualizado pelo backend após a persistência"
+            "O campo stockItemId é preenchido automaticamente pela seleção na lista, nunca digitado manualmente",
+            "Após salvar, a lista de itens é atualizada e o formulário é limpo"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-manage-stock-item",
+              "id": "int-manageStockItem",
               "intent": "commandForm",
               "stateKey": "ui.stockManagement.action.manageStockItem.status",
               "action": "manageStockItem",
@@ -171,23 +166,23 @@ export const definition = {
   "templateId": "pos_workspace",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "layout": {
-    "id": "page11-pos-workspace",
+    "id": "page11-pos_workspace",
     "type": "page",
     "sections": [
       {
-        "id": "sec-stock-items",
+        "id": "sec-browse",
         "type": "section",
-        "sectionName": "sec-stock-items",
-        "titleKey": "sec.stock.items.title",
+        "sectionName": "sec-browse",
+        "titleKey": "sec.browse.title",
         "mode": "list",
         "order": 1,
         "organisms": [
           {
-            "id": "org-stock-items-table",
+            "id": "org-stockItemsList",
             "type": "organism",
-            "organismName": "StockItemsTable",
-            "titleKey": "org.stock.items.table.title",
-            "purpose": "Listar itens de estoque com nome, unidade e limite mínimo, destacando alertas de estoque baixo",
+            "organismName": "StockItemsList",
+            "titleKey": "org.stockItemsList.title",
+            "purpose": "Listar e buscar itens de estoque, destacando alertas de nível baixo",
             "userActions": [
               "browseStockItems"
             ],
@@ -205,106 +200,91 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "Itens cuja quantidade atual (StockLevel.currentQuantity) está abaixo ou igual ao mínimo (StockItem.minimumLevel) são destacados como alerta de estoque baixo",
-              "O gerente pode filtrar a lista por nome para localizar um ingrediente específico",
-              "Selecionar um item da lista preenche o formulário de edição com seus dados atuais"
+              "Itens cuja quantidade atual (StockLevel.currentQuantity) está abaixo ou igual ao mínimo configurado (StockItem.minimumLevel) são destacados como alerta de estoque baixo"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "int-browse-stock-items",
+                "id": "int-browseStockItems",
                 "intent": "queryList",
                 "order": 1,
-                "titleKey": "section.stockItems.title",
-                "source": "ui.stockManagement.data.browseStockItems",
-                "binding": "browseStockItems",
-                "action": "browseStockItems",
-                "emptyKey": "empty.browseStockItems",
+                "titleKey": "section.browse.title",
+                "source": "browseStockItems",
+                "binding": "ui.stockManagement.data.browseStockItems",
+                "emptyKey": "section.browse.empty",
                 "displayHint": "table",
                 "stateKey": "ui.stockManagement.data.browseStockItems",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-name",
-                    "field": "name",
-                    "labelKey": "column.name.label",
+                    "id": "col-stockItemId",
+                    "field": "stockItemId",
+                    "labelKey": "field.stockItemId.label",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
-                    "source": "ui.stockManagement.data.browseStockItems",
+                    "format": "text",
+                    "stateKey": "ui.stockManagement.data.browseStockItems"
+                  },
+                  {
+                    "id": "col-name",
+                    "field": "name",
+                    "labelKey": "field.name.label",
+                    "order": 2,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "text",
                     "stateKey": "ui.stockManagement.data.browseStockItems"
                   },
                   {
                     "id": "col-unit",
                     "field": "unit",
-                    "labelKey": "column.unit.label",
-                    "order": 2,
+                    "labelKey": "field.unit.label",
+                    "order": 3,
                     "required": false,
                     "inputType": "text",
-                    "source": "ui.stockManagement.data.browseStockItems",
+                    "format": "text",
                     "stateKey": "ui.stockManagement.data.browseStockItems"
                   },
                   {
-                    "id": "col-minimum-level",
+                    "id": "col-minimumLevel",
                     "field": "minimumLevel",
-                    "labelKey": "column.minimumLevel.label",
-                    "order": 3,
+                    "labelKey": "field.minimumLevel.label",
+                    "order": 4,
                     "required": false,
                     "inputType": "number",
                     "format": "number",
-                    "source": "ui.stockManagement.data.browseStockItems",
                     "stateKey": "ui.stockManagement.data.browseStockItems"
                   },
                   {
-                    "id": "col-updated-at",
+                    "id": "col-updatedAt",
                     "field": "updatedAt",
-                    "labelKey": "column.updatedAt.label",
-                    "order": 4,
-                    "required": false,
-                    "inputType": "text",
-                    "format": "datetime",
-                    "source": "ui.stockManagement.data.browseStockItems",
-                    "stateKey": "ui.stockManagement.data.browseStockItems"
-                  },
-                  {
-                    "id": "col-created-at",
-                    "field": "createdAt",
-                    "labelKey": "column.createdAt.label",
+                    "labelKey": "field.updatedAt.label",
                     "order": 5,
                     "required": false,
                     "inputType": "text",
                     "format": "datetime",
-                    "source": "ui.stockManagement.data.browseStockItems",
-                    "stateKey": "ui.stockManagement.data.browseStockItems"
-                  },
-                  {
-                    "id": "col-stock-item-id",
-                    "field": "stockItemId",
-                    "labelKey": "column.stockItemId.label",
-                    "order": 6,
-                    "required": false,
-                    "inputType": "text",
-                    "source": "ui.stockManagement.data.browseStockItems",
                     "stateKey": "ui.stockManagement.data.browseStockItems"
                   }
                 ],
                 "filters": [
                   {
-                    "id": "flt-search-term",
+                    "id": "flt-searchTerm",
                     "field": "searchTerm",
-                    "labelKey": "filter.searchTerm.label",
+                    "labelKey": "field.searchTerm.label",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
+                    "format": "text",
                     "source": "ui.stockManagement.input.browseStockItems.searchTerm",
                     "stateKey": "ui.stockManagement.input.browseStockItems.searchTerm"
                   }
                 ],
                 "toolbar": [
                   {
-                    "id": "tb-refresh-list",
+                    "id": "tb-refresh",
                     "action": "browseStockItems",
-                    "labelKey": "action.browseStockItems.label",
+                    "labelKey": "action.refresh.label",
                     "order": 1,
                     "displayHint": "button",
                     "actionKey": "browseStockItems"
@@ -318,19 +298,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-manage-stock-item",
+        "id": "sec-manage",
         "type": "section",
-        "sectionName": "sec-manage-stock-item",
-        "titleKey": "sec.manage.stock.item.title",
+        "sectionName": "sec-manage",
+        "titleKey": "sec.manage.title",
         "mode": "form",
         "order": 2,
         "organisms": [
           {
-            "id": "org-stock-item-form",
+            "id": "org-manageStockItemForm",
             "type": "organism",
-            "organismName": "StockItemForm",
-            "titleKey": "org.stock.item.form.title",
-            "purpose": "Editar os dados de um item de estoque selecionado: nome, unidade de medida e limite mínimo",
+            "organismName": "ManageStockItemForm",
+            "titleKey": "org.manageStockItemForm.title",
+            "purpose": "Editar os dados de um item de estoque selecionado na lista",
             "userActions": [
               "manageStockItem"
             ],
@@ -350,33 +330,32 @@ export const definition = {
               "minimumLevel"
             ],
             "rulesApplied": [
-              "stockItemId é derivado da seleção na lista (route param), nunca digitado manualmente",
-              "Após salvar, a lista de itens de estoque é atualizada automaticamente",
-              "Os campos do formulário são pré-preenchidos com os dados atuais do item selecionado",
-              "O timestamp updatedAt é atualizado pelo backend após a persistência"
+              "O campo stockItemId é preenchido automaticamente pela seleção na lista, nunca digitado manualmente",
+              "Após salvar, a lista de itens é atualizada e o formulário é limpo"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "int-manage-stock-item",
+                "id": "int-manageStockItem",
                 "intent": "commandForm",
                 "order": 1,
-                "titleKey": "section.manageStockItem.title",
-                "source": "ui.stockManagement.output.manageStockItem",
-                "binding": "manageStockItem",
+                "titleKey": "section.manage.title",
+                "source": "manageStockItem",
+                "binding": "ui.stockManagement.output.manageStockItem",
                 "action": "manageStockItem",
                 "submitAction": "manageStockItem",
-                "emptyKey": "empty.manageStockItem",
+                "emptyKey": "section.manage.empty",
                 "displayHint": "form",
                 "stateKey": "ui.stockManagement.action.manageStockItem.status",
                 "fields": [
                   {
-                    "id": "fld-stock-item-id",
+                    "id": "fld-stockItemId",
                     "field": "stockItemId",
                     "labelKey": "field.stockItemId.label",
                     "order": 1,
                     "required": true,
                     "inputType": "hidden",
+                    "format": "text",
                     "source": "ui.stockManagement.input.manageStockItem.stockItemId",
                     "stateKey": "ui.stockManagement.input.manageStockItem.stockItemId"
                   },
@@ -387,6 +366,7 @@ export const definition = {
                     "order": 2,
                     "required": true,
                     "inputType": "text",
+                    "format": "text",
                     "source": "ui.stockManagement.input.manageStockItem.name",
                     "stateKey": "ui.stockManagement.input.manageStockItem.name"
                   },
@@ -397,11 +377,12 @@ export const definition = {
                     "order": 3,
                     "required": true,
                     "inputType": "text",
+                    "format": "text",
                     "source": "ui.stockManagement.input.manageStockItem.unit",
                     "stateKey": "ui.stockManagement.input.manageStockItem.unit"
                   },
                   {
-                    "id": "fld-minimum-level",
+                    "id": "fld-minimumLevel",
                     "field": "minimumLevel",
                     "labelKey": "field.minimumLevel.label",
                     "order": 4,
@@ -418,9 +399,9 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-submit-manage",
+                    "id": "act-submit",
                     "action": "manageStockItem",
-                    "labelKey": "action.manageStockItem.label",
+                    "labelKey": "action.submit.label",
                     "order": 1,
                     "displayHint": "primary",
                     "actionKey": "manageStockItem"
@@ -435,8 +416,8 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "db-browse-stock-items",
-      "source": "ui.stockManagement.data.browseStockItems",
+      "id": "bind-browseStockItems",
+      "source": "browseStockItems",
       "entity": "StockItem",
       "command": "browseStockItems",
       "description": "Consulta itens de estoque com filtro por nome",
@@ -446,11 +427,11 @@ export const definition = {
       ]
     },
     {
-      "id": "db-manage-stock-item",
-      "source": "ui.stockManagement.output.manageStockItem",
+      "id": "bind-manageStockItem",
+      "source": "manageStockItem",
       "entity": "StockItem",
       "command": "manageStockItem",
-      "description": "Atualiza dados de um item de estoque selecionado",
+      "description": "Atualiza dados de um item de estoque existente",
       "stateKey": "ui.stockManagement.output.manageStockItem",
       "inputStateKeys": [
         "ui.stockManagement.input.manageStockItem.stockItemId",
