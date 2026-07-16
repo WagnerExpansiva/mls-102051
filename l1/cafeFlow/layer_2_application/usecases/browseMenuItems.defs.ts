@@ -24,15 +24,13 @@ export const browseMenuItemsUsecase = {
             "name": "statusFilter",
             "type": "string",
             "required": false,
-            "ofEntity": "MenuItem",
-            "description": "Filtro opcional por status do item (draft, active, inactive)"
+            "description": "Filtro opcional por status do item (draft, active, inactive) informado pelo gerente"
           },
           {
             "name": "menuCategoryIdFilter",
             "type": "string",
             "required": false,
-            "ofEntity": "MenuItem",
-            "description": "Filtro opcional por categoria do item (menuCategoryId)"
+            "description": "Filtro opcional por categoria do item informado pelo gerente"
           }
         ],
         "output": [
@@ -40,14 +38,7 @@ export const browseMenuItemsUsecase = {
             "name": "items",
             "type": "array",
             "required": true,
-            "ofEntity": "MenuItem",
-            "description": "Lista de itens do cardápio com campos projetados: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt"
-          },
-          {
-            "name": "total",
-            "type": "number",
-            "required": true,
-            "description": "Total de itens retornados na lista"
+            "description": "Lista de itens do cardápio projetados com: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt"
           }
         ],
         "ports": [],
@@ -56,14 +47,13 @@ export const browseMenuItemsUsecase = {
         ],
         "transactional": false,
         "steps": [
-          "1. Resolver activeCompanyId a partir de ctx.sessionContext.businessContext.activeCompanyId para escopo da consulta",
-          "2. MODELING GAP: MenuItem nao possui campo companyId em seu modelo de entidade; registrar a lacuna e NAO aplicar filtro por empresa ativa (evitar matching contra campo inexistente)",
-          "3. Listar entidades MDM do tipo MenuItem via ctx.mdm.collection.listByType({ type: 'MenuItem' })",
-          "4. Aplicar filtro opcional statusFilter: se informado, manter apenas itens cujo status corresponde ao valor",
-          "5. Aplicar filtro opcional menuCategoryIdFilter: se informado, manter apenas itens cujo menuCategoryId corresponde ao valor",
-          "6. Aplicar regra simpleItemsOnly: listar todos os itens (simple e variant) como entradas separadas, sem expansao ou agrupamento de variantes — cada item aparece individualmente na lista",
-          "7. Projetar campos de saida (menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt) para cada item",
-          "8. Retornar { items, total } com a lista filtrada e projetada"
+          "1. Resolver activeCompanyId a partir de ctx.sessionContext.businessContext.activeCompanyId. MODELING GAP: MenuItem não possui campo companyId no modelo MDM — o filtro de escopo por empresa ativa não pode ser aplicado diretamente; registrar a lacuna e seguir sem o filtro de empresa.",
+          "2. Listar todas as entidades MenuItem do MDM via ctx.mdm.collection.listByType({ type: 'MenuItem' }).",
+          "3. Se statusFilter foi informado, filtrar in-memory os itens cujo campo status === statusFilter.",
+          "4. Se menuCategoryIdFilter foi informado, filtrar in-memory os itens cujo campo menuCategoryId === menuCategoryIdFilter.",
+          "5. Aplicar regra simpleItemsOnly: todos os itens (incluindo itemType 'variant') aparecem na lista como entradas separadas — o browse não filtra por itemType; a regra indica que apenas itens simples são plenamente suportados pelo sistema, mas variantes ainda são listadas individualmente.",
+          "6. Projetar cada item para os campos: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, createdAt, updatedAt.",
+          "7. Retornar a coleção projetada no campo items."
         ]
       }
     ],

@@ -1,6 +1,6 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/shiftRepositoryAdapter.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { IShiftRepository, ShiftFilter, ShiftId, LocalDate } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
+import type { IShiftRepository, ShiftFilter } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
 import type { Shift, ShiftStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
 
 interface ShiftRow {
@@ -74,21 +74,17 @@ export function createShiftRepositoryAdapter(ctx: RequestContext): IShiftReposit
   const getTable = () => ctx.data.moduleData.getTable<ShiftRow>('shift');
 
   return {
-    async getById(id: ShiftId): Promise<Shift> {
+    async getById(shiftId) {
       const repo = await getTable();
-      const row = await repo.findOne({ where: { shift_id: id } });
-      if (!row) {
-        throw new AppError('NOT_FOUND', `Shift ${id} not found`, 404, { shiftId: id });
-      }
+      const row = await repo.findOne({ where: { shift_id: shiftId } });
+      if (!row) throw new AppError('NOT_FOUND', `Shift ${shiftId} not found`, 404, { shiftId });
       return toDomain(row);
     },
 
-    async list(filter?: ShiftFilter): Promise<Shift[]> {
+    async list(filter?: ShiftFilter) {
       const repo = await getTable();
       const where: Partial<ShiftRow> = {};
-      if (filter?.status) {
-        where.status = filter.status;
-      }
+      if (filter?.status) where.status = filter.status;
       const rows = await repo.findMany({
         where,
         orderBy: { field: 'created_at', direction: 'desc' },
@@ -100,7 +96,7 @@ export function createShiftRepositoryAdapter(ctx: RequestContext): IShiftReposit
       return result;
     },
 
-    async save(shift: Shift): Promise<void> {
+    async save(shift) {
       const repo = await getTable();
       const existing = await repo.findOne({ where: { shift_id: shift.shiftId } });
       if (existing) {
@@ -110,25 +106,33 @@ export function createShiftRepositoryAdapter(ctx: RequestContext): IShiftReposit
       }
     },
 
-    async findOpenShift(): Promise<Shift | null> {
+    async findByEmployeeId(employeeId) {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        orderBy: { field: 'created_at', direction: 'desc' },
+      });
+      return rows.map(toDomain).filter((s) => s.openedBy === employeeId);
+    },
+
+    async findByPeriod(start, end) {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        orderBy: { field: 'created_at', direction: 'asc' },
+      });
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+      return rows
+        .map(toDomain)
+        .filter((s) => s.createdAt >= startIso && s.createdAt <= endIso);
+    },
+
+    async findOpenShifts() {
       const repo = await getTable();
       const rows = await repo.findMany({
         where: { status: 'open' },
         orderBy: { field: 'created_at', direction: 'desc' },
       });
-      if (rows.length === 0) {
-        return null;
-      }
-      return toDomain(rows[0]);
-    },
-
-    async listByDate(date: LocalDate): Promise<Shift[]> {
-      const repo = await getTable();
-      const rows = await repo.findMany({
-        orderBy: { field: 'created_at', direction: 'asc' },
-      });
-      const all = rows.map(toDomain);
-      return all.filter((s) => s.openedAt.slice(0, 10) === date);
+      return rows.map(toDomain);
     },
   };
 }

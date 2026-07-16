@@ -84,24 +84,26 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec_dashboard",
+      "id": "dashboardOverview",
       "type": "section",
-      "sectionName": "sec_dashboard",
-      "titleKey": "sec.dashboard.title",
+      "sectionName": "dashboardOverview",
+      "titleKey": "dashboardOverview.title",
       "mode": "summary-first",
       "order": 1,
       "organisms": [
         {
-          "id": "org_dashboard_summary",
+          "id": "dashboardSummary",
           "type": "organism",
-          "organismName": "DashboardSummaryList",
-          "titleKey": "org.dashboard.summary.title",
-          "purpose": "Exibir resumo do dashboard do dia com pedidos agregados por status e tipo, permitindo ao gerente avaliar a operação atual em uma olhada.",
+          "organismName": "DashboardSummary",
+          "titleKey": "dashboardSummary.title",
+          "purpose": "Exibir resumo do dia com pedidos agregados do turno atual, distribuição de status e alertas de estoque baixo",
           "userActions": [
             "viewDashboard"
           ],
           "requiredEntities": [
             "Order",
+            "OrderItem",
+            "StockLevel",
             "Shift"
           ],
           "readsFields": [
@@ -113,14 +115,13 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "Auto-loaded on page init via initialLoads",
-            "All fields are read-only query outputs — no manual input",
-            "shiftId is context-derived from the currently open shift"
+            "Auto-load on page entry via initialLoads",
+            "Summary-first: lead with decisive operational numbers"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "intent_view_dashboard",
+              "id": "viewDashboardQuery",
               "intent": "query",
               "stateKey": "ui.managerDashboard.data.viewDashboard",
               "order": 1
@@ -130,19 +131,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec_ai_assistant",
+      "id": "aiAssistant",
       "type": "section",
-      "sectionName": "sec_ai_assistant",
-      "titleKey": "sec.ai.assistant.title",
-      "mode": "on-demand-panels",
+      "sectionName": "aiAssistant",
+      "titleKey": "aiAssistant.title",
+      "mode": "summary-first",
       "order": 2,
       "organisms": [
         {
-          "id": "org_ai_sales_summary",
+          "id": "aiSalesSummary",
           "type": "organism",
-          "organismName": "AiSalesSummaryPanel",
-          "titleKey": "org.ai.sales.summary.title",
-          "purpose": "Permitir ao gerente solicitar e visualizar o resumo de vendas gerado pelo assistente IA para o turno atual.",
+          "organismName": "AiSalesSummary",
+          "titleKey": "aiSalesSummary.title",
+          "purpose": "Permitir ao gerente solicitar e visualizar o resumo de vendas gerado pelo assistente IA para o turno atual",
           "userActions": [
             "requestAiSalesSummary"
           ],
@@ -161,14 +162,13 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "Auto-loaded on page init via initialLoads",
-            "All fields are read-only AI-generated query outputs",
-            "No manual input required — the AI aggregates domain data automatically"
+            "On-demand AI insight: toolbar button triggers query",
+            "Auto-load on page entry via initialLoads"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "intent_ai_sales_summary",
+              "id": "requestAiSalesSummaryQuery",
               "intent": "query",
               "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
               "order": 1
@@ -176,11 +176,11 @@ export const definition = {
           ]
         },
         {
-          "id": "org_ai_promo_suggestions",
+          "id": "aiPromoSuggestions",
           "type": "organism",
-          "organismName": "AiPromoSuggestionsPanel",
-          "titleKey": "org.ai.promo.suggestions.title",
-          "purpose": "Permitir ao gerente acionar o assistente IA para obter sugestões de promoção baseadas em pedidos recentes e níveis de estoque, e visualizar os resultados para decidir ações de marketing.",
+          "organismName": "AiPromoSuggestions",
+          "titleKey": "aiPromoSuggestions.title",
+          "purpose": "Permitir ao gerente acionar o assistente IA para obter sugestões de promoção e visualizá-las para decidir ações de marketing",
           "userActions": [
             "requestAiPromoSuggestions"
           ],
@@ -197,14 +197,13 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "Auto-loaded on page init via initialLoads",
-            "All fields are read-only AI-generated query outputs",
-            "No manual input required — the AI aggregates 7-day order data and stock levels automatically"
+            "On-demand AI insight: toolbar button triggers query",
+            "Auto-load on page entry via initialLoads"
           ],
           "order": 2,
           "intentionRefs": [
             {
-              "id": "intent_ai_promo_suggestions",
+              "id": "requestAiPromoSuggestionsQuery",
               "intent": "query",
               "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
               "order": 1
@@ -217,69 +216,95 @@ export const definition = {
   "templateId": "goal_first",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "pageObjective": {
-    "actor": "Cafe manager (gerente)",
-    "jobToBeDone": "Get an at-a-glance overview of today's cafe operations (orders, sales, stock alerts) and optionally request AI-generated insights for sales summary and promotion suggestions.",
-    "primaryDecision": "Assess today's operational performance from the dashboard and decide whether to act on AI-generated sales summaries and promo suggestions.",
+    "actor": "Gerente do café (cafe manager)",
+    "jobToBeDone": "Visualizar o resumo operacional do turno atual à primeira vista e, sob demanda, solicitar insights de IA (resumo de vendas e sugestões de promoção) para apoiar decisões de marketing.",
+    "primaryDecision": "Avaliar a saúde operacional do dia e decidir se deve agir com base nas recomendações geradas pelo assistente IA.",
     "decisiveInfo": [
       "status",
       "orderType",
       "createdAt",
+      "shiftId",
       "deliveredAt",
-      "orderId",
-      "shiftId"
+      "orderId"
     ],
-    "usageFrequency": "Occasional / back-office — checked a few times per shift, not continuous hands-busy operation.",
+    "usageFrequency": "Ocasional / back-office — o gerente consulta algumas vezes por turno, não em uso contínuo hands-busy.",
     "criticalActions": [
       {
         "action": "viewDashboard",
-        "presentation": "summary-first — auto-loaded on page open, displayed as a compact summary list of today's orders by status and type; a refresh button is available in the toolbar."
+        "presentation": "summary-first — auto-carregado na entrada da página, com botão de atualização na toolbar"
       },
       {
         "action": "requestAiSalesSummary",
-        "presentation": "primary-button — on-demand AI query triggered by a prominent button; results appear in a summary panel below."
+        "presentation": "primary-button na toolbar — acionamento sob demanda do resumo de vendas por IA"
       },
       {
         "action": "requestAiPromoSuggestions",
-        "presentation": "primary-button — on-demand AI query triggered by a prominent button; results appear in a summary panel for marketing decisions."
+        "presentation": "primary-button na toolbar — acionamento sob demanda das sugestões de promoção por IA"
       }
     ],
     "informationHierarchy": [
-      "1. Today's dashboard: orders grouped by status and type, with timestamps (summary-first)",
-      "2. AI sales summary: on-demand aggregated sales insights for the current shift",
-      "3. AI promo suggestions: on-demand promotion recommendations based on recent sales and stock levels"
+      "1. Resumo operacional do turno (pedidos, status, timestamps) — auto-carregado",
+      "2. Resumo de vendas por IA — sob demanda",
+      "3. Sugestões de promoção por IA — sob demanda"
     ],
-    "successCriteria": "The manager sees today's key operational metrics immediately on page load without any manual input, and can request AI insights with a single click per insight type.",
+    "successCriteria": "O gerente vê o status operacional do dia imediatamente ao abrir a página, pode solicitar insights de IA com um clique e revisar as sugestões para informar decisões de marketing.",
     "antiPatterns": [
-      "No manual input fields — all three operations are parameterless queries",
-      "No CRUD forms — this is a read-only dashboard, not an entity management screen",
-      "No free status selects or typed IDs — everything is auto-loaded from the open shift context",
-      "No persuasion mechanics — this is an operational dashboard, not a growth funnel",
-      "Do not stack three identical-looking tables — differentiate the dashboard summary from the AI panels visually"
+      "Nenhum formulário CRUD — todas as ações são queries de leitura",
+      "Nenhum campo de id digitado manualmente",
+      "Nenhum select livre de status — status é exibido como contexto somente leitura",
+      "Não degradar em uma pilha CRUD genérica",
+      "Não adicionar mecânicas de persuasão em tela operacional"
     ]
   },
+  "msgKeys": [
+    "action.requestAiPromoSuggestions.request",
+    "action.requestAiSalesSummary.request",
+    "action.viewDashboard.refresh",
+    "aiAssistant.title",
+    "aiPromoSuggestions.title",
+    "aiSalesSummary.title",
+    "dashboardOverview.title",
+    "dashboardSummary.title",
+    "empty.requestAiPromoSuggestions",
+    "empty.requestAiSalesSummary",
+    "empty.viewDashboard",
+    "field.createdAt.label",
+    "field.deliveredAt.label",
+    "field.orderId.label",
+    "field.orderType.label",
+    "field.shiftId.label",
+    "field.status.label",
+    "organism.aiPromoSuggestions.title",
+    "organism.aiSalesSummary.title",
+    "organism.dashboardSummary.title",
+    "section.aiAssistant.title",
+    "section.dashboardOverview.title"
+  ],
   "layout": {
     "id": "page21",
     "type": "page",
     "sections": [
       {
-        "id": "sec_dashboard",
+        "id": "dashboardOverview",
         "type": "section",
-        "sectionName": "sec_dashboard",
-        "titleKey": "sec.dashboard.title",
+        "sectionName": "dashboardOverview",
+        "titleKey": "dashboardOverview.title",
         "mode": "summary-first",
         "order": 1,
         "organisms": [
           {
-            "id": "org_dashboard_summary",
+            "id": "dashboardSummary",
             "type": "organism",
-            "organismName": "DashboardSummaryList",
-            "titleKey": "org.dashboard.summary.title",
-            "purpose": "Exibir resumo do dashboard do dia com pedidos agregados por status e tipo, permitindo ao gerente avaliar a operação atual em uma olhada.",
+            "organismName": "DashboardSummary",
+            "titleKey": "dashboardSummary.title",
+            "purpose": "Exibir resumo do dia com pedidos agregados do turno atual, distribuição de status e alertas de estoque baixo",
             "userActions": [
               "viewDashboard"
             ],
             "requiredEntities": [
               "Order",
+              "OrderItem",
+              "StockLevel",
               "Shift"
             ],
             "readsFields": [
@@ -291,85 +316,84 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "Auto-loaded on page init via initialLoads",
-              "All fields are read-only query outputs — no manual input",
-              "shiftId is context-derived from the currently open shift"
+              "Auto-load on page entry via initialLoads",
+              "Summary-first: lead with decisive operational numbers"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "intent_view_dashboard",
+                "id": "viewDashboardQuery",
                 "intent": "query",
                 "order": 1,
                 "titleKey": "organism.dashboardSummary.title",
-                "source": "viewDashboard",
-                "binding": "ui.managerDashboard.data.viewDashboard",
-                "emptyKey": "organism.dashboardSummary.empty",
+                "source": "ui.managerDashboard.data.viewDashboard",
+                "binding": "viewDashboard",
+                "emptyKey": "empty.viewDashboard",
                 "displayHint": "summary-first",
                 "stateKey": "ui.managerDashboard.data.viewDashboard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col_dash_status",
+                    "id": "col-status",
                     "field": "status",
-                    "labelKey": "column.status",
+                    "labelKey": "field.status.label",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewDashboard",
+                    "source": "ui.managerDashboard.data.viewDashboard",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col_dash_orderType",
+                    "id": "col-orderType",
                     "field": "orderType",
-                    "labelKey": "column.orderType",
+                    "labelKey": "field.orderType.label",
                     "order": 2,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewDashboard",
+                    "source": "ui.managerDashboard.data.viewDashboard",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col_dash_createdAt",
+                    "id": "col-createdAt",
                     "field": "createdAt",
-                    "labelKey": "column.createdAt",
+                    "labelKey": "field.createdAt.label",
                     "order": 3,
                     "required": false,
-                    "inputType": "text",
+                    "inputType": "datetime",
                     "format": "datetime",
-                    "source": "viewDashboard",
+                    "source": "ui.managerDashboard.data.viewDashboard",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col_dash_shiftId",
+                    "id": "col-shiftId",
                     "field": "shiftId",
-                    "labelKey": "column.shiftId",
+                    "labelKey": "field.shiftId.label",
                     "order": 4,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewDashboard",
+                    "source": "ui.managerDashboard.data.viewDashboard",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col_dash_deliveredAt",
+                    "id": "col-deliveredAt",
                     "field": "deliveredAt",
-                    "labelKey": "column.deliveredAt",
+                    "labelKey": "field.deliveredAt.label",
                     "order": 5,
                     "required": false,
-                    "inputType": "text",
+                    "inputType": "datetime",
                     "format": "datetime",
-                    "source": "viewDashboard",
+                    "source": "ui.managerDashboard.data.viewDashboard",
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   }
                 ],
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb_refresh_dashboard",
+                    "id": "tb-viewDashboard-refresh",
                     "action": "viewDashboard",
-                    "labelKey": "action.viewDashboard.label",
+                    "labelKey": "action.viewDashboard.refresh",
                     "order": 1,
-                    "displayHint": "primary-button",
+                    "displayHint": "inline-row-command",
                     "actionKey": "viewDashboard"
                   }
                 ],
@@ -381,19 +405,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec_ai_assistant",
+        "id": "aiAssistant",
         "type": "section",
-        "sectionName": "sec_ai_assistant",
-        "titleKey": "sec.ai.assistant.title",
-        "mode": "on-demand-panels",
+        "sectionName": "aiAssistant",
+        "titleKey": "aiAssistant.title",
+        "mode": "summary-first",
         "order": 2,
         "organisms": [
           {
-            "id": "org_ai_sales_summary",
+            "id": "aiSalesSummary",
             "type": "organism",
-            "organismName": "AiSalesSummaryPanel",
-            "titleKey": "org.ai.sales.summary.title",
-            "purpose": "Permitir ao gerente solicitar e visualizar o resumo de vendas gerado pelo assistente IA para o turno atual.",
+            "organismName": "AiSalesSummary",
+            "titleKey": "aiSalesSummary.title",
+            "purpose": "Permitir ao gerente solicitar e visualizar o resumo de vendas gerado pelo assistente IA para o turno atual",
             "userActions": [
               "requestAiSalesSummary"
             ],
@@ -412,83 +436,82 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "Auto-loaded on page init via initialLoads",
-              "All fields are read-only AI-generated query outputs",
-              "No manual input required — the AI aggregates domain data automatically"
+              "On-demand AI insight: toolbar button triggers query",
+              "Auto-load on page entry via initialLoads"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "intent_ai_sales_summary",
+                "id": "requestAiSalesSummaryQuery",
                 "intent": "query",
                 "order": 1,
                 "titleKey": "organism.aiSalesSummary.title",
-                "source": "requestAiSalesSummary",
-                "binding": "ui.managerDashboard.data.requestAiSalesSummary",
-                "emptyKey": "organism.aiSalesSummary.empty",
+                "source": "ui.managerDashboard.data.requestAiSalesSummary",
+                "binding": "requestAiSalesSummary",
+                "emptyKey": "empty.requestAiSalesSummary",
                 "displayHint": "summary-first",
                 "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col_ai_sales_orderId",
+                    "id": "col-aiSales-orderId",
                     "field": "orderId",
-                    "labelKey": "column.orderId",
+                    "labelKey": "field.orderId.label",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
-                    "source": "requestAiSalesSummary",
+                    "source": "ui.managerDashboard.data.requestAiSalesSummary",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col_ai_sales_status",
+                    "id": "col-aiSales-status",
                     "field": "status",
-                    "labelKey": "column.status",
+                    "labelKey": "field.status.label",
                     "order": 2,
                     "required": false,
                     "inputType": "text",
-                    "source": "requestAiSalesSummary",
+                    "source": "ui.managerDashboard.data.requestAiSalesSummary",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col_ai_sales_orderType",
+                    "id": "col-aiSales-orderType",
                     "field": "orderType",
-                    "labelKey": "column.orderType",
+                    "labelKey": "field.orderType.label",
                     "order": 3,
                     "required": false,
                     "inputType": "text",
-                    "source": "requestAiSalesSummary",
+                    "source": "ui.managerDashboard.data.requestAiSalesSummary",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col_ai_sales_createdAt",
+                    "id": "col-aiSales-createdAt",
                     "field": "createdAt",
-                    "labelKey": "column.createdAt",
+                    "labelKey": "field.createdAt.label",
                     "order": 4,
                     "required": false,
-                    "inputType": "text",
+                    "inputType": "datetime",
                     "format": "datetime",
-                    "source": "requestAiSalesSummary",
+                    "source": "ui.managerDashboard.data.requestAiSalesSummary",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col_ai_sales_deliveredAt",
+                    "id": "col-aiSales-deliveredAt",
                     "field": "deliveredAt",
-                    "labelKey": "column.deliveredAt",
+                    "labelKey": "field.deliveredAt.label",
                     "order": 5,
                     "required": false,
-                    "inputType": "text",
+                    "inputType": "datetime",
                     "format": "datetime",
-                    "source": "requestAiSalesSummary",
+                    "source": "ui.managerDashboard.data.requestAiSalesSummary",
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   }
                 ],
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb_request_ai_sales",
+                    "id": "tb-aiSalesSummary-request",
                     "action": "requestAiSalesSummary",
-                    "labelKey": "action.requestAiSalesSummary.label",
+                    "labelKey": "action.requestAiSalesSummary.request",
                     "order": 1,
                     "displayHint": "primary-button",
                     "actionKey": "requestAiSalesSummary"
@@ -500,11 +523,11 @@ export const definition = {
             ]
           },
           {
-            "id": "org_ai_promo_suggestions",
+            "id": "aiPromoSuggestions",
             "type": "organism",
-            "organismName": "AiPromoSuggestionsPanel",
-            "titleKey": "org.ai.promo.suggestions.title",
-            "purpose": "Permitir ao gerente acionar o assistente IA para obter sugestões de promoção baseadas em pedidos recentes e níveis de estoque, e visualizar os resultados para decidir ações de marketing.",
+            "organismName": "AiPromoSuggestions",
+            "titleKey": "aiPromoSuggestions.title",
+            "purpose": "Permitir ao gerente acionar o assistente IA para obter sugestões de promoção e visualizá-las para decidir ações de marketing",
             "userActions": [
               "requestAiPromoSuggestions"
             ],
@@ -521,72 +544,71 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "Auto-loaded on page init via initialLoads",
-              "All fields are read-only AI-generated query outputs",
-              "No manual input required — the AI aggregates 7-day order data and stock levels automatically"
+              "On-demand AI insight: toolbar button triggers query",
+              "Auto-load on page entry via initialLoads"
             ],
             "order": 2,
             "intentions": [
               {
-                "id": "intent_ai_promo_suggestions",
+                "id": "requestAiPromoSuggestionsQuery",
                 "intent": "query",
                 "order": 1,
                 "titleKey": "organism.aiPromoSuggestions.title",
-                "source": "requestAiPromoSuggestions",
-                "binding": "ui.managerDashboard.data.requestAiPromoSuggestions",
-                "emptyKey": "organism.aiPromoSuggestions.empty",
+                "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
+                "binding": "requestAiPromoSuggestions",
+                "emptyKey": "empty.requestAiPromoSuggestions",
                 "displayHint": "summary-first",
                 "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col_ai_promo_orderId",
+                    "id": "col-aiPromo-orderId",
                     "field": "orderId",
-                    "labelKey": "column.orderId",
+                    "labelKey": "field.orderId.label",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
-                    "source": "requestAiPromoSuggestions",
+                    "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col_ai_promo_orderType",
+                    "id": "col-aiPromo-orderType",
                     "field": "orderType",
-                    "labelKey": "column.orderType",
+                    "labelKey": "field.orderType.label",
                     "order": 2,
                     "required": false,
                     "inputType": "text",
-                    "source": "requestAiPromoSuggestions",
+                    "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col_ai_promo_status",
+                    "id": "col-aiPromo-status",
                     "field": "status",
-                    "labelKey": "column.status",
+                    "labelKey": "field.status.label",
                     "order": 3,
                     "required": false,
                     "inputType": "text",
-                    "source": "requestAiPromoSuggestions",
+                    "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col_ai_promo_createdAt",
+                    "id": "col-aiPromo-createdAt",
                     "field": "createdAt",
-                    "labelKey": "column.createdAt",
+                    "labelKey": "field.createdAt.label",
                     "order": 4,
                     "required": false,
-                    "inputType": "text",
+                    "inputType": "datetime",
                     "format": "datetime",
-                    "source": "requestAiPromoSuggestions",
+                    "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   }
                 ],
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb_request_ai_promo",
+                    "id": "tb-aiPromoSuggestions-request",
                     "action": "requestAiPromoSuggestions",
-                    "labelKey": "action.requestAiPromoSuggestions.label",
+                    "labelKey": "action.requestAiPromoSuggestions.request",
                     "order": 1,
                     "displayHint": "primary-button",
                     "actionKey": "requestAiPromoSuggestions"
@@ -603,29 +625,29 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "binding_viewDashboard",
-      "source": "query",
+      "id": "binding-viewDashboard",
+      "source": "cafeFlow.viewDashboard.viewDashboard",
       "entity": "Order",
       "command": "viewDashboard",
-      "description": "Carrega os dados do dashboard do dia (pedidos do turno atual)",
+      "description": "Carrega dados agregados do dashboard do turno atual",
       "stateKey": "ui.managerDashboard.data.viewDashboard",
       "inputStateKeys": []
     },
     {
-      "id": "binding_requestAiSalesSummary",
-      "source": "query",
+      "id": "binding-requestAiSalesSummary",
+      "source": "cafeFlow.requestAiSalesSummary.requestAiSalesSummary",
       "entity": "Order",
       "command": "requestAiSalesSummary",
-      "description": "Solicita resumo de vendas gerado pelo assistente IA",
+      "description": "Solicita resumo de vendas processado pelo assistente IA",
       "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
       "inputStateKeys": []
     },
     {
-      "id": "binding_requestAiPromoSuggestions",
-      "source": "query",
+      "id": "binding-requestAiPromoSuggestions",
+      "source": "cafeFlow.requestAiPromoSuggestions.requestAiPromoSuggestions",
       "entity": "Order",
       "command": "requestAiPromoSuggestions",
-      "description": "Solicita sugestões de promoção geradas pelo assistente IA",
+      "description": "Solicita sugestões de promoção processadas pelo assistente IA",
       "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
       "inputStateKeys": []
     }
@@ -639,9 +661,7 @@ export const pipeline = [
     "outputPath": "_102051_/l2/cafeFlow/web/desktop/page21/managerDashboard.ts",
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page21/managerDashboard.defs.ts",
     "dependsFiles": [
-      "_102051_/l2/cafeFlow/web/shared/managerDashboard.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/managerDashboard.ts",
-      "_102051_/l2/cafeFlow/web/contracts/managerDashboard.defs.ts",
       "_102051_/l2/cafeFlow/web/contracts/managerDashboard.ts",
       "_102051_/l2/designSystem.ts"
     ],

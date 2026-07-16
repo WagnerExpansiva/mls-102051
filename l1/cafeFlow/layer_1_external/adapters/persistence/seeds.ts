@@ -1976,6 +1976,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.MenuCategory",
         "cafeFlow",
         "MenuCategory"
       ],
@@ -1994,6 +1995,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.MenuCategory",
         "cafeFlow",
         "MenuCategory"
       ],
@@ -2012,6 +2014,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.MenuCategory",
         "cafeFlow",
         "MenuCategory"
       ],
@@ -2030,6 +2033,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.MenuItem",
         "cafeFlow",
         "MenuItem"
       ],
@@ -2048,6 +2052,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.MenuItem",
         "cafeFlow",
         "MenuItem"
       ],
@@ -2066,6 +2071,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.MenuItem",
         "cafeFlow",
         "MenuItem"
       ],
@@ -2084,6 +2090,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.MenuItem",
         "cafeFlow",
         "MenuItem"
       ],
@@ -2102,6 +2109,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.StockItem",
         "cafeFlow",
         "StockItem"
       ],
@@ -2120,6 +2128,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.StockItem",
         "cafeFlow",
         "StockItem"
       ],
@@ -2138,6 +2147,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.StockItem",
         "cafeFlow",
         "StockItem"
       ],
@@ -2156,6 +2166,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.StockItem",
         "cafeFlow",
         "StockItem"
       ],
@@ -2174,6 +2185,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "atendente"
@@ -2193,6 +2205,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "atendente"
@@ -2212,6 +2225,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "atendente"
@@ -2231,6 +2245,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "cozinheiro"
@@ -2250,6 +2265,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "cozinheiro"
@@ -2269,6 +2285,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "cozinheiro"
@@ -2288,6 +2305,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "gerente"
@@ -2307,6 +2325,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "gerente"
@@ -2326,6 +2345,7 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "docId": null,
       "countryCode": "US",
       "tags": [
+        "cafeFlow.Person",
         "cafeFlow",
         "actor",
         "gerente"
@@ -2354,6 +2374,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.MenuCategory",
           "cafeFlow",
           "MenuCategory"
         ],
@@ -2387,6 +2408,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.MenuCategory",
           "cafeFlow",
           "MenuCategory"
         ],
@@ -2420,6 +2442,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.MenuCategory",
           "cafeFlow",
           "MenuCategory"
         ],
@@ -2453,6 +2476,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.MenuItem",
           "cafeFlow",
           "MenuItem"
         ],
@@ -2490,6 +2514,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.MenuItem",
           "cafeFlow",
           "MenuItem"
         ],
@@ -2527,6 +2552,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.MenuItem",
           "cafeFlow",
           "MenuItem"
         ],
@@ -2564,6 +2590,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.MenuItem",
           "cafeFlow",
           "MenuItem"
         ],
@@ -2601,6 +2628,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.StockItem",
           "cafeFlow",
           "StockItem"
         ],
@@ -2633,6 +2661,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.StockItem",
           "cafeFlow",
           "StockItem"
         ],
@@ -2665,6 +2694,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.StockItem",
           "cafeFlow",
           "StockItem"
         ],
@@ -2697,6 +2727,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.StockItem",
           "cafeFlow",
           "StockItem"
         ],
@@ -2729,6 +2760,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "atendente"
@@ -2755,6 +2787,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "atendente"
@@ -2781,6 +2814,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "atendente"
@@ -2807,6 +2841,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "cozinheiro"
@@ -2833,6 +2868,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "cozinheiro"
@@ -2859,6 +2895,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "cozinheiro"
@@ -2885,6 +2922,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "gerente"
@@ -2911,6 +2949,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "gerente"
@@ -2937,6 +2976,7 @@ export const mdmDocumentSeeds: TableSeedRows = {
         "docId": null,
         "countryCode": "US",
         "tags": [
+          "cafeFlow.Person",
           "cafeFlow",
           "actor",
           "gerente"

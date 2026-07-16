@@ -84,24 +84,26 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-dashboard-overview",
+      "id": "sec_dashboard",
       "type": "section",
-      "sectionName": "sec-dashboard-overview",
-      "titleKey": "sec.dashboard.overview.title",
-      "mode": "default",
+      "sectionName": "sec_dashboard",
+      "titleKey": "sec.dashboard.title",
+      "mode": "section",
       "order": 1,
       "organisms": [
         {
-          "id": "org-dashboard-metrics",
+          "id": "org_dashboard_metrics",
           "type": "organism",
-          "organismName": "statusGroup",
+          "organismName": "DashboardMetrics",
           "titleKey": "org.dashboard.metrics.title",
-          "purpose": "Exibir métricas e status dos pedidos do turno atual no dashboard do dia",
+          "purpose": "Exibir métricas e grupos de status do dashboard do dia — vendas, pedidos por tipo, alertas de estoque baixo.",
           "userActions": [
             "viewDashboard"
           ],
           "requiredEntities": [
             "Order",
+            "OrderItem",
+            "StockLevel",
             "Shift"
           ],
           "readsFields": [
@@ -112,14 +114,17 @@ export const definition = {
             "deliveredAt"
           ],
           "writesFields": [],
-          "rulesApplied": [],
+          "rulesApplied": [
+            "Active shift context is hidden — system identifies open shift automatically",
+            "Dashboard aggregates orders of current shift for sales totals and top items",
+            "Stock levels below minimum are surfaced as alerts"
+          ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-view-dashboard",
+              "id": "intent_dashboard_query",
               "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.viewDashboard",
-              "action": "viewDashboard",
               "order": 1
             }
           ]
@@ -127,19 +132,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-ai-sales-summary",
+      "id": "sec_ai_sales",
       "type": "section",
-      "sectionName": "sec-ai-sales-summary",
-      "titleKey": "sec.ai.sales.summary.title",
-      "mode": "default",
+      "sectionName": "sec_ai_sales",
+      "titleKey": "sec.ai.sales.title",
+      "mode": "section",
       "order": 2,
       "organisms": [
         {
-          "id": "org-ai-sales-summary",
+          "id": "org_ai_sales_summary",
           "type": "organism",
-          "organismName": "summaryPanel",
+          "organismName": "AiSalesSummaryPanel",
           "titleKey": "org.ai.sales.summary.title",
-          "purpose": "Exibir o resumo de vendas do dia gerado pelo assistente IA",
+          "purpose": "Painel do assistente IA que exibe o resumo de vendas do dia corrente, agregando pedidos e estoque do turno ativo.",
           "userActions": [
             "requestAiSalesSummary"
           ],
@@ -157,14 +162,16 @@ export const definition = {
             "deliveredAt"
           ],
           "writesFields": [],
-          "rulesApplied": [],
+          "rulesApplied": [
+            "AI assistant processes aggregated order and stock data from the domain",
+            "System identifies open shift and aggregates current-day orders before AI processing"
+          ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-ai-sales-summary",
+              "id": "intent_ai_sales_query",
               "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
-              "action": "requestAiSalesSummary",
               "order": 1
             }
           ]
@@ -172,19 +179,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-ai-promo-suggestions",
+      "id": "sec_ai_promo",
       "type": "section",
-      "sectionName": "sec-ai-promo-suggestions",
-      "titleKey": "sec.ai.promo.suggestions.title",
-      "mode": "default",
+      "sectionName": "sec_ai_promo",
+      "titleKey": "sec.ai.promo.title",
+      "mode": "section",
       "order": 3,
       "organisms": [
         {
-          "id": "org-ai-promo-suggestions",
+          "id": "org_ai_promo_suggestions",
           "type": "organism",
-          "organismName": "summaryPanel",
+          "organismName": "AiPromoSuggestionsPanel",
           "titleKey": "org.ai.promo.suggestions.title",
-          "purpose": "Exibir sugestões de promoção geradas pelo assistente IA para decisão de marketing",
+          "purpose": "Painel do assistente IA que exibe sugestões de promoção por item, baseadas em pedidos dos últimos 7 dias e níveis atuais de estoque.",
           "userActions": [
             "requestAiPromoSuggestions"
           ],
@@ -200,14 +207,61 @@ export const definition = {
             "createdAt"
           ],
           "writesFields": [],
-          "rulesApplied": [],
+          "rulesApplied": [
+            "AI assistant analyzes 7-day aggregated order data and current stock levels",
+            "Suggestions are per-item for marketing decision support"
+          ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-ai-promo-suggestions",
+              "id": "intent_ai_promo_query",
               "intent": "queryList",
               "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
-              "action": "requestAiPromoSuggestions",
+              "order": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec_review",
+      "type": "section",
+      "sectionName": "sec_review",
+      "titleKey": "sec.review.title",
+      "mode": "section",
+      "order": 4,
+      "organisms": [
+        {
+          "id": "org_review_summary",
+          "type": "organism",
+          "organismName": "ReviewSummary",
+          "titleKey": "org.review.summary.title",
+          "purpose": "Revisar o contexto consolidado do dashboard, do resumo de vendas IA e das sugestões de promoção IA para decisão gerencial.",
+          "userActions": [],
+          "requiredEntities": [
+            "Order",
+            "OrderItem",
+            "StockLevel",
+            "Shift"
+          ],
+          "readsFields": [
+            "status",
+            "orderType",
+            "createdAt",
+            "shiftId",
+            "deliveredAt",
+            "orderId"
+          ],
+          "writesFields": [],
+          "rulesApplied": [
+            "Review stage consolidates outputs from all three query operations for at-a-glance comprehension"
+          ],
+          "order": 1,
+          "intentionRefs": [
+            {
+              "id": "intent_review_summary",
+              "intent": "summary",
+              "stateKey": "ui.managerDashboard.status",
               "order": 1
             }
           ]
@@ -217,29 +271,69 @@ export const definition = {
   ],
   "templateId": "status_overview",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
+  "msgKeys": [
+    "action.requestAiPromoSuggestions.error",
+    "action.requestAiPromoSuggestions.label",
+    "action.requestAiPromoSuggestions.success",
+    "action.requestAiSalesSummary.error",
+    "action.requestAiSalesSummary.label",
+    "action.requestAiSalesSummary.success",
+    "action.viewDashboard.error",
+    "action.viewDashboard.label",
+    "action.viewDashboard.success",
+    "column.createdAt",
+    "column.deliveredAt",
+    "column.orderId",
+    "column.orderType",
+    "column.shiftId",
+    "column.status",
+    "empty.aiPromo",
+    "empty.aiSales",
+    "empty.dashboard",
+    "empty.review",
+    "intention.aiPromo.title",
+    "intention.aiSales.title",
+    "intention.dashboard.title",
+    "intention.review.title",
+    "org.ai.promo.suggestions.title",
+    "org.ai.sales.summary.title",
+    "org.dashboard.metrics.title",
+    "org.review.summary.title",
+    "page.title",
+    "sec.ai.promo.title",
+    "sec.ai.sales.title",
+    "sec.dashboard.title",
+    "sec.review.title",
+    "section.aiPromo.title",
+    "section.aiSales.title",
+    "section.dashboard.title",
+    "section.review.title"
+  ],
   "layout": {
-    "id": "status_overview",
+    "id": "page11_status_overview",
     "type": "page",
     "sections": [
       {
-        "id": "sec-dashboard-overview",
+        "id": "sec_dashboard",
         "type": "section",
-        "sectionName": "sec-dashboard-overview",
-        "titleKey": "sec.dashboard.overview.title",
-        "mode": "default",
+        "sectionName": "sec_dashboard",
+        "titleKey": "sec.dashboard.title",
+        "mode": "section",
         "order": 1,
         "organisms": [
           {
-            "id": "org-dashboard-metrics",
+            "id": "org_dashboard_metrics",
             "type": "organism",
-            "organismName": "statusGroup",
+            "organismName": "DashboardMetrics",
             "titleKey": "org.dashboard.metrics.title",
-            "purpose": "Exibir métricas e status dos pedidos do turno atual no dashboard do dia",
+            "purpose": "Exibir métricas e grupos de status do dashboard do dia — vendas, pedidos por tipo, alertas de estoque baixo.",
             "userActions": [
               "viewDashboard"
             ],
             "requiredEntities": [
               "Order",
+              "OrderItem",
+              "StockLevel",
               "Shift"
             ],
             "readsFields": [
@@ -250,26 +344,29 @@ export const definition = {
               "deliveredAt"
             ],
             "writesFields": [],
-            "rulesApplied": [],
+            "rulesApplied": [
+              "Active shift context is hidden — system identifies open shift automatically",
+              "Dashboard aggregates orders of current shift for sales totals and top items",
+              "Stock levels below minimum are surfaced as alerts"
+            ],
             "order": 1,
             "intentions": [
               {
-                "id": "int-view-dashboard",
+                "id": "intent_dashboard_query",
                 "intent": "queryList",
                 "order": 1,
-                "titleKey": "section.dashboardOverview.title",
+                "titleKey": "intention.dashboard.title",
                 "source": "ui.managerDashboard.data.viewDashboard",
-                "binding": "viewDashboard",
-                "action": "viewDashboard",
-                "emptyKey": "section.dashboardOverview.empty",
-                "displayHint": "summaryCards",
+                "binding": "db_viewDashboard",
+                "emptyKey": "empty.dashboard",
+                "displayHint": "statusGroup",
                 "stateKey": "ui.managerDashboard.data.viewDashboard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-vd-status",
+                    "id": "col_dash_status",
                     "field": "status",
-                    "labelKey": "column.status.label",
+                    "labelKey": "column.status",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
@@ -277,9 +374,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-vd-orderType",
+                    "id": "col_dash_orderType",
                     "field": "orderType",
-                    "labelKey": "column.orderType.label",
+                    "labelKey": "column.orderType",
                     "order": 2,
                     "required": false,
                     "inputType": "text",
@@ -287,9 +384,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-vd-createdAt",
+                    "id": "col_dash_createdAt",
                     "field": "createdAt",
-                    "labelKey": "column.createdAt.label",
+                    "labelKey": "column.createdAt",
                     "order": 3,
                     "required": false,
                     "inputType": "datetime",
@@ -298,9 +395,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-vd-shiftId",
+                    "id": "col_dash_shiftId",
                     "field": "shiftId",
-                    "labelKey": "column.shiftId.label",
+                    "labelKey": "column.shiftId",
                     "order": 4,
                     "required": false,
                     "inputType": "text",
@@ -308,9 +405,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.viewDashboard"
                   },
                   {
-                    "id": "col-vd-deliveredAt",
+                    "id": "col_dash_deliveredAt",
                     "field": "deliveredAt",
-                    "labelKey": "column.deliveredAt.label",
+                    "labelKey": "column.deliveredAt",
                     "order": 5,
                     "required": false,
                     "inputType": "datetime",
@@ -322,7 +419,7 @@ export const definition = {
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb-refresh-dashboard",
+                    "id": "tb_dash_refresh",
                     "action": "viewDashboard",
                     "labelKey": "action.viewDashboard.label",
                     "order": 1,
@@ -338,19 +435,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-ai-sales-summary",
+        "id": "sec_ai_sales",
         "type": "section",
-        "sectionName": "sec-ai-sales-summary",
-        "titleKey": "sec.ai.sales.summary.title",
-        "mode": "default",
+        "sectionName": "sec_ai_sales",
+        "titleKey": "sec.ai.sales.title",
+        "mode": "section",
         "order": 2,
         "organisms": [
           {
-            "id": "org-ai-sales-summary",
+            "id": "org_ai_sales_summary",
             "type": "organism",
-            "organismName": "summaryPanel",
+            "organismName": "AiSalesSummaryPanel",
             "titleKey": "org.ai.sales.summary.title",
-            "purpose": "Exibir o resumo de vendas do dia gerado pelo assistente IA",
+            "purpose": "Painel do assistente IA que exibe o resumo de vendas do dia corrente, agregando pedidos e estoque do turno ativo.",
             "userActions": [
               "requestAiSalesSummary"
             ],
@@ -368,26 +465,28 @@ export const definition = {
               "deliveredAt"
             ],
             "writesFields": [],
-            "rulesApplied": [],
+            "rulesApplied": [
+              "AI assistant processes aggregated order and stock data from the domain",
+              "System identifies open shift and aggregates current-day orders before AI processing"
+            ],
             "order": 1,
             "intentions": [
               {
-                "id": "int-ai-sales-summary",
+                "id": "intent_ai_sales_query",
                 "intent": "queryList",
                 "order": 1,
-                "titleKey": "section.aiSalesSummary.title",
+                "titleKey": "intention.aiSales.title",
                 "source": "ui.managerDashboard.data.requestAiSalesSummary",
-                "binding": "requestAiSalesSummary",
-                "action": "requestAiSalesSummary",
-                "emptyKey": "section.aiSalesSummary.empty",
-                "displayHint": "summaryCards",
+                "binding": "db_requestAiSalesSummary",
+                "emptyKey": "empty.aiSales",
+                "displayHint": "summaryCard",
                 "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-ss-orderId",
+                    "id": "col_sales_orderId",
                     "field": "orderId",
-                    "labelKey": "column.orderId.label",
+                    "labelKey": "column.orderId",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
@@ -395,9 +494,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ss-status",
+                    "id": "col_sales_status",
                     "field": "status",
-                    "labelKey": "column.status.label",
+                    "labelKey": "column.status",
                     "order": 2,
                     "required": false,
                     "inputType": "text",
@@ -405,9 +504,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ss-orderType",
+                    "id": "col_sales_orderType",
                     "field": "orderType",
-                    "labelKey": "column.orderType.label",
+                    "labelKey": "column.orderType",
                     "order": 3,
                     "required": false,
                     "inputType": "text",
@@ -415,9 +514,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ss-createdAt",
+                    "id": "col_sales_createdAt",
                     "field": "createdAt",
-                    "labelKey": "column.createdAt.label",
+                    "labelKey": "column.createdAt",
                     "order": 4,
                     "required": false,
                     "inputType": "datetime",
@@ -426,9 +525,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiSalesSummary"
                   },
                   {
-                    "id": "col-ss-deliveredAt",
+                    "id": "col_sales_deliveredAt",
                     "field": "deliveredAt",
-                    "labelKey": "column.deliveredAt.label",
+                    "labelKey": "column.deliveredAt",
                     "order": 5,
                     "required": false,
                     "inputType": "datetime",
@@ -440,7 +539,7 @@ export const definition = {
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb-refresh-sales-summary",
+                    "id": "tb_sales_refresh",
                     "action": "requestAiSalesSummary",
                     "labelKey": "action.requestAiSalesSummary.label",
                     "order": 1,
@@ -456,19 +555,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-ai-promo-suggestions",
+        "id": "sec_ai_promo",
         "type": "section",
-        "sectionName": "sec-ai-promo-suggestions",
-        "titleKey": "sec.ai.promo.suggestions.title",
-        "mode": "default",
+        "sectionName": "sec_ai_promo",
+        "titleKey": "sec.ai.promo.title",
+        "mode": "section",
         "order": 3,
         "organisms": [
           {
-            "id": "org-ai-promo-suggestions",
+            "id": "org_ai_promo_suggestions",
             "type": "organism",
-            "organismName": "summaryPanel",
+            "organismName": "AiPromoSuggestionsPanel",
             "titleKey": "org.ai.promo.suggestions.title",
-            "purpose": "Exibir sugestões de promoção geradas pelo assistente IA para decisão de marketing",
+            "purpose": "Painel do assistente IA que exibe sugestões de promoção por item, baseadas em pedidos dos últimos 7 dias e níveis atuais de estoque.",
             "userActions": [
               "requestAiPromoSuggestions"
             ],
@@ -484,26 +583,28 @@ export const definition = {
               "createdAt"
             ],
             "writesFields": [],
-            "rulesApplied": [],
+            "rulesApplied": [
+              "AI assistant analyzes 7-day aggregated order data and current stock levels",
+              "Suggestions are per-item for marketing decision support"
+            ],
             "order": 1,
             "intentions": [
               {
-                "id": "int-ai-promo-suggestions",
+                "id": "intent_ai_promo_query",
                 "intent": "queryList",
                 "order": 1,
-                "titleKey": "section.aiPromoSuggestions.title",
+                "titleKey": "intention.aiPromo.title",
                 "source": "ui.managerDashboard.data.requestAiPromoSuggestions",
-                "binding": "requestAiPromoSuggestions",
-                "action": "requestAiPromoSuggestions",
-                "emptyKey": "section.aiPromoSuggestions.empty",
-                "displayHint": "summaryCards",
+                "binding": "db_requestAiPromoSuggestions",
+                "emptyKey": "empty.aiPromo",
+                "displayHint": "summaryCard",
                 "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-ps-orderId",
+                    "id": "col_promo_orderId",
                     "field": "orderId",
-                    "labelKey": "column.orderId.label",
+                    "labelKey": "column.orderId",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
@@ -511,9 +612,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-ps-orderType",
+                    "id": "col_promo_orderType",
                     "field": "orderType",
-                    "labelKey": "column.orderType.label",
+                    "labelKey": "column.orderType",
                     "order": 2,
                     "required": false,
                     "inputType": "text",
@@ -521,9 +622,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-ps-status",
+                    "id": "col_promo_status",
                     "field": "status",
-                    "labelKey": "column.status.label",
+                    "labelKey": "column.status",
                     "order": 3,
                     "required": false,
                     "inputType": "text",
@@ -531,9 +632,9 @@ export const definition = {
                     "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions"
                   },
                   {
-                    "id": "col-ps-createdAt",
+                    "id": "col_promo_createdAt",
                     "field": "createdAt",
-                    "labelKey": "column.createdAt.label",
+                    "labelKey": "column.createdAt",
                     "order": 4,
                     "required": false,
                     "inputType": "datetime",
@@ -545,7 +646,7 @@ export const definition = {
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb-refresh-promo",
+                    "id": "tb_promo_refresh",
                     "action": "requestAiPromoSuggestions",
                     "labelKey": "action.requestAiPromoSuggestions.label",
                     "order": 1,
@@ -559,34 +660,90 @@ export const definition = {
             ]
           }
         ]
+      },
+      {
+        "id": "sec_review",
+        "type": "section",
+        "sectionName": "sec_review",
+        "titleKey": "sec.review.title",
+        "mode": "section",
+        "order": 4,
+        "organisms": [
+          {
+            "id": "org_review_summary",
+            "type": "organism",
+            "organismName": "ReviewSummary",
+            "titleKey": "org.review.summary.title",
+            "purpose": "Revisar o contexto consolidado do dashboard, do resumo de vendas IA e das sugestões de promoção IA para decisão gerencial.",
+            "userActions": [],
+            "requiredEntities": [
+              "Order",
+              "OrderItem",
+              "StockLevel",
+              "Shift"
+            ],
+            "readsFields": [
+              "status",
+              "orderType",
+              "createdAt",
+              "shiftId",
+              "deliveredAt",
+              "orderId"
+            ],
+            "writesFields": [],
+            "rulesApplied": [
+              "Review stage consolidates outputs from all three query operations for at-a-glance comprehension"
+            ],
+            "order": 1,
+            "intentions": [
+              {
+                "id": "intent_review_summary",
+                "intent": "summary",
+                "order": 1,
+                "titleKey": "intention.review.title",
+                "source": "ui.managerDashboard.data.viewDashboard",
+                "binding": "db_viewDashboard",
+                "emptyKey": "empty.review",
+                "displayHint": "summaryCard",
+                "stateKey": "ui.managerDashboard.status",
+                "fields": [],
+                "columns": [],
+                "filters": [],
+                "toolbar": [],
+                "rowActions": [],
+                "actions": []
+              }
+            ]
+          }
+        ]
       }
     ]
   },
   "dataBindings": [
     {
-      "id": "binding-viewDashboard",
-      "source": "query",
+      "id": "db_viewDashboard",
+      "source": "cafeFlow.viewDashboard.viewDashboard",
       "entity": "Order",
       "command": "viewDashboard",
-      "description": "Consulta os pedidos do turno atual para o dashboard do dia",
+      "description": "Consulta o dashboard do dia agregando pedidos, itens mais vendidos e alertas de estoque do turno atual.",
       "stateKey": "ui.managerDashboard.data.viewDashboard",
       "inputStateKeys": []
     },
     {
-      "id": "binding-requestAiSalesSummary",
-      "source": "query",
+      "id": "db_requestAiSalesSummary",
+      "source": "cafeFlow.requestAiSalesSummary.requestAiSalesSummary",
       "entity": "Order",
       "command": "requestAiSalesSummary",
-      "description": "Solicita ao assistente IA o resumo de vendas do dia",
+      "description": "Solicita ao assistente IA o resumo de vendas do dia corrente baseado nos pedidos e estoque do turno ativo.",
       "stateKey": "ui.managerDashboard.data.requestAiSalesSummary",
       "inputStateKeys": []
     },
     {
-      "id": "binding-requestAiPromoSuggestions",
-      "source": "query",
+      "id": "db_requestAiPromoSuggestions",
+      "source": "cafeFlow.requestAiPromoSuggestions.requestAiPromoSuggestions",
       "entity": "Order",
       "command": "requestAiPromoSuggestions",
-      "description": "Solicita ao assistente IA sugestões de promoção baseadas em pedidos e estoque",
+      "description": "Solicita ao assistente IA sugestões de promoção por item baseadas em pedidos dos últimos 7 dias e níveis de estoque.",
       "stateKey": "ui.managerDashboard.data.requestAiPromoSuggestions",
       "inputStateKeys": []
     }
@@ -600,9 +757,7 @@ export const pipeline = [
     "outputPath": "_102051_/l2/cafeFlow/web/desktop/page11/managerDashboard.ts",
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/managerDashboard.defs.ts",
     "dependsFiles": [
-      "_102051_/l2/cafeFlow/web/shared/managerDashboard.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/managerDashboard.ts",
-      "_102051_/l2/cafeFlow/web/contracts/managerDashboard.defs.ts",
       "_102051_/l2/cafeFlow/web/contracts/managerDashboard.ts",
       "_102051_/l2/designSystem.ts"
     ],

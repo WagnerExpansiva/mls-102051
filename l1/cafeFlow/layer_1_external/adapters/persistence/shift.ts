@@ -6,7 +6,7 @@ export const shiftTableDef: TableDefinition = {
   repositoryName: 'cafeFlowShift',
   tableName: 'shift',
   purpose: 'transacao',
-  description: 'Turnos de operação. Campos não indexados (openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt) em details (JSONB).',
+  description: 'Turnos (abertura/fechamento de caixa). Campos não indexados em details (JSONB).',
   backupHot: false,
   storageProfile: 'postgres',
   writeMode: 'sync',

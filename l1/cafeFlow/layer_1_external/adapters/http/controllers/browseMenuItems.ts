@@ -5,15 +5,15 @@ import { browseMenuItems, type BrowseMenuItemsInput } from '/_102051_/l1/cafeFlo
 export const cafeFlowBrowseMenuItemsHandler: BffHandler = async ({ request, ctx }) => {
   const params = (request.params ?? {}) as Partial<BrowseMenuItemsInput>;
 
-  // Only genuine client inputs: statusFilter and menuCategoryIdFilter (both optional).
-  // activeCompanyId is resolved from ctx.sessionContext inside the usecase — not a client field.
+  // Only genuine client inputs (userInput) are read from params.
+  // Both statusFilter and menuCategoryIdFilter are optional.
   const input: BrowseMenuItemsInput = {
     statusFilter: params.statusFilter,
     menuCategoryIdFilter: params.menuCategoryIdFilter,
   };
 
   const result = await browseMenuItems(ctx, input);
-  return ok(result);
+  return ok(result.items);
 };
 
 export const routes: ControllerRoute[] = [

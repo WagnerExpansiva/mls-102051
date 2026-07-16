@@ -1,0 +1,103 @@
+import { CollabLitElement } from '/_102029_/l2/collabLitElement.js';
+import type { CafeFlowViewKitchenBoardOutput, CafeFlowUpdateOrderStatusOutput } from '/_102051_/l2/cafeFlow/web/contracts/kitchenQueue.js';
+export type { CafeFlowViewKitchenBoardOutput, CafeFlowViewKitchenBoardOutputItem, CafeFlowUpdateOrderStatusInput, CafeFlowUpdateOrderStatusOutput, } from '/_102051_/l2/cafeFlow/web/contracts/kitchenQueue.js';
+declare const message_pt: {
+    "page.kitchenQueue.title": string;
+    "page.kitchenQueue.subtitle": string;
+    "section.kitchenBoard.title": string;
+    "section.orderTransition.title": string;
+    "section.review.title": string;
+    "column.orderId.label": string;
+    "column.status.label": string;
+    "column.orderType.label": string;
+    "column.tableNumber.label": string;
+    "column.priority.label": string;
+    "column.priorityReason.label": string;
+    "column.receivedAt.label": string;
+    "column.inPreparationAt.label": string;
+    "column.createdAt.label": string;
+    "field.orderId.label": string;
+    "field.status.label": string;
+    "action.select.label": string;
+    "action.startPreparation.label": string;
+    "action.markReady.label": string;
+    "action.updateOrderStatus.label": string;
+    "action.viewKitchenBoard.label": string;
+    "empty.kitchenBoard": string;
+    "empty.orderTransition": string;
+    "empty.review": string;
+    "action.updateOrderStatus.success": string;
+    "action.updateOrderStatus.error": string;
+    "lane.received.title": string;
+    "lane.inPreparation.title": string;
+    "lane.ready.title": string;
+    "status.received": string;
+    "status.inPreparation": string;
+    "status.ready": string;
+    "sec.kitchen.board.title": string;
+    "org.kanban.board.title": string;
+    "sec.order.transition.title": string;
+    "org.transition.panel.title": string;
+    "sec.review.title": string;
+    "org.review.panel.title": string;
+    "section.kitchenQueue.title": string;
+    "section.transition.title": string;
+    "field.orderId": string;
+    "field.status": string;
+    "field.orderType": string;
+    "field.tableNumber": string;
+    "field.priority": string;
+    "field.priorityReason": string;
+    "field.receivedAt": string;
+    "field.inPreparationAt": string;
+    "field.createdAt": string;
+    "action.startPreparation": string;
+    "action.markReady": string;
+    "action.refreshBoard": string;
+    "action.updateOrderStatus": string;
+    "kitchen.queue.section.title": string;
+    "kitchen.board.title": string;
+};
+type MessageType = typeof message_pt;
+/**
+ * Base class for the kitchen queue page — owns state, i18n, backend calls and handlers.
+ * Page renders extend this class and implement render().
+ */
+export declare class CafeFlowKitchenQueueBase extends CollabLitElement {
+    /** state ui.kitchenQueue.status — pageStatus */
+    status: string;
+    /** state ui.kitchenQueue.action.viewKitchenBoard.status — actionStatus, values: idle|loading|success|error */
+    viewKitchenBoardState: 'idle' | 'loading' | 'success' | 'error';
+    /** state ui.kitchenQueue.data.viewKitchenBoard — queryResult, outputShape: paginated */
+    viewKitchenBoardData: CafeFlowViewKitchenBoardOutput;
+    /** state ui.kitchenQueue.action.updateOrderStatus.status — actionStatus, values: idle|loading|success|error */
+    updateOrderStatusState: 'idle' | 'loading' | 'success' | 'error';
+    /** state ui.kitchenQueue.input.updateOrderStatus.orderId — input, presentation: selection */
+    updateOrderStatusOrderId: string;
+    /** state ui.kitchenQueue.input.updateOrderStatus.status — input, presentation: form */
+    updateOrderStatusStatus: string;
+    /** state ui.kitchenQueue.output.updateOrderStatus — commandOutput */
+    updateOrderStatusOutput: CafeFlowUpdateOrderStatusOutput | null;
+    /** state ui.kitchenQueue.action.updateOrderStatus.error — actionError */
+    updateOrderStatusError: string;
+    /** i18n catalog — MessageType keys are the CLOSED msg vocabulary for page renders */
+    protected get msg(): MessageType;
+    /** action viewKitchenBoard (query) — route cafeFlow.orderLifecycle.viewKitchenBoard; inputs: none; writes ui.kitchenQueue.data.viewKitchenBoard; status ui.kitchenQueue.action.viewKitchenBoard.status */
+    loadViewKitchenBoard(): Promise<void>;
+    /** handler for action viewKitchenBoard — bind UI events here */
+    handleViewKitchenBoardClick(_e: Event): void;
+    /** action updateOrderStatus (command) — route cafeFlow.orderLifecycle.updateOrderStatus; inputs: orderId, status; writes ui.kitchenQueue.output.updateOrderStatus; status ui.kitchenQueue.action.updateOrderStatus.status; feedback keys action.updateOrderStatus.success / action.updateOrderStatus.error */
+    updateOrderStatus(): Promise<void>;
+    /** handler for action updateOrderStatus — bind UI events here */
+    handleUpdateOrderStatusClick(e: Event): void;
+    /** setter for state ui.kitchenQueue.input.updateOrderStatus.orderId */
+    setUpdateOrderStatusOrderId(value: string): void;
+    /** handler for action set.updateOrderStatusOrderId — bind UI events here */
+    handleUpdateOrderStatusOrderIdChange(e: Event): void;
+    /** setter for state ui.kitchenQueue.input.updateOrderStatus.status */
+    setUpdateOrderStatusStatus(value: string): void;
+    /** handler for action set.updateOrderStatusStatus — bind UI events here */
+    handleUpdateOrderStatusStatusChange(e: Event): void;
+    connectedCallback(): void;
+    disconnectedCallback(): void;
+}

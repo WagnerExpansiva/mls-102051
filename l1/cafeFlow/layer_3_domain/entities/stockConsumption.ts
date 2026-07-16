@@ -23,9 +23,3 @@ export function canTransitionStockConsumption(
 ): boolean {
   return STOCK_CONSUMPTION_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
-
-export function isStockConsumptionActive(
-  consumption: Pick<StockConsumption, 'status'>,
-): boolean {
-  return consumption.status === 'posted';
-}

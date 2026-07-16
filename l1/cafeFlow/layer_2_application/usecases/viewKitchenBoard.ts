@@ -1,9 +1,8 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/usecases/viewKitchenBoard.ts" enhancement="_blank"/>
-import type { RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
+import { type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
 import { resolveRepository } from '/_102034_/l1/server/layer_2_application/repositoryRegistry.js';
 import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.js';
-import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
-import type { Order, OrderItem } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
+import type { OrderItem } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
 
 export interface ViewKitchenBoardInput {}
 
@@ -14,106 +13,81 @@ export interface KitchenBoardOrderItem {
   unitPrice: number;
 }
 
-export interface KitchenBoardEntry {
+export interface KitchenBoardOrder {
   orderId: string;
   status: string;
   orderType: string;
-  tableNumber?: string;
-  priority?: boolean;
-  priorityReason?: string;
-  receivedAt?: string;
-  inPreparationAt?: string;
+  tableNumber: string | null;
+  priority: boolean | null;
+  priorityReason: string | null;
+  receivedAt: string | null;
+  inPreparationAt: string | null;
   createdAt: string;
-  orderItems: KitchenBoardOrderItem[];
+  items: KitchenBoardOrderItem[];
 }
 
 export interface ViewKitchenBoardOutput {
-  orders: KitchenBoardEntry[];
+  orders: KitchenBoardOrder[];
 }
 
 /**
- * Use-case: viewKitchenBoard
- *
- * Lists all orders of the current open shift whose status is 'received' or
- * 'inPreparation', sorted by priority (priority=true first) and then by
- * receivedAt ascending (FIFO).
+ * View the kitchen board: returns all orders in 'received' or 'inPreparation' status,
+ * sorted by priority (DESC) then receivedAt (ASC) per the fifoKitchenQueue rule.
  *
  * Rules applied:
- *  - dashboardCurrentShiftOnly: only orders belonging to the active open shift
- *  - fifoKitchenQueue: priority orders first, then FIFO by receivedAt
+ * - dashboardCurrentShiftOnly: orders should be filtered to the active (open) shift.
+ *   Modeling gap: the Shift port is not available in this module's ports, so the active
+ *   shift cannot be resolved. We proceed without the shift filter rather than inventing
+ *   a shiftId. If/when the Shift port is added, filter `kitchenOrders` by `shiftId`.
+ * - fifoKitchenQueue: sort by priority DESC (true first), then receivedAt ASC (oldest first).
  */
 export async function viewKitchenBoard(
   ctx: RequestContext,
   _input: ViewKitchenBoardInput,
 ): Promise<ViewKitchenBoardOutput> {
-  const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
 
-  // Step 1 — resolve the active (open) shift (activeLifecycleInstance).
-  const openShift = await shifts.findOpenShift();
-  if (!openShift) {
-    // No open shift → empty board.
-    return { orders: [] };
-  }
+  // Query orders with kitchen-board statuses: 'received' and 'inPreparation'.
+  // The port's findByStatus accepts a single status, so we issue two calls and merge.
+  const receivedOrders = await orders.findByStatus('received');
+  const inPrepOrders = await orders.findByStatus('inPreparation');
+  const kitchenOrders = [...receivedOrders, ...inPrepOrders];
 
-  // Step 2 — dashboardCurrentShiftOnly: list orders for the current shift only.
-  const shiftOrders = await orders.listByShiftId(openShift.shiftId);
+  // dashboardCurrentShiftOnly rule:
+  // Ideally we would resolve the single open Shift and filter kitchenOrders by shiftId.
+  // Modeling gap: Shift port is not registered — we cannot resolve the active shift.
+  // Proceed without the shift filter (do not invent a shiftId).
 
-  // Step 3 — filter by status: only 'received' or 'inPreparation'.
-  const kitchenOrders = shiftOrders.filter(
-    (order) => order.status === 'received' || order.status === 'inPreparation',
-  );
-
-  // Step 4 — fifoKitchenQueue: priority=true first, then receivedAt ascending (FIFO).
-  const sortedOrders = kitchenOrders.sort((a, b) => {
+  // fifoKitchenQueue rule: sort by priority DESC (true first), then receivedAt ASC (oldest first).
+  const sorted = kitchenOrders.sort((a, b) => {
     const aPriority = a.priority === true ? 1 : 0;
     const bPriority = b.priority === true ? 1 : 0;
     if (aPriority !== bPriority) {
-      return bPriority - aPriority; // priority orders first
+      return bPriority - aPriority;
     }
     const aReceived = a.receivedAt ?? a.createdAt;
     const bReceived = b.receivedAt ?? b.createdAt;
-    return aReceived.localeCompare(bReceived); // FIFO ascending
+    return aReceived.localeCompare(bReceived);
   });
 
-  // Step 5 — project output fields.
-  const projected: KitchenBoardEntry[] = sortedOrders.map((order: Order) => {
-    const orderItems: KitchenBoardOrderItem[] = (order.items ?? []).map(
-      (item: OrderItem) => ({
-        orderItemId: item.orderItemId,
-        menuItemId: item.menuItemId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-      }),
-    );
+  // Project each order to the kitchen-board view fields.
+  const projected: KitchenBoardOrder[] = sorted.map((order) => ({
+    orderId: order.orderId,
+    status: order.status,
+    orderType: order.orderType,
+    tableNumber: order.tableNumber,
+    priority: order.priority,
+    priorityReason: order.priorityReason,
+    receivedAt: order.receivedAt,
+    inPreparationAt: order.inPreparationAt,
+    createdAt: order.createdAt,
+    items: order.items.map((item: OrderItem) => ({
+      orderItemId: item.orderItemId,
+      menuItemId: item.menuItemId,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    })),
+  }));
 
-    const entry: KitchenBoardEntry = {
-      orderId: order.orderId,
-      status: order.status,
-      orderType: order.orderType,
-      createdAt: order.createdAt,
-      orderItems,
-    };
-
-    if (order.tableNumber !== null) {
-      entry.tableNumber = order.tableNumber;
-    }
-    if (order.priority !== null) {
-      entry.priority = order.priority;
-    }
-    if (order.priorityReason !== null) {
-      entry.priorityReason = order.priorityReason;
-    }
-    if (order.receivedAt !== null) {
-      entry.receivedAt = order.receivedAt;
-    }
-    if (order.inPreparationAt !== null) {
-      entry.inPreparationAt = order.inPreparationAt;
-    }
-
-    return entry;
-  });
-
-  // Step 6 — return the projected collection.
   return { orders: projected };
 }

@@ -1,0 +1,131 @@
+import { CollabLitElement } from '/_102029_/l2/collabLitElement.js';
+import type { CafeFlowCreateOrderOutput, CafeFlowViewOrderBoardOutput, CafeFlowDeliverOrderOutput } from '/_102051_/l2/cafeFlow/web/contracts/posWorkspace.js';
+export type { CafeFlowCreateOrderInput, CafeFlowCreateOrderOutput, CafeFlowViewOrderBoardOutput, CafeFlowViewOrderBoardOutputItem, CafeFlowDeliverOrderInput, CafeFlowDeliverOrderOutput, } from '/_102051_/l2/cafeFlow/web/contracts/posWorkspace.js';
+declare const message_pt: {
+    "page.title": string;
+    "section.discover.title": string;
+    "section.createOrder.title": string;
+    "section.deliverOrder.title": string;
+    "section.review.title": string;
+    "intent.viewOrderBoard.title": string;
+    "intent.createOrder.title": string;
+    "intent.deliverOrder.title": string;
+    "intent.review.title": string;
+    "field.orderType.label": string;
+    "field.tableNumber.label": string;
+    "field.orderItems.label": string;
+    "field.priority.label": string;
+    "field.priorityReason.label": string;
+    "field.orderId.label": string;
+    "column.orderId.label": string;
+    "column.status.label": string;
+    "column.orderType.label": string;
+    "column.tableNumber.label": string;
+    "column.priority.label": string;
+    "column.priorityReason.label": string;
+    "column.receivedAt.label": string;
+    "column.inPreparationAt.label": string;
+    "column.readyAt.label": string;
+    "column.createdAt.label": string;
+    "filter.status.label": string;
+    "filter.orderType.label": string;
+    "filter.priority.label": string;
+    "toolbar.refresh.label": string;
+    "rowAction.selectForDelivery.label": string;
+    "action.createOrder.label": string;
+    "action.deliverOrder.label": string;
+    "action.createOrder.success": string;
+    "action.createOrder.error": string;
+    "action.deliverOrder.success": string;
+    "action.deliverOrder.error": string;
+    "empty.orderBoard": string;
+    "sec.discover.title": string;
+    "org.order.board.title": string;
+    "sec.create.order.title": string;
+    "org.create.order.title": string;
+    "sec.deliver.order.title": string;
+    "org.deliver.order.title": string;
+    "sec.review.title": string;
+    "org.review.title": string;
+    "page.posWorkspace.title": string;
+    "section.orderBoard.title": string;
+    "section.orderBoard.empty": string;
+    "organism.orderBoard.title": string;
+    "organism.orderBoard.empty": string;
+    "organism.createOrderForm.title": string;
+    "intent.viewOrderBoard.empty": string;
+    "action.viewOrderBoard.label": string;
+};
+type MessageType = typeof message_pt;
+export declare class CafeFlowPosWorkspaceBase extends CollabLitElement {
+    /** state ui.posWorkspace.status — pageStatus */
+    status: string;
+    /** state ui.posWorkspace.action.createOrder.status — actionStatus, values: idle|loading|success|error */
+    createOrderState: 'idle' | 'loading' | 'success' | 'error';
+    /** state ui.posWorkspace.input.createOrder.orderType — input, form */
+    createOrderOrderType: string;
+    /** state ui.posWorkspace.input.createOrder.tableNumber — input, form */
+    createOrderTableNumber: string;
+    /** state ui.posWorkspace.input.createOrder.orderItems — input, form */
+    createOrderOrderItems: string;
+    /** state ui.posWorkspace.input.createOrder.priority — input, form */
+    createOrderPriority: string;
+    /** state ui.posWorkspace.input.createOrder.priorityReason — input, form */
+    createOrderPriorityReason: string;
+    /** state ui.posWorkspace.output.createOrder — commandOutput, outputShape: object */
+    createOrderOutput: CafeFlowCreateOrderOutput | null;
+    /** state ui.posWorkspace.action.createOrder.error — actionError */
+    createOrderError: string;
+    /** state ui.posWorkspace.action.viewOrderBoard.status — actionStatus, values: idle|loading|success|error */
+    viewOrderBoardState: 'idle' | 'loading' | 'success' | 'error';
+    /** state ui.posWorkspace.data.viewOrderBoard — queryResult, outputShape: paginated */
+    viewOrderBoardData: CafeFlowViewOrderBoardOutput;
+    /** state ui.posWorkspace.action.deliverOrder.status — actionStatus, values: idle|loading|success|error */
+    deliverOrderState: 'idle' | 'loading' | 'success' | 'error';
+    /** state ui.posWorkspace.input.deliverOrder.orderId — input, selection */
+    deliverOrderOrderId: string;
+    /** state ui.posWorkspace.output.deliverOrder — commandOutput, outputShape: object */
+    deliverOrderOutput: CafeFlowDeliverOrderOutput | null;
+    /** state ui.posWorkspace.action.deliverOrder.error — actionError */
+    deliverOrderError: string;
+    /** i18n catalog — MessageType keys are the CLOSED msg vocabulary for page renders */
+    protected get msg(): MessageType;
+    /** action createOrder (command) — route cafeFlow.orderLifecycle.createOrder; inputs: orderType, tableNumber, orderItems, priority, priorityReason; writes createOrderOutput; status createOrderState; feedback keys action.createOrder.success / action.createOrder.error */
+    createOrder(): Promise<void>;
+    /** handler for action createOrder — bind UI events here */
+    handleCreateOrderClick(_event: Event): void;
+    /** action viewOrderBoard (query) — route cafeFlow.orderLifecycle.viewOrderBoard; inputs: none; writes viewOrderBoardData; status viewOrderBoardState */
+    loadViewOrderBoard(): Promise<void>;
+    /** handler for action viewOrderBoard — bind UI events here */
+    handleViewOrderBoardClick(_event: Event): void;
+    /** action deliverOrder (command) — route cafeFlow.orderLifecycle.deliverOrder; inputs: orderId; writes deliverOrderOutput; status deliverOrderState; feedback keys action.deliverOrder.success / action.deliverOrder.error */
+    deliverOrder(): Promise<void>;
+    /** handler for action deliverOrder — bind UI events here */
+    handleDeliverOrderClick(_event: Event): void;
+    /** setter for state ui.posWorkspace.input.createOrder.orderType */
+    setCreateOrderOrderType(value: string): void;
+    /** handler for action set.createOrderOrderType — bind UI events here */
+    handleCreateOrderOrderTypeChange(event: Event): void;
+    /** setter for state ui.posWorkspace.input.createOrder.tableNumber */
+    setCreateOrderTableNumber(value: string): void;
+    /** handler for action set.createOrderTableNumber — bind UI events here */
+    handleCreateOrderTableNumberChange(event: Event): void;
+    /** setter for state ui.posWorkspace.input.createOrder.orderItems */
+    setCreateOrderOrderItems(value: string): void;
+    /** handler for action set.createOrderOrderItems — bind UI events here */
+    handleCreateOrderOrderItemsChange(event: Event): void;
+    /** setter for state ui.posWorkspace.input.createOrder.priority */
+    setCreateOrderPriority(value: string): void;
+    /** handler for action set.createOrderPriority — bind UI events here */
+    handleCreateOrderPriorityChange(event: Event): void;
+    /** setter for state ui.posWorkspace.input.createOrder.priorityReason */
+    setCreateOrderPriorityReason(value: string): void;
+    /** handler for action set.createOrderPriorityReason — bind UI events here */
+    handleCreateOrderPriorityReasonChange(event: Event): void;
+    /** setter for state ui.posWorkspace.input.deliverOrder.orderId */
+    setDeliverOrderOrderId(value: string): void;
+    /** handler for action set.deliverOrderOrderId — bind UI events here */
+    handleDeliverOrderOrderIdChange(event: Event): void;
+    connectedCallback(): void;
+    disconnectedCallback(): void;
+}

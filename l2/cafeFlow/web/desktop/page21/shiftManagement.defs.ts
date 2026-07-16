@@ -94,19 +94,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec-shift-lifecycle",
+      "id": "sec_shiftStatus",
       "type": "section",
-      "sectionName": "Gestão do turno",
-      "titleKey": "section.shiftLifecycle.title",
-      "mode": "primary",
+      "sectionName": "sec_shiftStatus",
+      "titleKey": "sec.shiftStatus.title",
+      "mode": "summary-first",
       "order": 1,
       "organisms": [
         {
-          "id": "org-shift-control",
+          "id": "org_shiftLifecycle",
           "type": "organism",
-          "organismName": "ShiftControl",
-          "titleKey": "org.shift.control.title",
-          "purpose": "Exibir o status atual do turno e prover ações contextuais de abertura e fechamento do ciclo de vida.",
+          "organismName": "ShiftLifecyclePanel",
+          "titleKey": "org.shiftLifecycle.title",
+          "purpose": "Exibir o status atual do turno e prover ações de ciclo de vida (abrir/fechar) como transições contextuais",
           "userActions": [
             "openShift",
             "closeShift"
@@ -125,13 +125,14 @@ export const definition = {
             "notes"
           ],
           "writesFields": [
-            "notes",
-            "totalApurado",
+            "shiftId",
             "status",
             "openedAt",
             "openedBy",
             "closedAt",
-            "closedBy"
+            "closedBy",
+            "totalApurado",
+            "notes"
           ],
           "rulesApplied": [
             "singleOpenShift"
@@ -139,41 +140,39 @@ export const definition = {
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-shift-summary",
-              "intent": "display",
-              "stateKey": "ui.shiftManagement.output.openShift",
+              "id": "intent_openShift",
+              "intent": "command",
+              "stateKey": "ui.shiftManagement.action.openShift.status",
+              "action": "openShift",
+              "submitAction": "openShift",
               "order": 1
             },
             {
-              "id": "int-open-shift",
-              "intent": "create",
-              "stateKey": "ui.shiftManagement.input.openShift.notes",
+              "id": "intent_closeShift",
+              "intent": "command",
+              "stateKey": "ui.shiftManagement.action.closeShift.status",
+              "action": "closeShift",
+              "submitAction": "closeShift",
               "order": 2
-            },
-            {
-              "id": "int-close-shift",
-              "intent": "update",
-              "stateKey": "ui.shiftManagement.input.closeShift.totalApurado",
-              "order": 3
             }
           ]
         }
       ]
     },
     {
-      "id": "sec-closing-report",
+      "id": "sec_closingReport",
       "type": "section",
-      "sectionName": "Relatório de fechamento",
-      "titleKey": "section.closingReport.title",
-      "mode": "secondary",
+      "sectionName": "sec_closingReport",
+      "titleKey": "sec.closingReport.title",
+      "mode": "summary-first",
       "order": 2,
       "organisms": [
         {
-          "id": "org-closing-report",
+          "id": "org_closingReport",
           "type": "organism",
-          "organismName": "ClosingReportDetail",
-          "titleKey": "org.closing.report.title",
-          "purpose": "Exibir o relatório de fechamento de turno com total apurado e pedidos pagos consolidados para conferência.",
+          "organismName": "ClosingReportPanel",
+          "titleKey": "org.closingReport.title",
+          "purpose": "Exibir o relatório de fechamento de turno com total apurado e pedidos pagos consolidados",
           "userActions": [
             "viewShiftClosingReport"
           ],
@@ -193,9 +192,10 @@ export const definition = {
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-report-display",
-              "intent": "view",
+              "id": "intent_viewShiftClosingReport",
+              "intent": "query",
               "stateKey": "ui.shiftManagement.data.viewShiftClosingReport",
+              "action": "viewShiftClosingReport",
               "order": 1
             }
           ]
@@ -207,62 +207,84 @@ export const definition = {
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "pageObjective": {
     "actor": "Gerente do café",
-    "jobToBeDone": "Gerenciar o ciclo de vida do turno diário: abrir no início do expediente, fechar ao final registrando o total apurado, e revisar o relatório de fechamento para conferência.",
-    "primaryDecision": "Decidir se deve abrir ou fechar o turno atual com base no status exibido, executando a transição de ciclo de vida apropriada.",
+    "jobToBeDone": "Gerenciar o ciclo de vida do turno diário — abrir no início, fechar com reconciliação no fim, e revisar o relatório de fechamento",
+    "primaryDecision": "Decidir se abre um novo turno ou fecha o turno atualmente aberto, confirmando o total apurado",
     "decisiveInfo": [
       "status",
       "totalApurado",
-      "paidOrderCount",
       "notes"
     ],
-    "usageFrequency": "Duas vezes ao dia (abertura e fechamento) — operacional/back-office, uso ocasional mas crítico.",
+    "usageFrequency": "Duas vezes ao dia (abertura e fechamento) — operacional/back-office",
     "criticalActions": [
       {
         "action": "openShift",
-        "presentation": "primary-button contextual-transition-actions — botão primário visível quando não há turno aberto"
+        "presentation": "primary-button contextual-transition-actions"
       },
       {
         "action": "closeShift",
-        "presentation": "primary-button contextual-transition-actions — botão primário visível quando há turno aberto, com formulário inline para totalApurado e notes"
+        "presentation": "primary-button contextual-transition-actions com formulário inline"
       },
       {
         "action": "viewShiftClosingReport",
-        "presentation": "summary-first — exibição automática do relatório após fechamento, carregado via routeParam"
+        "presentation": "summary-first display"
       }
     ],
     "informationHierarchy": [
-      "Status atual do turno (open/closed) com dados de abertura",
-      "Ação contextual de transição (abrir ou fechar)",
-      "Formulário inline da transição ativa (notes para abrir; totalApurado + notes para fechar)",
+      "Status atual do turno (aberto/fechado) e dados de abertura",
+      "Ação de ciclo de vida contextual (abrir ou fechar)",
       "Relatório de fechamento com total apurado e pedidos pagos"
     ],
-    "successCriteria": "O gerente vê imediatamente o status do turno, executa abertura ou fechamento com mínima fricção (um botão + campos mínimos), e revisa o relatório de fechamento sem digitar IDs manualmente.",
+    "successCriteria": "O gerente vê imediatamente o status do turno, executa abertura ou fechamento com mínima fricção, e consulta o relatório de fechamento sem digitar IDs manualmente",
     "antiPatterns": [
-      "Formulário separado para cada operação empilhado verticalmente",
-      "Campo select livre para escolher status do turno",
-      "Digitação manual de shiftId",
-      "Exibir campos system-owned (openedAt, closedAt, openedBy, closedBy) como inputs editáveis",
-      "Tela de relatório separada exigindo navegação adicional"
+      "Formulário separado de transição de status",
+      "Select livre sobre enum de status",
+      "ID de turno digitado manualmente",
+      "Campos system-owned (shiftId, openedAt, closedAt) como inputs manuais"
     ]
   },
+  "msgKeys": [
+    "action.closeShift",
+    "action.closeShift.error",
+    "action.closeShift.success",
+    "action.openShift",
+    "action.openShift.error",
+    "action.openShift.success",
+    "empty.closingReport",
+    "field.createdAt",
+    "field.notes",
+    "field.paidOrderCount",
+    "field.shiftClosingReportId",
+    "field.shiftId",
+    "field.totalApurado",
+    "field.updatedAt",
+    "org.closingReport.title",
+    "org.shiftLifecycle.title",
+    "page.title",
+    "sec.closingReport.title",
+    "sec.shiftStatus.title",
+    "section.closingReport.title",
+    "section.shiftStatus.closeShiftTitle",
+    "section.shiftStatus.openShiftTitle",
+    "section.shiftStatus.title"
+  ],
   "layout": {
     "id": "page21",
     "type": "page",
     "sections": [
       {
-        "id": "sec-shift-lifecycle",
+        "id": "sec_shiftStatus",
         "type": "section",
-        "sectionName": "Gestão do turno",
-        "titleKey": "section.shiftLifecycle.title",
-        "mode": "primary",
+        "sectionName": "sec_shiftStatus",
+        "titleKey": "sec.shiftStatus.title",
+        "mode": "summary-first",
         "order": 1,
         "organisms": [
           {
-            "id": "org-shift-control",
+            "id": "org_shiftLifecycle",
             "type": "organism",
-            "organismName": "ShiftControl",
-            "titleKey": "org.shift.control.title",
-            "purpose": "Exibir o status atual do turno e prover ações contextuais de abertura e fechamento do ciclo de vida.",
+            "organismName": "ShiftLifecyclePanel",
+            "titleKey": "org.shiftLifecycle.title",
+            "purpose": "Exibir o status atual do turno e prover ações de ciclo de vida (abrir/fechar) como transições contextuais",
             "userActions": [
               "openShift",
               "closeShift"
@@ -281,13 +303,14 @@ export const definition = {
               "notes"
             ],
             "writesFields": [
-              "notes",
-              "totalApurado",
+              "shiftId",
               "status",
               "openedAt",
               "openedBy",
               "closedAt",
-              "closedBy"
+              "closedBy",
+              "totalApurado",
+              "notes"
             ],
             "rulesApplied": [
               "singleOpenShift"
@@ -295,110 +318,24 @@ export const definition = {
             "order": 1,
             "intentions": [
               {
-                "id": "int-shift-summary",
-                "intent": "display",
+                "id": "intent_openShift",
+                "intent": "command",
                 "order": 1,
-                "titleKey": "intention.shiftSummary.title",
-                "emptyKey": "intention.shiftSummary.empty",
-                "displayHint": "summary-first",
-                "stateKey": "ui.shiftManagement.output.openShift",
-                "fields": [
-                  {
-                    "id": "fld-sum-shiftId",
-                    "field": "shiftId",
-                    "labelKey": "field.shiftId.label",
-                    "order": 1,
-                    "required": false,
-                    "inputType": "readonly",
-                    "source": "ui.shiftManagement.output.openShift",
-                    "stateKey": "ui.shiftManagement.output.openShift"
-                  },
-                  {
-                    "id": "fld-sum-status",
-                    "field": "status",
-                    "labelKey": "field.status.label",
-                    "order": 2,
-                    "required": false,
-                    "inputType": "readonly",
-                    "source": "ui.shiftManagement.output.openShift",
-                    "stateKey": "ui.shiftManagement.output.openShift"
-                  },
-                  {
-                    "id": "fld-sum-openedAt",
-                    "field": "openedAt",
-                    "labelKey": "field.openedAt.label",
-                    "order": 3,
-                    "required": false,
-                    "inputType": "readonly",
-                    "format": "datetime",
-                    "source": "ui.shiftManagement.output.openShift",
-                    "stateKey": "ui.shiftManagement.output.openShift"
-                  },
-                  {
-                    "id": "fld-sum-openedBy",
-                    "field": "openedBy",
-                    "labelKey": "field.openedBy.label",
-                    "order": 4,
-                    "required": false,
-                    "inputType": "readonly",
-                    "source": "ui.shiftManagement.output.openShift",
-                    "stateKey": "ui.shiftManagement.output.openShift"
-                  },
-                  {
-                    "id": "fld-sum-closedAt",
-                    "field": "closedAt",
-                    "labelKey": "field.closedAt.label",
-                    "order": 5,
-                    "required": false,
-                    "inputType": "readonly",
-                    "format": "datetime",
-                    "source": "ui.shiftManagement.output.closeShift",
-                    "stateKey": "ui.shiftManagement.output.closeShift"
-                  },
-                  {
-                    "id": "fld-sum-closedBy",
-                    "field": "closedBy",
-                    "labelKey": "field.closedBy.label",
-                    "order": 6,
-                    "required": false,
-                    "inputType": "readonly",
-                    "source": "ui.shiftManagement.output.closeShift",
-                    "stateKey": "ui.shiftManagement.output.closeShift"
-                  },
-                  {
-                    "id": "fld-sum-totalApurado",
-                    "field": "totalApurado",
-                    "labelKey": "field.totalApurado.label",
-                    "order": 7,
-                    "required": false,
-                    "inputType": "readonly",
-                    "format": "currency",
-                    "source": "ui.shiftManagement.output.closeShift",
-                    "stateKey": "ui.shiftManagement.output.closeShift"
-                  }
-                ],
-                "columns": [],
-                "filters": [],
-                "toolbar": [],
-                "rowActions": [],
-                "actions": []
-              },
-              {
-                "id": "int-open-shift",
-                "intent": "create",
-                "order": 2,
-                "titleKey": "intention.openShiftForm.title",
+                "titleKey": "section.shiftStatus.openShiftTitle",
+                "binding": "binding_openShift",
+                "action": "openShift",
+                "submitAction": "openShift",
                 "displayHint": "contextual-transition-actions",
-                "stateKey": "ui.shiftManagement.input.openShift.notes",
+                "stateKey": "ui.shiftManagement.action.openShift.status",
                 "fields": [
                   {
-                    "id": "fld-open-notes",
+                    "id": "f_openShift_notes",
                     "field": "notes",
-                    "labelKey": "field.notes.label",
+                    "labelKey": "field.notes",
                     "order": 1,
                     "required": false,
                     "inputType": "textarea",
-                    "source": "ui.shiftManagement.input.openShift.notes",
+                    "source": "set.openShiftNotes",
                     "stateKey": "ui.shiftManagement.input.openShift.notes"
                   }
                 ],
@@ -408,9 +345,9 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-open-shift",
+                    "id": "a_openShift_submit",
                     "action": "openShift",
-                    "labelKey": "action.openShift.label",
+                    "labelKey": "action.openShift",
                     "order": 1,
                     "displayHint": "primary-button",
                     "actionKey": "openShift"
@@ -418,33 +355,35 @@ export const definition = {
                 ]
               },
               {
-                "id": "int-close-shift",
-                "intent": "update",
-                "order": 3,
-                "titleKey": "intention.closeShiftForm.title",
+                "id": "intent_closeShift",
+                "intent": "command",
+                "order": 2,
+                "titleKey": "section.shiftStatus.closeShiftTitle",
+                "binding": "binding_closeShift",
+                "action": "closeShift",
+                "submitAction": "closeShift",
                 "displayHint": "contextual-transition-actions",
-                "stateKey": "ui.shiftManagement.input.closeShift.totalApurado",
+                "stateKey": "ui.shiftManagement.action.closeShift.status",
                 "fields": [
                   {
-                    "id": "fld-close-totalApurado",
+                    "id": "f_closeShift_totalApurado",
                     "field": "totalApurado",
-                    "labelKey": "field.totalApurado.label",
+                    "labelKey": "field.totalApurado",
                     "order": 1,
                     "required": true,
                     "inputType": "number",
-                    "format": "currency",
-                    "source": "ui.shiftManagement.input.closeShift.totalApurado",
+                    "source": "set.closeShiftTotalApurado",
                     "stateKey": "ui.shiftManagement.input.closeShift.totalApurado"
                   },
                   {
-                    "id": "fld-close-notes",
+                    "id": "f_closeShift_notes",
                     "field": "notes",
-                    "labelKey": "field.notes.label",
+                    "labelKey": "field.notes",
                     "order": 2,
                     "required": false,
                     "inputType": "textarea",
-                    "source": "ui.shiftManagement.input.closeShift.notes",
-                    "stateKey": "ui.shiftManagement.input.openShift.notes"
+                    "source": "set.closeShiftNotes",
+                    "stateKey": "ui.shiftManagement.input.closeShift.notes"
                   }
                 ],
                 "columns": [],
@@ -453,9 +392,9 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-close-shift",
+                    "id": "a_closeShift_submit",
                     "action": "closeShift",
-                    "labelKey": "action.closeShift.label",
+                    "labelKey": "action.closeShift",
                     "order": 1,
                     "displayHint": "primary-button",
                     "actionKey": "closeShift"
@@ -467,19 +406,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-closing-report",
+        "id": "sec_closingReport",
         "type": "section",
-        "sectionName": "Relatório de fechamento",
-        "titleKey": "section.closingReport.title",
-        "mode": "secondary",
+        "sectionName": "sec_closingReport",
+        "titleKey": "sec.closingReport.title",
+        "mode": "summary-first",
         "order": 2,
         "organisms": [
           {
-            "id": "org-closing-report",
+            "id": "org_closingReport",
             "type": "organism",
-            "organismName": "ClosingReportDetail",
-            "titleKey": "org.closing.report.title",
-            "purpose": "Exibir o relatório de fechamento de turno com total apurado e pedidos pagos consolidados para conferência.",
+            "organismName": "ClosingReportPanel",
+            "titleKey": "org.closingReport.title",
+            "purpose": "Exibir o relatório de fechamento de turno com total apurado e pedidos pagos consolidados",
             "userActions": [
               "viewShiftClosingReport"
             ],
@@ -499,79 +438,73 @@ export const definition = {
             "order": 1,
             "intentions": [
               {
-                "id": "int-report-display",
-                "intent": "view",
+                "id": "intent_viewShiftClosingReport",
+                "intent": "query",
                 "order": 1,
-                "titleKey": "intention.reportDisplay.title",
-                "emptyKey": "intention.reportDisplay.empty",
+                "titleKey": "section.closingReport.title",
+                "source": "viewShiftClosingReport",
+                "binding": "binding_viewShiftClosingReport",
+                "action": "viewShiftClosingReport",
+                "emptyKey": "empty.closingReport",
                 "displayHint": "summary-first",
                 "stateKey": "ui.shiftManagement.data.viewShiftClosingReport",
-                "fields": [
+                "fields": [],
+                "columns": [
                   {
-                    "id": "fld-rpt-shiftClosingReportId",
+                    "id": "col_reportId",
                     "field": "shiftClosingReportId",
-                    "labelKey": "field.shiftClosingReportId.label",
+                    "labelKey": "field.shiftClosingReportId",
                     "order": 1,
                     "required": false,
-                    "inputType": "readonly",
-                    "source": "ui.shiftManagement.data.viewShiftClosingReport",
+                    "inputType": "text",
                     "stateKey": "ui.shiftManagement.data.viewShiftClosingReport"
                   },
                   {
-                    "id": "fld-rpt-shiftId",
+                    "id": "col_shiftId",
                     "field": "shiftId",
-                    "labelKey": "field.shiftId.label",
+                    "labelKey": "field.shiftId",
                     "order": 2,
                     "required": false,
-                    "inputType": "readonly",
-                    "source": "ui.shiftManagement.data.viewShiftClosingReport",
-                    "stateKey": "ui.shiftManagement.input.viewShiftClosingReport.shiftId"
+                    "inputType": "text",
+                    "stateKey": "ui.shiftManagement.data.viewShiftClosingReport"
                   },
                   {
-                    "id": "fld-rpt-totalApurado",
+                    "id": "col_totalApurado",
                     "field": "totalApurado",
-                    "labelKey": "field.totalApurado.label",
+                    "labelKey": "field.totalApurado",
                     "order": 3,
                     "required": false,
-                    "inputType": "readonly",
-                    "format": "currency",
-                    "source": "ui.shiftManagement.data.viewShiftClosingReport",
+                    "inputType": "number",
                     "stateKey": "ui.shiftManagement.data.viewShiftClosingReport"
                   },
                   {
-                    "id": "fld-rpt-paidOrderCount",
+                    "id": "col_paidOrderCount",
                     "field": "paidOrderCount",
-                    "labelKey": "field.paidOrderCount.label",
+                    "labelKey": "field.paidOrderCount",
                     "order": 4,
                     "required": false,
-                    "inputType": "readonly",
-                    "source": "ui.shiftManagement.data.viewShiftClosingReport",
+                    "inputType": "number",
                     "stateKey": "ui.shiftManagement.data.viewShiftClosingReport"
                   },
                   {
-                    "id": "fld-rpt-createdAt",
+                    "id": "col_createdAt",
                     "field": "createdAt",
-                    "labelKey": "field.createdAt.label",
+                    "labelKey": "field.createdAt",
                     "order": 5,
                     "required": false,
-                    "inputType": "readonly",
-                    "format": "datetime",
-                    "source": "ui.shiftManagement.data.viewShiftClosingReport",
+                    "inputType": "datetime",
                     "stateKey": "ui.shiftManagement.data.viewShiftClosingReport"
                   },
                   {
-                    "id": "fld-rpt-updatedAt",
+                    "id": "col_updatedAt",
                     "field": "updatedAt",
-                    "labelKey": "field.updatedAt.label",
+                    "labelKey": "field.updatedAt",
                     "order": 6,
                     "required": false,
-                    "inputType": "readonly",
-                    "format": "datetime",
-                    "source": "ui.shiftManagement.data.viewShiftClosingReport",
+                    "inputType": "datetime",
                     "stateKey": "ui.shiftManagement.data.viewShiftClosingReport"
                   }
                 ],
-                "columns": [],
                 "filters": [],
                 "toolbar": [],
                 "rowActions": [],
@@ -585,22 +518,22 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "bind-openShift",
-      "source": "ui.shiftManagement.output.openShift",
+      "id": "binding_openShift",
+      "source": "command",
       "entity": "Shift",
       "command": "openShift",
-      "description": "Output do comando openShift — shift criado com status open",
+      "description": "Abre um novo turno diário",
       "stateKey": "ui.shiftManagement.output.openShift",
       "inputStateKeys": [
         "ui.shiftManagement.input.openShift.notes"
       ]
     },
     {
-      "id": "bind-closeShift",
-      "source": "ui.shiftManagement.output.closeShift",
+      "id": "binding_closeShift",
+      "source": "command",
       "entity": "Shift",
       "command": "closeShift",
-      "description": "Output do comando closeShift — turno fechado com total apurado",
+      "description": "Fecha o turno diário e gera relatório",
       "stateKey": "ui.shiftManagement.output.closeShift",
       "inputStateKeys": [
         "ui.shiftManagement.input.closeShift.totalApurado",
@@ -608,11 +541,11 @@ export const definition = {
       ]
     },
     {
-      "id": "bind-viewShiftClosingReport",
-      "source": "ui.shiftManagement.data.viewShiftClosingReport",
+      "id": "binding_viewShiftClosingReport",
+      "source": "query",
       "entity": "ShiftClosingReport",
       "command": "viewShiftClosingReport",
-      "description": "Resultado da query viewShiftClosingReport — relatório de fechamento",
+      "description": "Consulta relatório de fechamento por shiftId",
       "stateKey": "ui.shiftManagement.data.viewShiftClosingReport",
       "inputStateKeys": [
         "ui.shiftManagement.input.viewShiftClosingReport.shiftId"
@@ -628,9 +561,7 @@ export const pipeline = [
     "outputPath": "_102051_/l2/cafeFlow/web/desktop/page21/shiftManagement.ts",
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page21/shiftManagement.defs.ts",
     "dependsFiles": [
-      "_102051_/l2/cafeFlow/web/shared/shiftManagement.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/shiftManagement.ts",
-      "_102051_/l2/cafeFlow/web/contracts/shiftManagement.defs.ts",
       "_102051_/l2/cafeFlow/web/contracts/shiftManagement.ts",
       "_102051_/l2/designSystem.ts"
     ],

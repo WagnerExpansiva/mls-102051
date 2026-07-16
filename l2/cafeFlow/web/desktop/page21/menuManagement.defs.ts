@@ -90,19 +90,19 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec_menuItemsList",
+      "id": "sec-menu-items",
       "type": "section",
-      "sectionName": "Menu Items List",
-      "titleKey": "section.menuItems.title",
-      "mode": "list",
+      "sectionName": "sec-menu-items",
+      "titleKey": "sec.menu.items.title",
+      "mode": "query",
       "order": 1,
       "organisms": [
         {
-          "id": "org_menuItemsBrowser",
+          "id": "org-menu-items-list",
           "type": "organism",
-          "organismName": "Menu Items Browser",
-          "titleKey": "org.menuItemsBrowser.title",
-          "purpose": "Listar e filtrar itens do cardápio por status e categoria, permitindo seleção para edição no painel de detalhe",
+          "organismName": "MenuItemsList",
+          "titleKey": "org.menu.items.list.title",
+          "purpose": "Listar itens do cardápio da empresa ativa com filtros por status e categoria, permitindo seleção para edição",
           "userActions": [
             "browseMenuItems"
           ],
@@ -111,29 +111,25 @@ export const definition = {
             "MenuCategory"
           ],
           "readsFields": [
-            "statusFilter",
-            "menuCategoryIdFilter",
             "menuItemId",
             "name",
+            "description",
             "menuCategoryId",
             "price",
             "itemType",
-            "status"
+            "status",
+            "activatedAt",
+            "createdAt",
+            "updatedAt"
           ],
-          "writesFields": [
-            "statusFilter",
-            "menuCategoryIdFilter",
-            "menuItemId"
-          ],
+          "writesFields": [],
           "rulesApplied": [
-            "activeCompanyId scope limits items to active company",
-            "status filter narrows by lifecycle state",
-            "category filter narrows by menu category"
+            "Backend resolve o escopo da consulta limitando os itens à empresa ativa da sessão do gerente"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "intent_browseMenuItems",
+              "id": "int-browse-menu-items",
               "intent": "query",
               "stateKey": "ui.menuManagement.data.browseMenuItems",
               "order": 1
@@ -143,19 +139,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec_menuItemDetail",
+      "id": "sec-manage-item",
       "type": "section",
-      "sectionName": "Menu Item Detail",
-      "titleKey": "section.menuItemEditor.title",
-      "mode": "detail",
+      "sectionName": "sec-manage-item",
+      "titleKey": "sec.manage.item.title",
+      "mode": "command",
       "order": 2,
       "organisms": [
         {
-          "id": "org_menuItemEditor",
+          "id": "org-menu-item-form",
           "type": "organism",
-          "organismName": "Menu Item Editor",
-          "titleKey": "org.menuItemEditor.title",
-          "purpose": "Criar ou editar um item do cardápio com transições de status contextuais (ativar, inativar, rascunho)",
+          "organismName": "MenuItemForm",
+          "titleKey": "org.menu.item.form.title",
+          "purpose": "Editar dados do item selecionado e realizar transições de status (ativar/inativar) com ações contextuais",
           "userActions": [
             "manageMenuItem"
           ],
@@ -170,9 +166,13 @@ export const definition = {
             "menuCategoryId",
             "price",
             "itemType",
-            "status"
+            "status",
+            "activatedAt",
+            "inactivatedAt",
+            "updatedAt"
           ],
           "writesFields": [
+            "menuItemId",
             "name",
             "description",
             "menuCategoryId",
@@ -181,17 +181,17 @@ export const definition = {
             "status"
           ],
           "rulesApplied": [
-            "itemType must be simple for activation",
-            "active status requires at least one ingredient linked",
-            "status transitions: draft->active, active->inactive, inactive->active",
-            "activatedAt and inactivatedAt are system-set on transition"
+            "Tipo do item deve ser 'simple'",
+            "Para ativar, deve existir pelo menos um ingrediente de estoque vinculado",
+            "Persistência atualiza updatedAt e, conforme status, activatedAt ou inactivatedAt"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "intent_manageMenuItem",
+              "id": "int-manage-menu-item",
               "intent": "command",
               "stateKey": "ui.menuManagement.action.manageMenuItem.status",
+              "submitAction": "manageMenuItem",
               "order": 1
             }
           ]
@@ -202,59 +202,101 @@ export const definition = {
   "templateId": "goal_first",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "pageObjective": {
-    "actor": "Gerente do café",
-    "jobToBeDone": "Gerenciar itens do cardápio criando, editando e ativando/inativando itens para manter o menu do POS atualizado",
-    "primaryDecision": "Decidir o status de cada item do cardápio (rascunho, ativo, inativo) e editar suas informações comerciais (nome, categoria, preço, tipo)",
+    "actor": "Gerente do café (cafe manager)",
+    "jobToBeDone": "Gerenciar itens do cardápio criando, editando e ativando/inativando itens para disponibilizá-los ou removê-los do POS",
+    "primaryDecision": "Decidir o status do item (rascunho → ativo → inativo) e editar seus dados comerciais (nome, categoria, preço, tipo)",
     "decisiveInfo": [
       "name",
-      "price",
       "menuCategoryId",
+      "price",
       "itemType",
       "status"
     ],
-    "usageFrequency": "occasional/back-office — o gerente acessa algumas vezes por semana para ajustar o menu",
+    "usageFrequency": "occasional/back-office — gerente acessa para criar novos itens ou ajustar o cardápio existente",
     "criticalActions": [
       {
-        "action": "browseMenuItems",
-        "presentation": "filterable list with status and category filters, master-detail selection"
+        "action": "manageMenuItem (save edits)",
+        "presentation": "primary-button"
       },
       {
-        "action": "manageMenuItem",
-        "presentation": "contextual-transition-actions for status changes (activate/inactivate/draft) + inline form for editing commercial fields"
+        "action": "activate transition (draft/inactive → active)",
+        "presentation": "contextual-transition-actions"
+      },
+      {
+        "action": "inactivate transition (active → inactive)",
+        "presentation": "contextual-transition-actions"
+      },
+      {
+        "action": "new item (clear selection)",
+        "presentation": "primary-button"
       }
     ],
     "informationHierarchy": [
-      "Filtered list of menu items with status badges and key commercial fields",
-      "Selected item detail panel with editable form fields",
-      "Contextual status transition buttons (Ativar / Inativar / Rascunho) positioned next to the form"
+      "Lista de itens com filtros por status e categoria (master)",
+      "Item selecionado com dados editáveis (detail)",
+      "Status atual exibido como contexto read-only",
+      "Botões de transição de status contextuais (ativar/inativar)",
+      "Feedback de sucesso/erro da operação"
     ],
-    "successCriteria": "Manager can find items by status/category at a glance, see the current lifecycle state of each item, edit commercial details inline, and transition status with one click — without typing IDs or selecting from a free status dropdown",
+    "successCriteria": "Gerente localiza rapidamente itens por status/categoria, edita dados em painel contextual e ativa/inativa com um clique, recebendo feedback claro",
     "antiPatterns": [
-      "separate transition form for status changes",
-      "free status <select> over all enum values",
-      "manually typed menuItemId",
-      "showing system timestamps (activatedAt, inactivatedAt, updatedAt) as editable fields",
-      "stacking a full form below the list instead of master-detail contextual panel"
+      "Status renderizado como select livre sobre todo o enum",
+      "menuItemId digitado manualmente pelo usuário",
+      "Formulário de edição separado da lista em outra tela",
+      "Timestamps (activatedAt, inactivatedAt, updatedAt) expostos como inputs editáveis",
+      "Mostrar todos os campos do item no card da lista sobrecarregando a leitura"
     ]
   },
+  "msgKeys": [
+    "action.activate.label",
+    "action.inactivate.label",
+    "action.manageMenuItem.error",
+    "action.manageMenuItem.success",
+    "action.newItem.label",
+    "action.refresh.label",
+    "action.save.label",
+    "action.selectItem.label",
+    "column.itemType.label",
+    "column.menuCategoryId.label",
+    "column.name.label",
+    "column.price.label",
+    "column.status.label",
+    "field.description.label",
+    "field.itemType.label",
+    "field.menuCategoryId.label",
+    "field.menuItemId.label",
+    "field.name.label",
+    "field.price.label",
+    "field.status.label",
+    "filter.menuCategoryIdFilter.label",
+    "filter.statusFilter.label",
+    "org.menu.item.form.title",
+    "org.menu.items.list.title",
+    "sec.manage.item.title",
+    "sec.menu.items.title",
+    "section.manageMenuItem.empty",
+    "section.manageMenuItem.title",
+    "section.menuItems.empty",
+    "section.menuItems.title"
+  ],
   "layout": {
     "id": "page21",
     "type": "page",
     "sections": [
       {
-        "id": "sec_menuItemsList",
+        "id": "sec-menu-items",
         "type": "section",
-        "sectionName": "Menu Items List",
-        "titleKey": "section.menuItems.title",
-        "mode": "list",
+        "sectionName": "sec-menu-items",
+        "titleKey": "sec.menu.items.title",
+        "mode": "query",
         "order": 1,
         "organisms": [
           {
-            "id": "org_menuItemsBrowser",
+            "id": "org-menu-items-list",
             "type": "organism",
-            "organismName": "Menu Items Browser",
-            "titleKey": "org.menuItemsBrowser.title",
-            "purpose": "Listar e filtrar itens do cardápio por status e categoria, permitindo seleção para edição no painel de detalhe",
+            "organismName": "MenuItemsList",
+            "titleKey": "org.menu.items.list.title",
+            "purpose": "Listar itens do cardápio da empresa ativa com filtros por status e categoria, permitindo seleção para edição",
             "userActions": [
               "browseMenuItems"
             ],
@@ -263,29 +305,25 @@ export const definition = {
               "MenuCategory"
             ],
             "readsFields": [
-              "statusFilter",
-              "menuCategoryIdFilter",
               "menuItemId",
               "name",
+              "description",
               "menuCategoryId",
               "price",
               "itemType",
-              "status"
+              "status",
+              "activatedAt",
+              "createdAt",
+              "updatedAt"
             ],
-            "writesFields": [
-              "statusFilter",
-              "menuCategoryIdFilter",
-              "menuItemId"
-            ],
+            "writesFields": [],
             "rulesApplied": [
-              "activeCompanyId scope limits items to active company",
-              "status filter narrows by lifecycle state",
-              "category filter narrows by menu category"
+              "Backend resolve o escopo da consulta limitando os itens à empresa ativa da sessão do gerente"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "intent_browseMenuItems",
+                "id": "int-browse-menu-items",
                 "intent": "query",
                 "order": 1,
                 "titleKey": "section.menuItems.title",
@@ -297,85 +335,79 @@ export const definition = {
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col_name",
+                    "id": "col-name",
                     "field": "name",
                     "labelKey": "column.name.label",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
-                    "source": "browseMenuItems",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   },
                   {
-                    "id": "col_menuCategoryId",
+                    "id": "col-menu-category",
                     "field": "menuCategoryId",
                     "labelKey": "column.menuCategoryId.label",
                     "order": 2,
                     "required": false,
-                    "inputType": "text",
-                    "source": "browseMenuItems",
+                    "inputType": "select",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   },
                   {
-                    "id": "col_price",
+                    "id": "col-price",
                     "field": "price",
                     "labelKey": "column.price.label",
                     "order": 3,
                     "required": false,
                     "inputType": "number",
                     "format": "currency",
-                    "source": "browseMenuItems",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   },
                   {
-                    "id": "col_itemType",
+                    "id": "col-item-type",
                     "field": "itemType",
                     "labelKey": "column.itemType.label",
                     "order": 4,
                     "required": false,
-                    "inputType": "text",
-                    "source": "browseMenuItems",
+                    "inputType": "select",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   },
                   {
-                    "id": "col_status",
+                    "id": "col-status",
                     "field": "status",
                     "labelKey": "column.status.label",
                     "order": 5,
                     "required": false,
-                    "inputType": "text",
-                    "source": "browseMenuItems",
+                    "inputType": "select",
                     "stateKey": "ui.menuManagement.data.browseMenuItems"
                   }
                 ],
                 "filters": [
                   {
-                    "id": "flt_statusFilter",
+                    "id": "flt-status",
                     "field": "statusFilter",
                     "labelKey": "filter.statusFilter.label",
                     "order": 1,
                     "required": false,
                     "inputType": "select",
-                    "source": "set.browseMenuItemsStatusFilter",
                     "stateKey": "ui.menuManagement.input.browseMenuItems.statusFilter"
                   },
                   {
-                    "id": "flt_menuCategoryIdFilter",
+                    "id": "flt-category",
                     "field": "menuCategoryIdFilter",
                     "labelKey": "filter.menuCategoryIdFilter.label",
                     "order": 2,
                     "required": false,
                     "inputType": "select",
-                    "source": "set.browseMenuItemsMenuCategoryIdFilter",
                     "stateKey": "ui.menuManagement.input.browseMenuItems.menuCategoryIdFilter"
                   }
                 ],
                 "toolbar": [
                   {
-                    "id": "tb_refresh",
+                    "id": "tb-refresh",
                     "action": "browseMenuItems",
                     "labelKey": "action.refresh.label",
                     "order": 1,
+                    "displayHint": "inline-row-command",
                     "actionKey": "browseMenuItems"
                   }
                 ],
@@ -387,19 +419,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec_menuItemDetail",
+        "id": "sec-manage-item",
         "type": "section",
-        "sectionName": "Menu Item Detail",
-        "titleKey": "section.menuItemEditor.title",
-        "mode": "detail",
+        "sectionName": "sec-manage-item",
+        "titleKey": "sec.manage.item.title",
+        "mode": "command",
         "order": 2,
         "organisms": [
           {
-            "id": "org_menuItemEditor",
+            "id": "org-menu-item-form",
             "type": "organism",
-            "organismName": "Menu Item Editor",
-            "titleKey": "org.menuItemEditor.title",
-            "purpose": "Criar ou editar um item do cardápio com transições de status contextuais (ativar, inativar, rascunho)",
+            "organismName": "MenuItemForm",
+            "titleKey": "org.menu.item.form.title",
+            "purpose": "Editar dados do item selecionado e realizar transições de status (ativar/inativar) com ações contextuais",
             "userActions": [
               "manageMenuItem"
             ],
@@ -414,9 +446,13 @@ export const definition = {
               "menuCategoryId",
               "price",
               "itemType",
-              "status"
+              "status",
+              "activatedAt",
+              "inactivatedAt",
+              "updatedAt"
             ],
             "writesFields": [
+              "menuItemId",
               "name",
               "description",
               "menuCategoryId",
@@ -425,84 +461,94 @@ export const definition = {
               "status"
             ],
             "rulesApplied": [
-              "itemType must be simple for activation",
-              "active status requires at least one ingredient linked",
-              "status transitions: draft->active, active->inactive, inactive->active",
-              "activatedAt and inactivatedAt are system-set on transition"
+              "Tipo do item deve ser 'simple'",
+              "Para ativar, deve existir pelo menos um ingrediente de estoque vinculado",
+              "Persistência atualiza updatedAt e, conforme status, activatedAt ou inactivatedAt"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "intent_manageMenuItem",
+                "id": "int-manage-menu-item",
                 "intent": "command",
                 "order": 1,
-                "titleKey": "section.menuItemEditor.title",
+                "titleKey": "section.manageMenuItem.title",
                 "source": "manageMenuItem",
                 "binding": "ui.menuManagement.output.manageMenuItem",
-                "emptyKey": "section.menuItemEditor.empty",
+                "submitAction": "manageMenuItem",
+                "emptyKey": "section.manageMenuItem.empty",
                 "displayHint": "contextual-transition-actions",
                 "stateKey": "ui.menuManagement.action.manageMenuItem.status",
                 "fields": [
                   {
-                    "id": "fld_menuItemId",
+                    "id": "fld-menu-item-id",
                     "field": "menuItemId",
                     "labelKey": "field.menuItemId.label",
                     "order": 1,
                     "required": false,
-                    "inputType": "hidden",
-                    "source": "set.manageMenuItemMenuItemId",
+                    "inputType": "readonly",
+                    "source": "selectedEntity",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.menuItemId"
                   },
                   {
-                    "id": "fld_name",
+                    "id": "fld-name",
                     "field": "name",
                     "labelKey": "field.name.label",
                     "order": 2,
                     "required": true,
                     "inputType": "text",
-                    "source": "set.manageMenuItemName",
+                    "source": "userInput",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.name"
                   },
                   {
-                    "id": "fld_description",
+                    "id": "fld-description",
                     "field": "description",
                     "labelKey": "field.description.label",
                     "order": 3,
                     "required": false,
                     "inputType": "textarea",
-                    "source": "set.manageMenuItemDescription",
+                    "source": "userInput",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.description"
                   },
                   {
-                    "id": "fld_menuCategoryId",
+                    "id": "fld-menu-category-id",
                     "field": "menuCategoryId",
                     "labelKey": "field.menuCategoryId.label",
                     "order": 4,
                     "required": true,
                     "inputType": "select",
-                    "source": "set.manageMenuItemMenuCategoryId",
+                    "source": "userInput",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.menuCategoryId"
                   },
                   {
-                    "id": "fld_price",
+                    "id": "fld-price",
                     "field": "price",
                     "labelKey": "field.price.label",
                     "order": 5,
                     "required": true,
                     "inputType": "number",
                     "format": "currency",
-                    "source": "set.manageMenuItemPrice",
+                    "source": "userInput",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.price"
                   },
                   {
-                    "id": "fld_itemType",
+                    "id": "fld-item-type",
                     "field": "itemType",
                     "labelKey": "field.itemType.label",
                     "order": 6,
                     "required": true,
                     "inputType": "select",
-                    "source": "set.manageMenuItemItemType",
+                    "source": "userInput",
                     "stateKey": "ui.menuManagement.input.manageMenuItem.itemType"
+                  },
+                  {
+                    "id": "fld-status",
+                    "field": "status",
+                    "labelKey": "field.status.label",
+                    "order": 7,
+                    "required": false,
+                    "inputType": "readonly",
+                    "source": "systemOwned",
+                    "stateKey": "ui.menuManagement.input.manageMenuItem.status"
                   }
                 ],
                 "columns": [],
@@ -511,7 +557,7 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act_save",
+                    "id": "act-save",
                     "action": "manageMenuItem",
                     "labelKey": "action.save.label",
                     "order": 1,
@@ -519,7 +565,7 @@ export const definition = {
                     "actionKey": "manageMenuItem"
                   },
                   {
-                    "id": "act_activate",
+                    "id": "act-activate",
                     "action": "manageMenuItem",
                     "labelKey": "action.activate.label",
                     "order": 2,
@@ -527,18 +573,10 @@ export const definition = {
                     "actionKey": "manageMenuItem"
                   },
                   {
-                    "id": "act_inactivate",
+                    "id": "act-inactivate",
                     "action": "manageMenuItem",
                     "labelKey": "action.inactivate.label",
                     "order": 3,
-                    "displayHint": "contextual-transition-actions",
-                    "actionKey": "manageMenuItem"
-                  },
-                  {
-                    "id": "act_draft",
-                    "action": "manageMenuItem",
-                    "labelKey": "action.draft.label",
-                    "order": 4,
                     "displayHint": "contextual-transition-actions",
                     "actionKey": "manageMenuItem"
                   }
@@ -552,11 +590,11 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "bind_browseMenuItems",
-      "source": "cafeFlow.menuItemLifecycle.browseMenuItems",
+      "id": "db-browse-menu-items",
+      "source": "browseMenuItems",
       "entity": "MenuItem",
       "command": "browseMenuItems",
-      "description": "Consulta itens do cardápio da empresa ativa com filtros opcionais de status e categoria",
+      "description": "Lista itens do cardápio da empresa ativa com filtros por status e categoria",
       "stateKey": "ui.menuManagement.data.browseMenuItems",
       "inputStateKeys": [
         "ui.menuManagement.input.browseMenuItems.statusFilter",
@@ -564,11 +602,11 @@ export const definition = {
       ]
     },
     {
-      "id": "bind_manageMenuItem",
-      "source": "cafeFlow.menuItemLifecycle.manageMenuItem",
+      "id": "db-manage-menu-item",
+      "source": "manageMenuItem",
       "entity": "MenuItem",
       "command": "manageMenuItem",
-      "description": "Cria ou atualiza um item do cardápio com nome, descrição, categoria, preço, tipo e status",
+      "description": "Cria ou atualiza item do cardápio com validação de tipo e ingrediente vinculado",
       "stateKey": "ui.menuManagement.output.manageMenuItem",
       "inputStateKeys": [
         "ui.menuManagement.input.manageMenuItem.menuItemId",
@@ -590,9 +628,7 @@ export const pipeline = [
     "outputPath": "_102051_/l2/cafeFlow/web/desktop/page21/menuManagement.ts",
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page21/menuManagement.defs.ts",
     "dependsFiles": [
-      "_102051_/l2/cafeFlow/web/shared/menuManagement.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/menuManagement.ts",
-      "_102051_/l2/cafeFlow/web/contracts/menuManagement.defs.ts",
       "_102051_/l2/cafeFlow/web/contracts/menuManagement.ts",
       "_102051_/l2/designSystem.ts"
     ],

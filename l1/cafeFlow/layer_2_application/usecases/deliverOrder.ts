@@ -2,10 +2,8 @@
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
 import { resolveRepository } from '/_102034_/l1/server/layer_2_application/repositoryRegistry.js';
 import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.js';
-import type { IStockConsumptionRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.js';
 import type { Order, OrderStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
 import { canTransitionOrder } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
-import type { StockConsumption } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.js';
 
 export interface DeliverOrderInput {
   orderId: string;
@@ -18,40 +16,37 @@ export interface DeliverOrderOutput {
   updatedAt: string;
 }
 
-export async function deliverOrder(ctx: RequestContext, input: DeliverOrderInput): Promise<DeliverOrderOutput> {
+export async function deliverOrder(
+  ctx: RequestContext,
+  input: DeliverOrderInput,
+): Promise<DeliverOrderOutput> {
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
-  const stockConsumptions = resolveRepository<IStockConsumptionRepository>(ctx, 'StockConsumption');
+  const now = ctx.clock.nowIso();
 
-  // Step 1 — Load the Order aggregate
-  const order = await orders.findById(input.orderId);
-  if (!order) {
-    throw new AppError('NOT_FOUND', `Order not found: ${input.orderId}`, 404, { orderId: input.orderId });
-  }
+  // 1. Load the Order aggregate by orderId
+  const order = await orders.getById(input.orderId);
 
-  // Step 2 — Rule readyBeforeDelivered: order must be 'ready' before it can be delivered
+  // 2. Rule readyBeforeDelivered — status MUST be 'ready'
   if (order.status !== 'ready') {
     throw new AppError(
       'VALIDATION_ERROR',
-      'readyBeforeDelivered: o pedido precisa estar no status "ready" antes da entrega.',
+      'readyBeforeDelivered: o pedido deve estar com status "ready" antes de ser entregue.',
       400,
-      { rule: 'readyBeforeDelivered', currentStatus: order.status, expectedStatus: 'ready' },
+      { ruleId: 'readyBeforeDelivered', currentStatus: order.status },
     );
   }
 
-  // Step 3 — Rule orderStatusFlow: verify transition 'ready' -> 'delivered' is permitted
-  const targetStatus: OrderStatus = 'delivered';
-  if (!canTransitionOrder(order.status, targetStatus)) {
+  // 3. Rule orderStatusFlow — transition 'ready' -> 'delivered' must be permitted
+  if (!canTransitionOrder(order.status, 'delivered' as OrderStatus)) {
     throw new AppError(
       'VALIDATION_ERROR',
-      'orderStatusFlow: transição de status não permitida.',
+      'orderStatusFlow: a transição do status atual para "delivered" não é permitida.',
       400,
-      { rule: 'orderStatusFlow', from: order.status, to: targetStatus },
+      { ruleId: 'orderStatusFlow', from: order.status, to: 'delivered' },
     );
   }
 
-  const now = ctx.clock.nowIso();
-
-  // Step 4 — Mutate the Order in memory
+  // 4. Mutate the Order in memory
   const updatedOrder: Order = {
     ...order,
     status: 'delivered',
@@ -59,24 +54,15 @@ export async function deliverOrder(ctx: RequestContext, input: DeliverOrderInput
     updatedAt: now,
   };
 
-  // Step 5 & 6 — Persist Order and append StockConsumption audit event in the same transaction
-  const auditRecord: StockConsumption = {
-    stockConsumptionId: ctx.idGenerator.newId(),
-    stockItemId: input.orderId,
-    orderId: input.orderId,
-    quantity: 0,
-    status: 'posted',
-    createdAt: now,
-    voidedAt: null,
-    voidReason: null,
-  };
-
+  // 5. Persist inside a single transaction
   await ctx.data.runInTransaction(async () => {
     await orders.save(updatedOrder);
-    await stockConsumptions.append(auditRecord);
+    // 6. Modeling gap: a StockConsumption audit event for the delivery transition is
+    //    documented in the usecase steps, but the StockConsumption port is not present
+    //    in the function's ports list. The event write cannot be executed without it.
   });
 
-  // Step 7 — Return result
+  // 7. Return the operation result
   return {
     orderId: updatedOrder.orderId,
     status: updatedOrder.status,

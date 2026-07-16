@@ -4,14 +4,9 @@ import type { StockConsumption } from '/_102051_/l1/cafeFlow/layer_3_domain/enti
 export type OrderId = string;
 export type ProductId = string;
 
-export interface DateRange {
-  from: string;
-  to: string;
-}
-
 export interface IStockConsumptionRepository {
-  append(consumption: StockConsumption): Promise<void>;
+  append(record: StockConsumption): Promise<void>;
   listByOwnerId(orderId: OrderId): Promise<StockConsumption[]>;
-  listByPeriod(period: DateRange): Promise<StockConsumption[]>;
+  listByPeriod(start: Date, end: Date): Promise<StockConsumption[]>;
   listByProductId(productId: ProductId): Promise<StockConsumption[]>;
 }

@@ -2,19 +2,21 @@
 import type { StockLevel, StockLevelUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 
 export type StockLevelId = string;
-export type ProductId = string;
+
+export interface Location {
+  locationId: string;
+  name?: string;
+}
 
 export interface StockLevelFilter {
-  stockLevelId?: StockLevelId;
   stockItemId?: string;
   unit?: StockLevelUnit;
 }
 
 export interface IStockLevelRepository {
-  getById(id: StockLevelId): Promise<StockLevel>;
-  findById(id: StockLevelId): Promise<StockLevel | null>;
-  findByProductId(productId: ProductId): Promise<StockLevel | null>;
+  getById(stockLevelId: StockLevelId): Promise<StockLevel>;
   list(filter?: StockLevelFilter): Promise<StockLevel[]>;
-  listLowStock(): Promise<StockLevel[]>;
   save(stockLevel: StockLevel): Promise<void>;
+  findBelowMinimum(): Promise<StockLevel[]>;
+  findByLocation(location: Location): Promise<StockLevel[]>;
 }

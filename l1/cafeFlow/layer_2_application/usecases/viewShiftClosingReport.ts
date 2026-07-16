@@ -5,10 +5,10 @@ import type { IShiftClosingReportRepository } from '/_102051_/l1/cafeFlow/layer_
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
 import type { ShiftClosingReport } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.js';
 import {
-  shiftClosingReportRequiresClosedShift,
   shiftClosingReportTotalApuradoIsValid,
   shiftClosingReportPaidOrderCountIsValid,
 } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.js';
+import type { Shift } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
 
 export interface ViewShiftClosingReportInput {
   shiftId: string;
@@ -30,57 +30,58 @@ export async function viewShiftClosingReport(
   const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
   const reports = resolveRepository<IShiftClosingReportRepository>(ctx, 'ShiftClosingReport');
 
-  // Step 1–2: Load the Shift aggregate and verify it exists.
-  const shift = await shifts.getById(input.shiftId);
-  if (!shift) {
-    throw new AppError(
-      'NOT_FOUND',
-      `Shift not found: ${input.shiftId}`,
-      404,
-      { shiftId: input.shiftId },
-    );
+  // Step 1-2: Load the Shift aggregate to verify it exists.
+  let shift: Shift;
+  try {
+    shift = await shifts.getById(input.shiftId);
+  } catch {
+    throw new AppError('NOT_FOUND', `Shift not found: ${input.shiftId}`, 404, { shiftId: input.shiftId });
   }
 
-  // Step 3: Verify the shift status is 'closed' (rule: shiftClosingRecordsRevenue requires a finalized shift).
-  if (!shiftClosingReportRequiresClosedShift(shift.status)) {
+  // Step 3: Verify the shift status is 'closed' (rule: shiftClosingRecordsRevenue).
+  if (String(shift.status) !== 'closed') {
     throw new AppError(
       'VALIDATION_ERROR',
-      'Closing report is only available for closed shifts (rule: shiftClosingRecordsRevenue).',
+      'shiftClosingRecordsRevenue: o relatório de fechamento está disponível apenas para turnos fechados.',
       400,
       { ruleId: 'shiftClosingRecordsRevenue', shiftId: input.shiftId, currentStatus: shift.status },
     );
   }
 
-  // Step 4–5: Load the ShiftClosingReport by shiftId.
-  const report: ShiftClosingReport | null = await reports.findByShiftId(input.shiftId);
-  if (!report) {
+  // Step 4-5: Load the ShiftClosingReport by shiftId.
+  const found = await reports.findByShiftId(input.shiftId);
+  if (!found || found.length === 0) {
     throw new AppError(
       'NOT_FOUND',
-      `No shift closing report found for shift: ${input.shiftId}`,
+      `Nenhum relatório de fechamento encontrado para o turno: ${input.shiftId}`,
       404,
       { shiftId: input.shiftId },
     );
   }
 
-  // Step 6: Validate data integrity — totalApurado >= 0 and paidOrderCount >= 0.
-  if (!shiftClosingReportTotalApuradoIsValid(report.totalApurado)) {
+  const report: ShiftClosingReport = found[0];
+
+  // Step 6: Apply rule shiftClosingRecordsRevenue — totalApurado must be present and valid.
+  if (!shiftClosingReportTotalApuradoIsValid(report)) {
     throw new AppError(
-      'CONFLICT',
-      'Data integrity error: totalApurado must be >= 0 (rule: shiftClosingRecordsRevenue).',
-      409,
+      'VALIDATION_ERROR',
+      'shiftClosingRecordsRevenue: o total apurado do relatório é inválido.',
+      400,
       { ruleId: 'shiftClosingRecordsRevenue', totalApurado: report.totalApurado },
     );
   }
-  if (!shiftClosingReportPaidOrderCountIsValid(report.paidOrderCount)) {
+
+  // Step 7: Apply rule shiftClosingConsolidatesPaidOrders — paidOrderCount must be present and valid.
+  if (!shiftClosingReportPaidOrderCountIsValid(report)) {
     throw new AppError(
-      'CONFLICT',
-      'Data integrity error: paidOrderCount must be >= 0 (rule: shiftClosingConsolidatesPaidOrders).',
-      409,
+      'VALIDATION_ERROR',
+      'shiftClosingConsolidatesPaidOrders: a quantidade de pedidos pagos do relatório é inválida.',
+      400,
       { ruleId: 'shiftClosingConsolidatesPaidOrders', paidOrderCount: report.paidOrderCount },
     );
   }
 
-  // Step 7: Return the report fields.
+  // Step 8: Return the ShiftClosingReport fields.
   return {
     shiftClosingReportId: report.shiftClosingReportId,
     shiftId: report.shiftId,

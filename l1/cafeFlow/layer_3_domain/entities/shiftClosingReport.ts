@@ -1,4 +1,5 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.ts" enhancement="_blank"/>
+
 export interface ShiftClosingReport {
   shiftClosingReportId: string;
   shiftId: string;
@@ -8,41 +9,32 @@ export interface ShiftClosingReport {
   updatedAt: string;
 }
 
-export function shiftClosingReportRequiresClosedShift(shiftStatus: string): boolean {
-  return String(shiftStatus) === 'closed';
+export function shiftClosingReportTotalApuradoIsValid(report: Pick<ShiftClosingReport, 'totalApurado'>): boolean {
+  return report.totalApurado >= 0;
 }
 
-export function shiftClosingReportTotalApuradoIsValid(totalApurado: number): boolean {
-  return totalApurado >= 0;
+export function shiftClosingReportPaidOrderCountIsValid(report: Pick<ShiftClosingReport, 'paidOrderCount'>): boolean {
+  return report.paidOrderCount >= 0;
 }
 
-export function shiftClosingReportPaidOrderCountIsValid(paidOrderCount: number): boolean {
-  return paidOrderCount >= 0;
-}
-
-export function isUniqueShiftClosingReportForShift(
-  existingReports: ShiftClosingReport[],
-  shiftId: string,
+export function shiftClosingReportIsUniquePerShift(
+  report: Pick<ShiftClosingReport, 'shiftId'>,
+  existing: Array<Pick<ShiftClosingReport, 'shiftClosingReportId' | 'shiftId'>>,
 ): boolean {
-  return !existingReports.some((report) => report.shiftId === shiftId);
+  return !existing.some(
+    (item) => item.shiftId === report.shiftId,
+  );
 }
 
 export function validateShiftClosingReport(
   report: Pick<ShiftClosingReport, 'totalApurado' | 'paidOrderCount'>,
-  shiftStatus: string,
-  existingReports: ShiftClosingReport[],
-  shiftId: string,
-): void {
-  if (!shiftClosingReportRequiresClosedShift(shiftStatus)) {
-    throw new Error('Referenced shift must have status "closed" before generating the report');
+): string[] {
+  const errors: string[] = [];
+  if (!shiftClosingReportTotalApuradoIsValid(report)) {
+    errors.push('totalApurado must be greater than or equal to zero');
   }
-  if (!shiftClosingReportTotalApuradoIsValid(report.totalApurado)) {
-    throw new Error('totalApurado must be >= 0');
+  if (!shiftClosingReportPaidOrderCountIsValid(report)) {
+    errors.push('paidOrderCount must be greater than or equal to zero');
   }
-  if (!shiftClosingReportPaidOrderCountIsValid(report.paidOrderCount)) {
-    throw new Error('paidOrderCount must be >= 0');
-  }
-  if (!isUniqueShiftClosingReportForShift(existingReports, shiftId)) {
-    throw new Error('Only one ShiftClosingReport per shift');
-  }
+  return errors;
 }

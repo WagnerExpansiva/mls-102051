@@ -13,30 +13,37 @@ export interface StockLevel {
   updatedAt: string;
 }
 
-export function isLowStock(stockLevel: Pick<StockLevel, 'currentQuantity' | 'minimumLevel'>): boolean {
-  return stockLevel.currentQuantity <= stockLevel.minimumLevel;
+export function isStockLevelUnit(value: string): value is StockLevelUnit {
+  return value === 'kg' || value === 'liter' || value === 'portion' || value === 'unit';
 }
 
-export function validateStockLevelQuantities(
-  currentQuantity: number,
-  minimumLevel: number,
-): void {
-  if (currentQuantity < 0) {
-    throw new Error('currentQuantity must be >= 0');
+export function validateStockLevelInvariants(
+  stockLevel: Pick<StockLevel, 'currentQuantity' | 'minimumLevel'>,
+): string[] {
+  const violations: string[] = [];
+  if (stockLevel.currentQuantity < 0) {
+    violations.push('currentQuantity must not be negative');
   }
-  if (minimumLevel < 0) {
-    throw new Error('minimumLevel must be >= 0');
+  if (stockLevel.minimumLevel < 0) {
+    violations.push('minimumLevel must be greater than or equal to zero');
   }
+  return violations;
 }
 
-export function canChangeUnit(
-  existing: Pick<StockLevel, 'unit'>,
-  newUnit: StockLevelUnit,
+export function isLowStock(
+  stockLevel: Pick<StockLevel, 'currentQuantity' | 'minimumLevel'>,
 ): boolean {
-  return existing.unit === newUnit;
+  return stockLevel.currentQuantity < stockLevel.minimumLevel;
 }
 
-export function applyDecrement(
+export function canDecrement(
+  stockLevel: Pick<StockLevel, 'currentQuantity'>,
+  amount: number,
+): boolean {
+  return amount > 0 && stockLevel.currentQuantity - amount >= 0;
+}
+
+export function decrementStockLevel(
   stockLevel: StockLevel,
   amount: number,
   nowIso: string,
@@ -44,25 +51,24 @@ export function applyDecrement(
   if (amount <= 0) {
     throw new Error('Decrement amount must be positive');
   }
-  const newQuantity = stockLevel.currentQuantity - amount;
-  if (newQuantity < 0) {
-    throw new Error('currentQuantity must be >= 0');
+  if (stockLevel.currentQuantity - amount < 0) {
+    throw new Error('currentQuantity must not be negative');
   }
   return {
     ...stockLevel,
-    currentQuantity: newQuantity,
+    currentQuantity: stockLevel.currentQuantity - amount,
     lastDecrementAt: nowIso,
     updatedAt: nowIso,
   };
 }
 
-export function applyAdjustment(
+export function adjustStockLevel(
   stockLevel: StockLevel,
   newQuantity: number,
   nowIso: string,
 ): StockLevel {
   if (newQuantity < 0) {
-    throw new Error('currentQuantity must be >= 0');
+    throw new Error('currentQuantity must not be negative');
   }
   return {
     ...stockLevel,

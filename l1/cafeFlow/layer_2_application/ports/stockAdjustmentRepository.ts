@@ -4,14 +4,9 @@ import type { StockAdjustment } from '/_102051_/l1/cafeFlow/layer_3_domain/entit
 export type ProductId = string;
 export type AdjustmentReason = string;
 
-export interface DateRange {
-  from: string;
-  to: string;
-}
-
 export interface IStockAdjustmentRepository {
-  append(adjustment: StockAdjustment): Promise<void>;
-  listByPeriod(period: DateRange): Promise<StockAdjustment[]>;
+  append(record: StockAdjustment): Promise<void>;
   listByProductId(productId: ProductId): Promise<StockAdjustment[]>;
+  listByPeriod(start: Date, end: Date): Promise<StockAdjustment[]>;
   listByReason(reason: AdjustmentReason): Promise<StockAdjustment[]>;
 }

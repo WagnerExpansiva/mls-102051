@@ -3,12 +3,14 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { browseStockItems, type BrowseStockItemsInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/browseStockItems.js';
 
 export const cafeFlowBrowseStockItemsHandler: BffHandler = async ({ request, ctx }) => {
-  const params = (request.params ?? {}) as Partial<BrowseStockItemsInput>;
+  const params = (request.params ?? {}) as Partial<BrowseStockItemsInput & { page?: number; pageSize?: number }>;
 
-  // Only searchTerm is a genuine client input (source: userInput).
-  // actorId is resolved from ctx.sessionContext inside the usecase — not sent by the client.
+  // Only searchTerm is a genuine client boundary input (source: userInput).
+  // actorId is resolved from actorSession inside the usecase — NOT sent by the client.
   const input: BrowseStockItemsInput = {
     searchTerm: params.searchTerm,
+    page: params.page,
+    pageSize: params.pageSize,
   };
 
   const result = await browseStockItems(ctx, input);

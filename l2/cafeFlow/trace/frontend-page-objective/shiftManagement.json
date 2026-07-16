@@ -1,45 +1,42 @@
 {
-  "savedAt": "2026-07-15T23:07:59.087Z",
+  "savedAt": "2026-07-16T13:58:43.892Z",
   "pageId": "shiftManagement",
   "genome": "page21",
   "objective": {
     "actor": "Gerente do café",
-    "jobToBeDone": "Gerenciar o ciclo de vida do turno diário: abrir no início do expediente, fechar ao final registrando o total apurado, e revisar o relatório de fechamento para conferência.",
-    "primaryDecision": "Decidir se deve abrir ou fechar o turno atual com base no status exibido, executando a transição de ciclo de vida apropriada.",
+    "jobToBeDone": "Gerenciar o ciclo de vida do turno diário — abrir no início, fechar com reconciliação no fim, e revisar o relatório de fechamento",
+    "primaryDecision": "Decidir se abre um novo turno ou fecha o turno atualmente aberto, confirmando o total apurado",
     "decisiveInfo": [
       "status",
       "totalApurado",
-      "paidOrderCount",
       "notes"
     ],
-    "usageFrequency": "Duas vezes ao dia (abertura e fechamento) — operacional/back-office, uso ocasional mas crítico.",
+    "usageFrequency": "Duas vezes ao dia (abertura e fechamento) — operacional/back-office",
     "criticalActions": [
       {
         "action": "openShift",
-        "presentation": "primary-button contextual-transition-actions — botão primário visível quando não há turno aberto"
+        "presentation": "primary-button contextual-transition-actions"
       },
       {
         "action": "closeShift",
-        "presentation": "primary-button contextual-transition-actions — botão primário visível quando há turno aberto, com formulário inline para totalApurado e notes"
+        "presentation": "primary-button contextual-transition-actions com formulário inline"
       },
       {
         "action": "viewShiftClosingReport",
-        "presentation": "summary-first — exibição automática do relatório após fechamento, carregado via routeParam"
+        "presentation": "summary-first display"
       }
     ],
     "informationHierarchy": [
-      "Status atual do turno (open/closed) com dados de abertura",
-      "Ação contextual de transição (abrir ou fechar)",
-      "Formulário inline da transição ativa (notes para abrir; totalApurado + notes para fechar)",
+      "Status atual do turno (aberto/fechado) e dados de abertura",
+      "Ação de ciclo de vida contextual (abrir ou fechar)",
       "Relatório de fechamento com total apurado e pedidos pagos"
     ],
-    "successCriteria": "O gerente vê imediatamente o status do turno, executa abertura ou fechamento com mínima fricção (um botão + campos mínimos), e revisa o relatório de fechamento sem digitar IDs manualmente.",
+    "successCriteria": "O gerente vê imediatamente o status do turno, executa abertura ou fechamento com mínima fricção, e consulta o relatório de fechamento sem digitar IDs manualmente",
     "antiPatterns": [
-      "Formulário separado para cada operação empilhado verticalmente",
-      "Campo select livre para escolher status do turno",
-      "Digitação manual de shiftId",
-      "Exibir campos system-owned (openedAt, closedAt, openedBy, closedBy) como inputs editáveis",
-      "Tela de relatório separada exigindo navegação adicional"
+      "Formulário separado de transição de status",
+      "Select livre sobre enum de status",
+      "ID de turno digitado manualmente",
+      "Campos system-owned (shiftId, openedAt, closedAt) como inputs manuais"
     ]
   }
 }

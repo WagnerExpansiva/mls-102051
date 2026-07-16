@@ -5,9 +5,8 @@ export const stockLevelTableDef: TableDefinition = {
   moduleId: 'cafeFlow',
   repositoryName: 'cafeFlowStockLevel',
   tableName: 'stock_level',
-  purpose: 'controle',
-  description:
-    'Níveis de estoque por item. Campos não indexados (currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt) em details (JSONB).',
+  purpose: 'transacao',
+  description: 'Níveis de estoque. Campos não indexados (currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt) em details (JSONB).',
   backupHot: false,
   storageProfile: 'postgres',
   writeMode: 'sync',
