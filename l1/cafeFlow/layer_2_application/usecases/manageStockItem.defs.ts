@@ -62,21 +62,21 @@ export const manageStockItemUsecase = {
             "type": "string",
             "required": true,
             "ofEntity": "StockItem",
-            "description": "Nome atualizado do item de estoque."
+            "description": "Nome do ingrediente após atualização."
           },
           {
             "name": "unit",
             "type": "string",
             "required": true,
             "ofEntity": "StockItem",
-            "description": "Unidade de medida atualizada."
+            "description": "Unidade de medida após atualização."
           },
           {
             "name": "minimumLevel",
             "type": "number",
             "required": true,
             "ofEntity": "StockItem",
-            "description": "Limite mínimo atualizado para alerta de estoque baixo."
+            "description": "Limite mínimo configurado após atualização."
           },
           {
             "name": "updatedAt",
@@ -92,13 +92,12 @@ export const manageStockItemUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Validate that unit is one of the allowed enum values: kg, liter, portion, unit. If invalid, throw validation error referencing rule lowStockAlertCalculation context.",
-          "2. Validate that minimumLevel is a non-negative number. If invalid, throw validation error.",
-          "3. Load the existing StockItem from MDM via ctx.mdm.entity.get({ mdmId: stockItemId }). If not found, throw a not-found error.",
-          "4. Build the updated StockItem payload: name, unit, minimumLevel from user input; updatedAt from ctx.clock.now(); preserve createdAt from the existing record.",
-          "5. Persist the update via ctx.mdm.entity.update({ mdmId: stockItemId, details: { name, unit, minimumLevel, createdAt, updatedAt } }).",
-          "6. Apply rule lowStockAlertCalculation: after the update, the low-stock alert threshold is the new minimumLevel. The alert is recalculated by comparing the current StockLevel quantity against the updated minimumLevel — if current quantity <= minimumLevel, the item is flagged as low-stock. This is an inline calculation using the updated minimumLevel value.",
-          "7. Return the updated StockItem projection: stockItemId, name, unit, minimumLevel, updatedAt."
+          "1. Retrieve the existing StockItem from MDM via ctx.mdm.entity.get({ mdmId: stockItemId }) to confirm it exists and capture current state.",
+          "2. Validate that 'unit' is one of the allowed enum values: kg, liter, portion, unit. If invalid, throw a validation error referencing rule lowStockAlertCalculation.",
+          "3. Validate that 'minimumLevel' is a non-negative number (>= 0). If invalid, throw a validation error referencing rule lowStockAlertCalculation.",
+          "4. Apply rule lowStockAlertCalculation inline: the new minimumLevel value will be the threshold used for all future low-stock alert comparisons against current StockLevel quantities. Ensure minimumLevel is a sensible positive value (> 0) so the alert can trigger; if minimumLevel is 0, log a warning that low-stock alerts will never fire for this item.",
+          "5. Build the update payload: { name, unit, minimumLevel, updatedAt: ctx.clock.now() } and persist via ctx.mdm.entity.update({ mdmId: stockItemId, details: { name, unit, minimumLevel, updatedAt } }).",
+          "6. Read back the updated StockItem via ctx.mdm.entity.get({ mdmId: stockItemId }) to confirm persistence and return the projected output fields: stockItemId, name, unit, minimumLevel, updatedAt."
         ]
       }
     ],

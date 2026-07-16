@@ -5,7 +5,7 @@ import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application
 import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.js';
 import type { IShiftClosingReportRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftClosingReportRepository.js';
 import type { Shift } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
-import { canTransitionShift, shiftRequiresClosedFieldsWhenClosed, shiftClosedAtMustBeAfterOpenedAt } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
+import { canTransitionShift, validateShiftInvariants } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
 import type { ShiftClosingReport } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.js';
 import { validateShiftClosingReport } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.js';
 
@@ -21,6 +21,8 @@ export interface CloseShiftOutput {
   closedBy: string;
   totalApurado: number;
   notes?: string;
+  shiftClosingReportId: string;
+  paidOrderCount: number;
 }
 
 export async function closeShift(ctx: RequestContext, input: CloseShiftInput): Promise<CloseShiftOutput> {
@@ -28,112 +30,114 @@ export async function closeShift(ctx: RequestContext, input: CloseShiftInput): P
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
   const reports = resolveRepository<IShiftClosingReportRepository>(ctx, 'ShiftClosingReport');
 
-  // Step 1: Resolve the active (open) lifecycle instance.
-  const openShift = await shifts.findOpenShift();
-
-  // Step 2: Apply rule singleOpenShift — exactly one open shift required.
-  if (!openShift) {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'closeShift.singleOpenShift: exactly one open shift required',
-      400,
-      { ruleId: 'singleOpenShift' },
-    );
-  }
-
-  // Step 3: Resolve closedBy from actorSession.
-  const closedBy = ctx.sessionContext.actorSession.actorId ?? 'unknown';
-
-  // Step 4: Resolve closedAt from system clock.
   const now = ctx.clock.nowIso();
+  const closedBy = ctx.sessionContext.actorId ?? 'system';
 
-  // Step 5: The open shift aggregate is already loaded.
-  const shift = openShift;
+  return ctx.data.runInTransaction(async () => {
+    // Step 1: Resolve the active open Shift (activeLifecycleInstance).
+    // dashboardCurrentShiftOnly: the dashboard and closing operations target only the
+    // single current (open) shift — no historical or future shifts are eligible.
+    const openShifts = await shifts.findOpenShifts();
 
-  // Step 6: Validate the Shift is in 'open' status (guard against race condition).
-  if (String(shift.status) !== 'open') {
-    throw new AppError(
-      'CONFLICT',
-      'closeShift: shift is no longer open (possible race condition)',
-      409,
-      { ruleId: 'singleOpenShift', currentStatus: shift.status },
-    );
-  }
+    if (openShifts.length === 0) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'singleOpenShift: não há turno aberto para fechar.',
+        400,
+        { ruleId: 'singleOpenShift', dashboardCurrentShiftOnly: true },
+      );
+    }
+    if (openShifts.length > 1) {
+      throw new AppError(
+        'CONFLICT',
+        'singleOpenShift: há mais de um turno aberto simultaneamente.',
+        409,
+        { ruleId: 'singleOpenShift', openShiftCount: openShifts.length, dashboardCurrentShiftOnly: true },
+      );
+    }
 
-  // Validate domain transition: open -> closed.
-  if (!canTransitionShift(shift.status, 'closed')) {
-    throw new AppError(
-      'CONFLICT',
-      'closeShift: invalid state transition from "open" to "closed"',
-      409,
-      { ruleId: 'singleOpenShift', from: shift.status, to: 'closed' },
-    );
-  }
+    const openShift = openShifts[0];
 
-  // Step 7: Mutate the Shift.
-  const updatedShift: Shift = {
-    ...shift,
-    status: 'closed',
-    closedAt: now,
-    closedBy,
-    totalApurado: input.totalApurado,
-    notes: input.notes ?? null,
-    updatedAt: now,
-  };
+    // dashboardCurrentShiftOnly: confirm the resolved shift is the single active lifecycle instance.
+    if (openShift.status !== 'open') {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'dashboardCurrentShiftOnly: o turno selecionado não é o turno ativo atual.',
+        400,
+        { ruleId: 'dashboardCurrentShiftOnly', shiftId: openShift.shiftId, status: openShift.status },
+      );
+    }
 
-  // Validate domain invariants on the mutated shift.
-  if (!shiftRequiresClosedFieldsWhenClosed(updatedShift)) {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'closeShift: closed shift requires closedAt, closedBy and totalApurado',
-      400,
-      { ruleId: 'shiftClosingRecordsRevenue' },
-    );
-  }
-  if (!shiftClosedAtMustBeAfterOpenedAt(updatedShift)) {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'closeShift: closedAt must be after openedAt',
-      400,
-      { ruleId: 'shiftClosingRecordsRevenue' },
-    );
-  }
+    // Check domain transition: open -> closed
+    if (!canTransitionShift(openShift.status, 'closed')) {
+      throw new AppError(
+        'CONFLICT',
+        `Transição inválida de status: ${openShift.status} → closed`,
+        409,
+        { currentStatus: openShift.status, targetStatus: 'closed' },
+      );
+    }
 
-  // Step 9: Query delivered orders for this shift (shiftClosingRecordsRevenue context).
-  const shiftOrders = await orders.listByShiftId(shift.shiftId);
-  const paidOrderCount = shiftOrders.filter((o) => String(o.status) === 'delivered').length;
+    // Step 3: Load all Orders for the resolved shiftId and compute paidOrderCount.
+    const shiftOrders = await orders.list({ shiftId: openShift.shiftId });
+    const paidOrderCount = shiftOrders.filter((o) => o.status === 'delivered').length;
 
-  // Step 10 & 11: Build the ShiftClosingReport.
-  const shiftClosingReportId = ctx.idGenerator.newId();
-  const report: ShiftClosingReport = {
-    shiftClosingReportId,
-    shiftId: shift.shiftId,
-    totalApurado: input.totalApurado,
-    paidOrderCount,
-    createdAt: now,
-    updatedAt: now,
-  };
+    // Step 4: Mutate the Shift aggregate.
+    const closedShift: Shift = {
+      ...openShift,
+      status: 'closed',
+      closedAt: now,
+      closedBy,
+      totalApurado: input.totalApurado,
+      notes: input.notes ?? openShift.notes,
+      updatedAt: now,
+    };
 
-  // Validate the report against domain rules (shift must be closed, uniqueness, etc.).
-  const existingReports = await reports.list({ shiftId: shift.shiftId });
-  validateShiftClosingReport(report, 'closed', existingReports, shift.shiftId);
+    const invariantErrors = validateShiftInvariants(closedShift);
+    if (invariantErrors.length > 0) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        `shiftClosingRecordsRevenue: invariantes do turno violadas: ${invariantErrors.join('; ')}`,
+        400,
+        { ruleId: 'shiftClosingRecordsRevenue', errors: invariantErrors },
+      );
+    }
 
-  // Step 8 & 11: Persist both the shift and the report inside one transaction.
-  await ctx.data.runInTransaction(async () => {
-    await shifts.save(updatedShift);
+    await shifts.save(closedShift);
+
+    // Step 5: Create a ShiftClosingReport.
+    const reportId = ctx.idGenerator.newId();
+    const report: ShiftClosingReport = {
+      shiftClosingReportId: reportId,
+      shiftId: openShift.shiftId,
+      totalApurado: input.totalApurado,
+      paidOrderCount,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const reportErrors = validateShiftClosingReport(report);
+    if (reportErrors.length > 0) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        `shiftClosingRecordsRevenue: invariantes do relatório violadas: ${reportErrors.join('; ')}`,
+        400,
+        { ruleId: 'shiftClosingRecordsRevenue', errors: reportErrors },
+      );
+    }
+
     await reports.save(report);
+
+    // Step 6: Return the closed Shift fields and the generated ShiftClosingReport id and paidOrderCount.
+    return {
+      shiftId: closedShift.shiftId,
+      status: closedShift.status,
+      closedAt: closedShift.closedAt as string,
+      closedBy: closedShift.closedBy as string,
+      totalApurado: closedShift.totalApurado as number,
+      notes: closedShift.notes ?? undefined,
+      shiftClosingReportId: report.shiftClosingReportId,
+      paidOrderCount: report.paidOrderCount,
+    };
   });
-
-  // Step 12: dashboardCurrentShiftOnly — after closing, no shift remains 'open';
-  // the dashboard will show no active shift. This is the expected terminal state.
-
-  // Step 13: Return the result.
-  return {
-    shiftId: updatedShift.shiftId,
-    status: updatedShift.status,
-    closedAt: updatedShift.closedAt as string,
-    closedBy: updatedShift.closedBy as string,
-    totalApurado: updatedShift.totalApurado as number,
-    notes: updatedShift.notes ?? undefined,
-  };
 }

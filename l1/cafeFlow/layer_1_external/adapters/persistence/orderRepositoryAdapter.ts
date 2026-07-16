@@ -48,18 +48,7 @@ function toRow(order: Order): OrderRow {
 
 function parseDetails(row: OrderRow): OrderDetails {
   try {
-    const parsed = JSON.parse(row.details ?? '{}') as Partial<OrderDetails>;
-    return {
-      tableNumber: parsed.tableNumber ?? null,
-      priority: parsed.priority ?? null,
-      priorityReason: parsed.priorityReason ?? null,
-      receivedAt: parsed.receivedAt ?? null,
-      inPreparationAt: parsed.inPreparationAt ?? null,
-      readyAt: parsed.readyAt ?? null,
-      deliveredAt: parsed.deliveredAt ?? null,
-      updatedAt: parsed.updatedAt ?? row.created_at,
-      items: parsed.items ?? [],
-    };
+    return JSON.parse(row.details ?? '{}') as OrderDetails;
   } catch {
     return {
       tableNumber: null,
@@ -82,40 +71,30 @@ function toDomain(row: OrderRow): Order {
     shiftId: row.shift_id,
     status: row.status as OrderStatus,
     orderType: row.order_type as OrderType,
-    tableNumber: d.tableNumber,
-    priority: d.priority,
-    priorityReason: d.priorityReason,
-    receivedAt: d.receivedAt,
-    inPreparationAt: d.inPreparationAt,
-    readyAt: d.readyAt,
-    deliveredAt: d.deliveredAt,
+    tableNumber: d.tableNumber ?? null,
+    priority: d.priority ?? null,
+    priorityReason: d.priorityReason ?? null,
+    receivedAt: d.receivedAt ?? null,
+    inPreparationAt: d.inPreparationAt ?? null,
+    readyAt: d.readyAt ?? null,
+    deliveredAt: d.deliveredAt ?? null,
     createdAt: row.created_at,
-    updatedAt: d.updatedAt,
-    items: d.items,
+    updatedAt: d.updatedAt ?? row.created_at,
+    items: d.items ?? [],
   };
 }
 
 export function createOrderRepositoryAdapter(ctx: RequestContext): IOrderRepository {
-  const getTable = () => ctx.data.moduleData.getTable<OrderRow>('orders');
+  const getTable = () => ctx.data.moduleData.getTable<OrderRow>('order');
 
   return {
-    async getById(id) {
+    async getById(orderId) {
       const repo = await getTable();
-      const row = await repo.findOne({ where: { order_id: id } });
-      if (!row) throw new AppError('NOT_FOUND', `Order ${id} not found`, 404, { orderId: id });
+      const row = await repo.findOne({ where: { order_id: orderId } });
+      if (!row) {
+        throw new AppError('NOT_FOUND', `Order ${orderId} not found`, 404, { orderId });
+      }
       return toDomain(row);
-    },
-
-    async findById(id) {
-      const repo = await getTable();
-      const row = await repo.findOne({ where: { order_id: id } });
-      return row ? toDomain(row) : null;
-    },
-
-    async findByOrderNumber(orderNumber) {
-      const repo = await getTable();
-      const row = await repo.findOne({ where: { order_id: orderNumber } });
-      return row ? toDomain(row) : null;
     },
 
     async list(filter?: OrderFilter) {
@@ -128,20 +107,12 @@ export function createOrderRepositoryAdapter(ctx: RequestContext): IOrderReposit
         where,
         orderBy: { field: 'created_at', direction: 'desc' },
       });
-      const orders = rows.map(toDomain);
+      let orders = rows.map(toDomain);
+      // tableNumber is stored in the JSONB details column, so filter in memory.
       if (filter?.tableNumber) {
-        return orders.filter((o) => o.tableNumber === filter.tableNumber);
+        orders = orders.filter((o) => o.tableNumber === filter.tableNumber);
       }
       return orders;
-    },
-
-    async listByShiftId(shiftId) {
-      const repo = await getTable();
-      const rows = await repo.findMany({
-        where: { shift_id: shiftId },
-        orderBy: { field: 'created_at', direction: 'desc' },
-      });
-      return rows.map(toDomain);
     },
 
     async save(order) {
@@ -152,6 +123,32 @@ export function createOrderRepositoryAdapter(ctx: RequestContext): IOrderReposit
       } else {
         await repo.insert({ record: toRow(order) });
       }
+    },
+
+    async findByCustomerId(_customerId) {
+      // The Order entity has no customerId field — no column or JSONB attribute to filter on.
+      return [];
+    },
+
+    async findByStatus(status) {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        where: { status },
+        orderBy: { field: 'created_at', direction: 'desc' },
+      });
+      return rows.map(toDomain);
+    },
+
+    async findByPeriod(start, end) {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        orderBy: { field: 'created_at', direction: 'asc' },
+      });
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+      return rows
+        .filter((r) => r.created_at >= startIso && r.created_at <= endIso)
+        .map(toDomain);
     },
   };
 }

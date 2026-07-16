@@ -6,7 +6,7 @@ export const stockAdjustmentTableDef: TableDefinition = {
   repositoryName: 'cafeFlowStockAdjustment',
   tableName: 'stock_adjustment',
   purpose: 'controle',
-  description: 'Append-only stock adjustments. Non-indexed fields (quantity, reason, voidedAt, voidedReason) in details (JSONB).',
+  description: 'Append-only stock adjustments (quantity corrections). Non-indexed fields (quantity, reason, voidedAt, voidedReason) stored in details JSONB.',
   backupHot: false,
   storageProfile: 'postgres',
   writeMode: 'sync',

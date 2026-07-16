@@ -1,6 +1,6 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/stockLevelRepositoryAdapter.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { IStockLevelRepository, StockLevelFilter } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.js';
+import type { IStockLevelRepository, StockLevelFilter, Location } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.js';
 import type { StockLevel, StockLevelUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 
 interface StockLevelRow {
@@ -69,55 +69,56 @@ export function createStockLevelRepositoryAdapter(ctx: RequestContext): IStockLe
   const getTable = () => ctx.data.moduleData.getTable<StockLevelRow>('stock_level');
 
   return {
-    async getById(id) {
+    async getById(stockLevelId) {
       const repo = await getTable();
-      const row = await repo.findOne({ where: { stock_level_id: id } });
-      if (!row) throw new AppError('NOT_FOUND', `StockLevel ${id} not found`, 404, { stockLevelId: id });
+      const row = await repo.findOne({ where: { stock_level_id: stockLevelId } });
+      if (!row) {
+        throw new AppError('NOT_FOUND', `StockLevel ${stockLevelId} not found`, 404, { stockLevelId });
+      }
       return toDomain(row);
-    },
-
-    async findById(id) {
-      const repo = await getTable();
-      const row = await repo.findOne({ where: { stock_level_id: id } });
-      return row ? toDomain(row) : null;
-    },
-
-    async findByProductId(productId) {
-      const repo = await getTable();
-      const row = await repo.findOne({ where: { stock_item_id: productId } });
-      return row ? toDomain(row) : null;
     },
 
     async list(filter?: StockLevelFilter) {
       const repo = await getTable();
       const where: Partial<StockLevelRow> = {};
-      if (filter?.stockLevelId) where.stock_level_id = filter.stockLevelId;
       if (filter?.stockItemId) where.stock_item_id = filter.stockItemId;
       if (filter?.unit) where.unit = filter.unit;
       const rows = await repo.findMany({
         where,
-        orderBy: { field: 'created_at', direction: 'asc' },
+        orderBy: { field: 'created_at', direction: 'desc' },
       });
       return rows.map(toDomain);
-    },
-
-    async listLowStock() {
-      const repo = await getTable();
-      const rows = await repo.findMany({
-        orderBy: { field: 'created_at', direction: 'asc' },
-      });
-      const all = rows.map(toDomain);
-      return all.filter((sl) => sl.currentQuantity <= sl.minimumLevel);
     },
 
     async save(stockLevel) {
       const repo = await getTable();
       const existing = await repo.findOne({ where: { stock_level_id: stockLevel.stockLevelId } });
       if (existing) {
-        await repo.update({ where: { stock_level_id: stockLevel.stockLevelId }, patch: toRow(stockLevel) });
+        await repo.update({
+          where: { stock_level_id: stockLevel.stockLevelId },
+          patch: toRow(stockLevel),
+        });
       } else {
         await repo.insert({ record: toRow(stockLevel) });
       }
+    },
+
+    async findBelowMinimum() {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        orderBy: { field: 'created_at', direction: 'asc' },
+      });
+      const all = rows.map(toDomain);
+      return all.filter(
+        (sl) => sl.currentQuantity < sl.minimumLevel,
+      );
+    },
+
+    async findByLocation(_location: Location) {
+      // StockLevel entity has no location field in the current schema;
+      // location-based filtering would require a location column or MDM relationship.
+      // Returns empty array until location is modelled on the aggregate.
+      return [];
     },
   };
 }

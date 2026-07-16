@@ -6,12 +6,12 @@ export interface BrowseMenuItemsInput {
   menuCategoryIdFilter?: string;
 }
 
-export interface MenuItemProjection {
+export interface BrowseMenuItemProjection {
   menuItemId: string;
   name: string;
   description: string | null;
   menuCategoryId: string | null;
-  price: number;
+  price: number | null;
   itemType: string;
   status: string;
   activatedAt: string | null;
@@ -20,83 +20,65 @@ export interface MenuItemProjection {
 }
 
 export interface BrowseMenuItemsOutput {
-  items: MenuItemProjection[];
-  total: number;
+  items: BrowseMenuItemProjection[];
 }
 
 /**
- * BrowseMenuItems — lists all menu items from the MDM store as individual entries.
- *
- * MODELING GAP: MenuItem does not declare a `companyId` field in its entity model,
- * so the activeCompanyId business-context filter is intentionally skipped to avoid
- * matching against a non-existent column.
- *
- * Rule `simpleItemsOnly`: every item (simple or variant) appears as a separate
- * entry — no grouping or expansion of variants is performed.
+ * MODELING GAP: MenuItem does not declare a `companyId` field in the MDM model.
+ * The active-company scope filter (ctx.sessionContext.activeCompanyId) cannot be
+ * applied directly. We record the gap and proceed without the company filter.
  */
 export async function browseMenuItems(
   ctx: RequestContext,
   input: BrowseMenuItemsInput,
 ): Promise<BrowseMenuItemsOutput> {
-  // Step 1 — resolve activeCompanyId for query scope
+  // 1. Resolve activeCompanyId — modeling gap: no companyId on MenuItem, skip filter.
   // const activeCompanyId = ctx.sessionContext.activeCompanyId;
 
-  // Step 2 — MODELING GAP: MenuItem has no companyId field; skip company filter.
-
-  // Step 3 — list MDM entities of type MenuItem
+  // 2. List all MenuItem entities from MDM.
   const listResult = await ctx.mdm.collection.listByType({
     type: 'cafeFlow.MenuItem',
   });
 
+  // 3-4. Load full details for each index record to access fields for filtering and projection.
   const mdmIds = listResult.items.map((item) => item.mdmId);
+  const entities = mdmIds.length > 0
+    ? await ctx.mdm.collection.getMany({ mdmIds })
+    : [];
 
-  if (mdmIds.length === 0) {
-    return { items: [], total: 0 };
-  }
-
-  // Fetch full details for all listed items (plural-first, no per-id loop)
-  const entities = await ctx.mdm.collection.getMany({ mdmIds });
-
-  // Step 4 — apply optional statusFilter
-  let filtered = entities;
-
-  if (input.statusFilter) {
-    filtered = filtered.filter((entity) => {
-      const details = entity.details as unknown as Record<string, unknown>;
-      return String(details.status) === input.statusFilter;
-    });
-  }
-
-  // Step 5 — apply optional menuCategoryIdFilter
-  if (input.menuCategoryIdFilter) {
-    filtered = filtered.filter((entity) => {
-      const details = entity.details as unknown as Record<string, unknown>;
-      const cafeFlow = (details['cafeFlow'] as Record<string, unknown> | undefined) ?? {};
-      const menuCategoryId = cafeFlow['menuCategoryId'] ?? details['menuCategoryId'];
-      return menuCategoryId != null && String(menuCategoryId) === input.menuCategoryIdFilter;
-    });
-  }
-
-  // Step 6 — simpleItemsOnly: each item appears individually, no grouping/expansion
-  // Step 7 — project output fields
-  const items: MenuItemProjection[] = filtered.map((entity) => {
+  // 5. Apply simpleItemsOnly rule: all items (including variants) appear as separate entries.
+  //    No filtering by itemType — variants are listed individually.
+  let projections: BrowseMenuItemProjection[] = entities.map((entity) => {
     const details = entity.details as unknown as Record<string, unknown>;
-    const cafeFlow = (details['cafeFlow'] as Record<string, unknown> | undefined) ?? {};
-    const index = entity.index as unknown as Record<string, unknown>;
+    const cafeFlow = (details['cafeFlow'] ?? {}) as unknown as Record<string, unknown>;
     return {
       menuItemId: entity.mdmId,
-      name: String(details.name ?? index.name ?? ''),
-      description: (cafeFlow['description'] as string | null) ?? null,
+      name: String(details['name'] ?? ''),
+      description: (details['description'] as string | null) ?? null,
       menuCategoryId: (cafeFlow['menuCategoryId'] as string | null) ?? null,
-      price: Number(cafeFlow['price'] ?? 0),
+      price: (cafeFlow['price'] as number | null) ?? null,
       itemType: String(cafeFlow['itemType'] ?? 'simple'),
-      status: String(details.status ?? index.status ?? 'active'),
+      status: String(details['status'] ?? 'active'),
       activatedAt: (cafeFlow['activatedAt'] as string | null) ?? null,
-      createdAt: String(index.createdAt ?? details.createdAt ?? ''),
-      updatedAt: String(index.updatedAt ?? details.updatedAt ?? ''),
+      createdAt: entity.index.createdAt ?? '',
+      updatedAt: entity.index.updatedAt ?? '',
     };
   });
 
-  // Step 8 — return { items, total }
-  return { items, total: items.length };
+  // 3. Apply optional statusFilter in-memory.
+  if (input.statusFilter) {
+    projections = projections.filter(
+      (item) => item.status === input.statusFilter,
+    );
+  }
+
+  // 4. Apply optional menuCategoryIdFilter in-memory.
+  if (input.menuCategoryIdFilter) {
+    projections = projections.filter(
+      (item) => item.menuCategoryId === input.menuCategoryIdFilter,
+    );
+  }
+
+  // 7. Return the projected collection.
+  return { items: projections };
 }

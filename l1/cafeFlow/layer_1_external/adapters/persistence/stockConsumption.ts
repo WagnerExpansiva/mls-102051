@@ -6,12 +6,10 @@ export const stockConsumptionTableDef: TableDefinition = {
   repositoryName: 'cafeFlowStockConsumption',
   tableName: 'stock_consumption',
   purpose: 'controle',
-  description:
-    'Append-only stock consumption records. Non-indexed fields (quantity, voidedAt, voidReason) stored in details (JSONB).',
+  description: 'Append-only stock consumption log. Non-indexed fields (quantity, voidedAt, voidReason) stored in details (JSONB).',
   backupHot: false,
   storageProfile: 'postgres',
   writeMode: 'sync',
-  retentionDays: 365,
   columns: [
     { name: 'stock_consumption_id', postgresType: 'TEXT' },
     { name: 'stock_item_id', postgresType: 'TEXT' },
@@ -27,5 +25,6 @@ export const stockConsumptionTableDef: TableDefinition = {
     { name: 'idx_stock_consumption_status', columns: ['status'] },
     { name: 'idx_stock_consumption_created_at', columns: ['created_at'] },
   ],
+  retentionDays: 365,
   version: 1,
 };

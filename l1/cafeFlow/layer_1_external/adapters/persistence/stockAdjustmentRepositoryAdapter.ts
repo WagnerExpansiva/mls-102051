@@ -1,6 +1,6 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/stockAdjustmentRepositoryAdapter.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { IStockAdjustmentRepository, DateRange } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockAdjustmentRepository.js';
+import type { IStockAdjustmentRepository, ProductId, AdjustmentReason } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockAdjustmentRepository.js';
 import type { StockAdjustment, StockAdjustmentStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockAdjustment.js';
 
 interface StockAdjustmentRow {
@@ -18,18 +18,18 @@ interface StockAdjustmentDetails {
   voidedReason: string | null;
 }
 
-function toRow(adjustment: StockAdjustment): StockAdjustmentRow {
+function toRow(record: StockAdjustment): StockAdjustmentRow {
   const details: StockAdjustmentDetails = {
-    quantity: adjustment.quantity,
-    reason: adjustment.reason,
-    voidedAt: adjustment.voidedAt,
-    voidedReason: adjustment.voidedReason,
+    quantity: record.quantity,
+    reason: record.reason,
+    voidedAt: record.voidedAt,
+    voidedReason: record.voidedReason,
   };
   return {
-    stock_adjustment_id: adjustment.stockAdjustmentId,
-    stock_item_id: adjustment.stockItemId,
-    status: adjustment.status,
-    created_at: adjustment.createdAt,
+    stock_adjustment_id: record.stockAdjustmentId,
+    stock_item_id: record.stockItemId,
+    status: record.status,
+    created_at: record.createdAt,
     details: JSON.stringify(details),
   };
 }
@@ -60,22 +60,12 @@ export function createStockAdjustmentRepositoryAdapter(ctx: RequestContext): ISt
   const getTable = () => ctx.data.moduleData.getTable<StockAdjustmentRow>('stock_adjustment');
 
   return {
-    async append(adjustment) {
+    async append(record: StockAdjustment): Promise<void> {
       const repo = await getTable();
-      await repo.insert({ record: toRow(adjustment) });
+      await repo.insert({ record: toRow(record) });
     },
 
-    async listByPeriod(period: DateRange) {
-      const repo = await getTable();
-      const rows = await repo.findMany({
-        orderBy: { field: 'created_at', direction: 'asc' },
-      });
-      return rows
-        .filter((row) => row.created_at >= period.from && row.created_at <= period.to)
-        .map(toDomain);
-    },
-
-    async listByProductId(productId) {
+    async listByProductId(productId: ProductId): Promise<StockAdjustment[]> {
       const repo = await getTable();
       const rows = await repo.findMany({
         where: { stock_item_id: productId },
@@ -84,16 +74,25 @@ export function createStockAdjustmentRepositoryAdapter(ctx: RequestContext): ISt
       return rows.map(toDomain);
     },
 
-    async listByReason(reason) {
+    async listByPeriod(start: Date, end: Date): Promise<StockAdjustment[]> {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        orderBy: { field: 'created_at', direction: 'desc' },
+      });
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+      return rows
+        .filter((row) => row.created_at >= startIso && row.created_at <= endIso)
+        .map(toDomain);
+    },
+
+    async listByReason(reason: AdjustmentReason): Promise<StockAdjustment[]> {
       const repo = await getTable();
       const rows = await repo.findMany({
         orderBy: { field: 'created_at', direction: 'desc' },
       });
       return rows
-        .filter((row) => {
-          const d = parseDetails(row);
-          return d.reason === reason;
-        })
+        .filter((row) => parseDetails(row).reason === reason)
         .map(toDomain);
     },
   };

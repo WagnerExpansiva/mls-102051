@@ -5,9 +5,10 @@ import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
 import type { IStockLevelRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.js';
 import type { Order, OrderItem } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
-import type { StockLevel } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import type { Shift } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
+import type { StockLevel, StockLevelUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 
-export interface AiSalesSummaryInput {}
+export interface RequestAiSalesSummaryInput {}
 
 export interface AiSalesSummaryOrderProjection {
   orderId: string;
@@ -20,58 +21,69 @@ export interface AiSalesSummaryOrderProjection {
 export interface AiSalesSummaryTopSeller {
   menuItemId: string;
   totalQuantity: number;
-  totalRevenue: number;
 }
 
-export interface AiSalesSummaryStockLevelProjection {
+export interface AiSalesSummaryStockAlert {
   stockItemId: string;
   currentQuantity: number;
   minimumLevel: number;
-  unit: string;
+  unit: StockLevelUnit;
 }
 
-export interface AiSalesSummaryOutput {
+export interface AiSalesSummary {
   shiftId: string | null;
-  shiftOpenedAt: string | null;
   totalOrders: number;
-  totalRevenue: number;
   orders: AiSalesSummaryOrderProjection[];
   topSellers: AiSalesSummaryTopSeller[];
-  stockLevels: AiSalesSummaryStockLevelProjection[];
+  stockAlerts: AiSalesSummaryStockAlert[];
 }
 
 export async function requestAiSalesSummary(
   ctx: RequestContext,
-  _input: AiSalesSummaryInput,
-): Promise<AiSalesSummaryOutput> {
+  _input: RequestAiSalesSummaryInput,
+): Promise<AiSalesSummary> {
   const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
   const stockLevels = resolveRepository<IStockLevelRepository>(ctx, 'StockLevel');
 
-  // Step 1: Resolve the active lifecycle instance — the single open Shift.
-  // Rule: dashboardCurrentShiftOnly
-  const openShift = await shifts.findOpenShift();
-
-  if (!openShift) {
+  // Step 1: Resolve the active open Shift (rule: dashboardCurrentShiftOnly)
+  const openShifts: Shift[] = await shifts.findOpenShifts();
+  if (openShifts.length === 0) {
     return {
       shiftId: null,
-      shiftOpenedAt: null,
       totalOrders: 0,
-      totalRevenue: 0,
       orders: [],
       topSellers: [],
-      stockLevels: [],
+      stockAlerts: [],
     };
   }
 
-  // Step 2: Extract shiftId and shiftOpenedAt from the open Shift.
-  const shiftId = openShift.shiftId;
-  const shiftOpenedAt = openShift.openedAt;
+  const openShift: Shift = openShifts[0];
 
-  // Step 3: Load all Orders for the resolved shiftId.
-  const shiftOrders: Order[] = await orders.listByShiftId(shiftId);
+  // Step 2: Load all Orders for the resolved open shift
+  const shiftOrders: Order[] = await orders.list({ shiftId: openShift.shiftId });
 
-  // Step 4: Project each Order to the output shape.
+  // Step 3: Aggregate OrderItems by menuItemId to compute topSellers (rule: topSellersFromDayOrders)
+  const allItems: OrderItem[] = shiftOrders.flatMap((order) => order.items ?? []);
+  const quantityByMenuItem = new Map<string, number>();
+  for (const item of allItems) {
+    const current = quantityByMenuItem.get(item.menuItemId) ?? 0;
+    quantityByMenuItem.set(item.menuItemId, current + item.quantity);
+  }
+  const topSellers: AiSalesSummaryTopSeller[] = [...quantityByMenuItem.entries()]
+    .map(([menuItemId, totalQuantity]) => ({ menuItemId, totalQuantity }))
+    .sort((a, b) => b.totalQuantity - a.totalQuantity);
+
+  // Step 4: Query StockLevel port for items at or below minimumLevel
+  const lowStockLevels: StockLevel[] = await stockLevels.findBelowMinimum();
+  const stockAlerts: AiSalesSummaryStockAlert[] = lowStockLevels.map((sl) => ({
+    stockItemId: sl.stockItemId,
+    currentQuantity: sl.currentQuantity,
+    minimumLevel: sl.minimumLevel,
+    unit: sl.unit,
+  }));
+
+  // Step 5: Assemble the AiSalesSummary result (rule: aiConsumesDomainData)
   const orderProjections: AiSalesSummaryOrderProjection[] = shiftOrders.map((order) => ({
     orderId: order.orderId,
     status: order.status,
@@ -80,55 +92,11 @@ export async function requestAiSalesSummary(
     deliveredAt: order.deliveredAt,
   }));
 
-  // Step 5: Aggregate OrderItems across all loaded Orders.
-  // Rule: topSellersFromDayOrders
-  const sellerMap = new Map<string, AiSalesSummaryTopSeller>();
-  let totalRevenue = 0;
-
-  for (const order of shiftOrders) {
-    for (const item of order.items) {
-      const itemRevenue = item.unitPrice * item.quantity;
-      totalRevenue += itemRevenue;
-
-      const existing = sellerMap.get(item.menuItemId);
-      if (existing) {
-        existing.totalQuantity += item.quantity;
-        existing.totalRevenue += itemRevenue;
-      } else {
-        sellerMap.set(item.menuItemId, {
-          menuItemId: item.menuItemId,
-          totalQuantity: item.quantity,
-          totalRevenue: itemRevenue,
-        });
-      }
-    }
-  }
-
-  const topSellers: AiSalesSummaryTopSeller[] = [...sellerMap.values()].sort(
-    (a, b) => b.totalQuantity - a.totalQuantity,
-  );
-
-  // Step 6: Compute totalOrders and totalRevenue.
-  const totalOrders = shiftOrders.length;
-
-  // Step 7: Load all StockLevel records and project each.
-  const allStockLevels: StockLevel[] = await stockLevels.list();
-  const stockLevelProjections: AiSalesSummaryStockLevelProjection[] = allStockLevels.map((sl) => ({
-    stockItemId: sl.stockItemId,
-    currentQuantity: sl.currentQuantity,
-    minimumLevel: sl.minimumLevel,
-    unit: sl.unit,
-  }));
-
-  // Step 8: Assemble and return the output — only domain-sourced data.
-  // Rule: aiConsumesDomainData
   return {
-    shiftId,
-    shiftOpenedAt,
-    totalOrders,
-    totalRevenue,
+    shiftId: openShift.shiftId,
+    totalOrders: shiftOrders.length,
     orders: orderProjections,
     topSellers,
-    stockLevels: stockLevelProjections,
+    stockAlerts,
   };
 }

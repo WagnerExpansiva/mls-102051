@@ -5,6 +5,8 @@ import { deliverOrder, type DeliverOrderInput } from '/_102051_/l1/cafeFlow/laye
 export const cafeFlowDeliverOrderHandler: BffHandler = async ({ request, ctx }) => {
   const params = (request.params ?? {}) as Partial<DeliverOrderInput>;
 
+  // Only orderId is a genuine client boundary input (source: selectedEntity).
+  // deliveredAt and updatedAt are systemDefault — resolved inside the usecase from ctx.clock.
   if (!params.orderId) {
     throw new AppError('VALIDATION_ERROR', 'orderId is required', 400, { field: 'orderId' });
   }

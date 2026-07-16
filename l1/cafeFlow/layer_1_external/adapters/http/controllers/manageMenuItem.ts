@@ -1,60 +1,43 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers/manageMenuItem.ts" enhancement="_blank"/>
 import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import { manageMenuItem, type ManageMenuItemInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/manageMenuItem.js';
+import { updateMenuItem, type UpdateMenuItemInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/manageMenuItem.js';
 
 export const cafeFlowManageMenuItemHandler: BffHandler = async ({ request, ctx }) => {
-  const params = (request.params ?? {}) as Partial<Record<string, unknown>>;
+  const params = (request.params ?? {}) as Partial<UpdateMenuItemInput>;
 
-  // --- Boundary validation: only genuine client inputs ---
-  // menuItemId (selectedEntity), name, description, menuCategoryId, price, itemType, status (userInput)
-  // actorId (actorSession) and updatedAt (systemDefault) are resolved inside the usecase — NOT client fields.
-
-  const menuItemId = params.menuItemId;
-  if (!menuItemId || typeof menuItemId !== 'string') {
+  // --- Client boundary inputs (selectedEntity + userInput) ---
+  if (!params.menuItemId) {
     throw new AppError('VALIDATION_ERROR', 'menuItemId is required', 400, { field: 'menuItemId' });
   }
-
-  const name = params.name;
-  if (!name || typeof name !== 'string') {
+  if (!params.name) {
     throw new AppError('VALIDATION_ERROR', 'name is required', 400, { field: 'name' });
   }
-
-  const menuCategoryId = params.menuCategoryId;
-  if (!menuCategoryId || typeof menuCategoryId !== 'string') {
+  if (!params.menuCategoryId) {
     throw new AppError('VALIDATION_ERROR', 'menuCategoryId is required', 400, { field: 'menuCategoryId' });
   }
-
-  const price = params.price;
-  if (price === undefined || price === null || typeof price !== 'number') {
-    throw new AppError('VALIDATION_ERROR', 'price is required and must be a number', 400, { field: 'price' });
+  if (params.price === undefined || params.price === null) {
+    throw new AppError('VALIDATION_ERROR', 'price is required', 400, { field: 'price' });
   }
-
-  const itemType = params.itemType;
-  if (!itemType || typeof itemType !== 'string') {
+  if (!params.itemType) {
     throw new AppError('VALIDATION_ERROR', 'itemType is required', 400, { field: 'itemType' });
   }
-
-  const status = params.status;
-  if (!status || typeof status !== 'string') {
+  if (!params.status) {
     throw new AppError('VALIDATION_ERROR', 'status is required', 400, { field: 'status' });
   }
 
-  const description =
-    params.description !== undefined && params.description !== null
-      ? String(params.description)
-      : undefined;
-
-  const input: ManageMenuItemInput = {
-    menuItemId,
-    name,
-    menuCategoryId,
-    price,
-    itemType,
-    status,
-    ...(description !== undefined ? { description } : {}),
+  // Build explicit input with ONLY client fields — actorId and updatedAt are
+  // resolved inside the usecase from ctx (actorSession / systemDefault).
+  const input: UpdateMenuItemInput = {
+    menuItemId: params.menuItemId,
+    name: params.name,
+    description: params.description,
+    menuCategoryId: params.menuCategoryId,
+    price: params.price,
+    itemType: params.itemType,
+    status: params.status,
   };
 
-  const result = await manageMenuItem(ctx, input);
+  const result = await updateMenuItem(ctx, input);
   return ok(result);
 };
 

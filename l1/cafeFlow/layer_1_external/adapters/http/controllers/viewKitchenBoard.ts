@@ -3,10 +3,10 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { viewKitchenBoard, type ViewKitchenBoardInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/viewKitchenBoard.js';
 
 export const cafeFlowViewKitchenBoardHandler: BffHandler = async ({ ctx }) => {
-  // Both inputContract fields (shiftId, statusFilter) are resolved inside the usecase:
-  //   - shiftId  → activeLifecycleInstance (the open Shift is resolved from the Shift port)
-  //   - statusFilter → systemDefault (the backend applies 'received' | 'inPreparation' automatically)
-  // The ViewKitchenBoardInput type is empty, so no client fields are forwarded.
+  // Both inputContract fields (shiftId, statusFilter) are resolved context:
+  //   - shiftId  → activeLifecycleInstance (resolved by the usecase from the Shift port)
+  //   - statusFilter → systemDefault (applied automatically by the backend)
+  // Neither is a public client boundary input, and ViewKitchenBoardInput is empty.
   const input: ViewKitchenBoardInput = {};
   const result = await viewKitchenBoard(ctx, input);
   return ok(result);

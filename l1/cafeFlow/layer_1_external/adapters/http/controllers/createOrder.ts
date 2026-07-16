@@ -11,7 +11,7 @@ export const cafeFlowCreateOrderHandler: BffHandler = async ({ request, ctx }) =
   }
 
   if (!params.orderItems || params.orderItems.length === 0) {
-    throw new AppError('VALIDATION_ERROR', 'orderItems is required and must not be empty', 400, { field: 'orderItems' });
+    throw new AppError('VALIDATION_ERROR', 'orderItems is required and must contain at least one item', 400, { field: 'orderItems' });
   }
 
   // Build an EXPLICIT input with only the client fields — shiftId, orderId, createdAt, updatedAt
@@ -25,6 +25,7 @@ export const cafeFlowCreateOrderHandler: BffHandler = async ({ request, ctx }) =
   };
 
   const result = await createOrder(ctx, input);
+
   return ok(result);
 };
 

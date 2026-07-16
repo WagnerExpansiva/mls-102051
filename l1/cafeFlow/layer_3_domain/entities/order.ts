@@ -59,27 +59,47 @@ export function validatePriorityReason(order: Pick<Order, 'priority' | 'priority
   return true;
 }
 
-export function validateStatusTimestamp(
-  status: OrderStatus,
-  timestamps: Pick<Order, 'receivedAt' | 'inPreparationAt' | 'readyAt' | 'deliveredAt'>,
-): boolean {
-  if (status === 'received' && timestamps.receivedAt === null) return false;
-  if (status === 'inPreparation' && timestamps.inPreparationAt === null) return false;
-  if (status === 'ready' && timestamps.readyAt === null) return false;
-  if (status === 'delivered' && timestamps.deliveredAt === null) return false;
+export function validateStatusTimestamps(order: Pick<Order, 'status' | 'receivedAt' | 'inPreparationAt' | 'readyAt' | 'deliveredAt'>): boolean {
+  const statusOrder: OrderStatus[] = ['registered', 'received', 'inPreparation', 'ready', 'delivered'];
+  const currentIndex = statusOrder.indexOf(order.status);
+
+  if (currentIndex >= statusOrder.indexOf('received') && order.receivedAt === null) {
+    return false;
+  }
+  if (currentIndex >= statusOrder.indexOf('inPreparation') && order.inPreparationAt === null) {
+    return false;
+  }
+  if (currentIndex >= statusOrder.indexOf('ready') && order.readyAt === null) {
+    return false;
+  }
+  if (currentIndex >= statusOrder.indexOf('delivered') && order.deliveredAt === null) {
+    return false;
+  }
   return true;
 }
 
-export function validateChronologicalTimestamps(
-  timestamps: Pick<Order, 'receivedAt' | 'inPreparationAt' | 'readyAt' | 'deliveredAt'>,
-): boolean {
-  const { receivedAt, inPreparationAt, readyAt, deliveredAt } = timestamps;
-  if (receivedAt && inPreparationAt && inPreparationAt < receivedAt) return false;
-  if (inPreparationAt && readyAt && readyAt < inPreparationAt) return false;
-  if (readyAt && deliveredAt && deliveredAt < readyAt) return false;
-  return true;
-}
+export function validateOrderInvariants(order: Order): string[] {
+  const errors: string[] = [];
 
-export function recomputeOrderTotal(items: OrderItem[]): number {
-  return items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  if (!validateTableNumber(order)) {
+    if (order.orderType === 'table') {
+      errors.push('tableNumber is required when orderType is "table"');
+    } else {
+      errors.push('tableNumber must be null when orderType is "takeout"');
+    }
+  }
+
+  if (!validatePriorityReason(order)) {
+    errors.push('priorityReason is required when priority is true');
+  }
+
+  if (!validateStatusTimestamps(order)) {
+    errors.push('Status timestamps do not match the current status');
+  }
+
+  if (!orderRequiresItem(order)) {
+    errors.push('Order must contain at least one OrderItem');
+  }
+
+  return errors;
 }

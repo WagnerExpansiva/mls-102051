@@ -18,21 +18,23 @@ export interface OpenShiftOutput {
 export async function openShift(ctx: RequestContext, input: OpenShiftInput): Promise<OpenShiftOutput> {
   const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
 
-  const existingOpen = await shifts.findOpenShift();
-  if (existingOpen) {
+  const openedBy = ctx.sessionContext.actorId ?? 'unknown';
+  const now = ctx.clock.nowIso();
+  const shiftId = ctx.idGenerator.newId();
+
+  // Rule singleOpenShift: reject if there is already an open shift.
+  const openShifts = await shifts.findOpenShifts();
+  if (openShifts.length > 0) {
     throw new AppError(
       'CONFLICT',
       'singleOpenShift: já existe um turno aberto. Feche o turno atual antes de abrir um novo.',
       409,
-      { ruleId: 'singleOpenShift', openShiftId: existingOpen.shiftId },
+      { ruleId: 'singleOpenShift', existingShiftId: openShifts[0].shiftId },
     );
   }
 
-  const now = ctx.clock.nowIso();
-  const openedBy = ctx.sessionContext.actorId ?? 'unknown';
-
-  const shift: Shift = {
-    shiftId: ctx.idGenerator.newId(),
+  const newShift: Shift = {
+    shiftId,
     status: 'open',
     openedAt: now,
     closedAt: null,
@@ -45,13 +47,13 @@ export async function openShift(ctx: RequestContext, input: OpenShiftInput): Pro
   };
 
   await ctx.data.runInTransaction(async () => {
-    await shifts.save(shift);
+    await shifts.save(newShift);
   });
 
   return {
-    shiftId: shift.shiftId,
-    status: shift.status,
-    openedAt: shift.openedAt,
-    openedBy: shift.openedBy,
+    shiftId: newShift.shiftId,
+    status: newShift.status,
+    openedAt: newShift.openedAt,
+    openedBy: newShift.openedBy,
   };
 }

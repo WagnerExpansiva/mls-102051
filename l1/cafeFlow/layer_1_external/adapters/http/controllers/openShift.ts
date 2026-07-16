@@ -5,9 +5,9 @@ import { openShift, type OpenShiftInput } from '/_102051_/l1/cafeFlow/layer_2_ap
 export const cafeFlowOpenShiftHandler: BffHandler = async ({ request, ctx }) => {
   const params = (request.params ?? {}) as Partial<OpenShiftInput>;
 
-  // Only 'notes' is a genuine client input (source: userInput).
+  // Only 'notes' is a genuine client boundary input (source: userInput).
   // All other fields (shiftId, status, openedAt, openedBy, createdAt, updatedAt)
-  // are resolved inside the usecase from ctx/ports and are NOT on the Input type.
+  // are resolved inside the usecase from ctx/ports and are NOT on OpenShiftInput.
   const input: OpenShiftInput = {
     notes: params.notes,
   };

@@ -23,33 +23,39 @@ export function canTransitionShift(from: ShiftStatus, to: ShiftStatus): boolean 
   return SHIFT_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export function shiftRequiresClosedFieldsWhenClosed(shift: Pick<Shift, 'status' | 'closedAt' | 'closedBy' | 'totalApurado'>): boolean {
-  if (shift.status !== 'closed') {
-    return true;
+export function validateShiftInvariants(shift: Shift): string[] {
+  const errors: string[] = [];
+
+  if (shift.status === 'closed') {
+    if (shift.closedAt === null) {
+      errors.push('closedAt is required when status is "closed"');
+    }
+    if (shift.closedBy === null) {
+      errors.push('closedBy is required when status is "closed"');
+    }
+    if (shift.totalApurado === null) {
+      errors.push('totalApurado is required when status is "closed"');
+    }
   }
-  return (
-    shift.closedAt !== null &&
-    shift.closedBy !== null &&
-    shift.totalApurado !== null
-  );
+
+  if (shift.status === 'open') {
+    if (shift.closedAt !== null) {
+      errors.push('closedAt must be null when status is "open"');
+    }
+    if (shift.closedBy !== null) {
+      errors.push('closedBy must be null when status is "open"');
+    }
+  }
+
+  if (shift.closedAt !== null && shift.openedAt !== null) {
+    if (shift.closedAt < shift.openedAt) {
+      errors.push('closedAt must be greater than or equal to openedAt');
+    }
+  }
+
+  return errors;
 }
 
-export function shiftClosedAtMustBeAfterOpenedAt(
-  shift: Pick<Shift, 'openedAt' | 'closedAt'>,
-): boolean {
-  if (shift.closedAt === null) {
-    return true;
-  }
-  return shift.closedAt > shift.openedAt;
-}
-
-export function shiftCannotBeReopened(from: ShiftStatus, to: ShiftStatus): boolean {
-  if (from === 'closed' && to === 'open') {
-    return false;
-  }
-  return true;
-}
-
-export function onlyOneShiftOpen(shifts: Pick<Shift, 'status'>[]): boolean {
-  return shifts.filter((s) => s.status === 'open').length <= 1;
+export function hasSingleOpenShift(shifts: Shift[]): boolean {
+  return shifts.filter((shift) => shift.status === 'open').length <= 1;
 }

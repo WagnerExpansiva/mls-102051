@@ -1,6 +1,6 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/stockConsumptionRepositoryAdapter.ts" enhancement="_blank"/>
-import type { RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
-import type { IStockConsumptionRepository, DateRange } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.js';
+import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
+import type { IStockConsumptionRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.js';
 import type { StockConsumption, StockConsumptionStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.js';
 
 interface StockConsumptionRow {
@@ -18,18 +18,18 @@ interface StockConsumptionDetails {
   voidReason: string | null;
 }
 
-function toRow(consumption: StockConsumption): StockConsumptionRow {
+function toRow(record: StockConsumption): StockConsumptionRow {
   const details: StockConsumptionDetails = {
-    quantity: consumption.quantity,
-    voidedAt: consumption.voidedAt,
-    voidReason: consumption.voidReason,
+    quantity: record.quantity,
+    voidedAt: record.voidedAt,
+    voidReason: record.voidReason,
   };
   return {
-    stock_consumption_id: consumption.stockConsumptionId,
-    stock_item_id: consumption.stockItemId,
-    order_id: consumption.orderId,
-    status: consumption.status,
-    created_at: consumption.createdAt,
+    stock_consumption_id: record.stockConsumptionId,
+    stock_item_id: record.stockItemId,
+    order_id: record.orderId,
+    status: record.status,
+    created_at: record.createdAt,
     details: JSON.stringify(details),
   };
 }
@@ -60,12 +60,12 @@ export function createStockConsumptionRepositoryAdapter(ctx: RequestContext): IS
   const getTable = () => ctx.data.moduleData.getTable<StockConsumptionRow>('stock_consumption');
 
   return {
-    async append(consumption) {
+    async append(record: StockConsumption): Promise<void> {
       const repo = await getTable();
-      await repo.insert({ record: toRow(consumption) });
+      await repo.insert({ record: toRow(record) });
     },
 
-    async listByOwnerId(orderId) {
+    async listByOwnerId(orderId: string): Promise<StockConsumption[]> {
       const repo = await getTable();
       const rows = await repo.findMany({
         where: { order_id: orderId },
@@ -74,17 +74,19 @@ export function createStockConsumptionRepositoryAdapter(ctx: RequestContext): IS
       return rows.map(toDomain);
     },
 
-    async listByPeriod(period: DateRange) {
+    async listByPeriod(start: Date, end: Date): Promise<StockConsumption[]> {
       const repo = await getTable();
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
       const rows = await repo.findMany({
         orderBy: { field: 'created_at', direction: 'asc' },
       });
       return rows
-        .filter((row) => row.created_at >= period.from && row.created_at <= period.to)
+        .filter((row) => row.created_at >= startIso && row.created_at <= endIso)
         .map(toDomain);
     },
 
-    async listByProductId(productId) {
+    async listByProductId(productId: string): Promise<StockConsumption[]> {
       const repo = await getTable();
       const rows = await repo.findMany({
         where: { stock_item_id: productId },

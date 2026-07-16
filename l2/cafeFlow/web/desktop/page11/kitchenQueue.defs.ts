@@ -83,24 +83,22 @@ export const definition = {
     {
       "id": "sec-kitchen-board",
       "type": "section",
-      "sectionName": "kitchenBoard",
-      "titleKey": "section.kitchenBoard.title",
+      "sectionName": "sec-kitchen-board",
+      "titleKey": "sec.kitchen.board.title",
       "mode": "kanban",
       "order": 1,
       "organisms": [
         {
-          "id": "org-kitchen-board",
+          "id": "org-kanban-board",
           "type": "organism",
-          "organismName": "kanbanBoard",
-          "titleKey": "org.kitchen.board.title",
-          "purpose": "Exibir pedidos da cozinha agrupados por status em colunas kanban (recebido, em preparo, pronto) com transições contextuais por cartão",
+          "organismName": "KanbanBoard",
+          "titleKey": "org.kanban.board.title",
+          "purpose": "Exibir pedidos da cozinha agrupados por status em colunas kanban (recebido, em preparo, pronto)",
           "userActions": [
-            "viewKitchenBoard",
-            "updateOrderStatus"
+            "viewKitchenBoard"
           ],
           "requiredEntities": [
-            "Order",
-            "OrderItem"
+            "Order"
           ],
           "readsFields": [
             "orderId",
@@ -115,16 +113,15 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "Pedidos agrupados por status em lanes: received, inPreparation, ready",
-            "Pedidos ordenados por receivedAt, priorizados primeiro",
-            "Apenas pedidos com status received ou inPreparation sao exibidos ativamente",
-            "Transicoes permitidas: received->inPreparation, inPreparation->ready",
-            "orderId derivado do selectedEntity, nunca digitado manualmente"
+            "Pedidos agrupados por status em lanes kanban",
+            "Pedidos priorizados destacados primeiro",
+            "Apenas pedidos recebidos, em preparo e prontos sao exibidos",
+            "Selecao de card define orderId para transicao"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "intent-board-query",
+              "id": "intent-query-board",
               "intent": "queryList",
               "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
               "action": "viewKitchenBoard",
@@ -135,19 +132,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-transition-panel",
+      "id": "sec-order-transition",
       "type": "section",
-      "sectionName": "transitionPanel",
-      "titleKey": "section.transitionPanel.title",
-      "mode": "detail",
+      "sectionName": "sec-order-transition",
+      "titleKey": "sec.order.transition.title",
+      "mode": "form",
       "order": 2,
       "organisms": [
         {
           "id": "org-transition-panel",
           "type": "organism",
-          "organismName": "transitionPanel",
+          "organismName": "TransitionPanel",
           "titleKey": "org.transition.panel.title",
-          "purpose": "Exibir pedido selecionado com contexto e executar transicao de status com feedback textual",
+          "purpose": "Permitir que o cozinheiro avance o status do pedido selecionado atraves de transicoes permitidas",
           "userActions": [
             "updateOrderStatus"
           ],
@@ -163,19 +160,52 @@ export const definition = {
             "status"
           ],
           "rulesApplied": [
-            "orderId derivado do selectedEntity, nunca digitado manualmente",
-            "status definido pela transicao escolhida: received->inPreparation ou inPreparation->ready",
-            "Feedback textual dismissible apos execucao",
-            "Apos sucesso: refresh viewKitchenBoard e limpar form e selecao"
+            "orderId derivado da entidade selecionada no kanban",
+            "status definido pelo botao de transicao clicado",
+            "Apenas transicoes permitidas sao exibidas: received->inPreparation, inPreparation->ready",
+            "Feedback textual apos executar comando"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "intent-transition-form",
+              "id": "intent-command-transition",
               "intent": "commandForm",
-              "stateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
+              "stateKey": "ui.kitchenQueue.output.updateOrderStatus",
               "action": "updateOrderStatus",
               "submitAction": "updateOrderStatus",
+              "order": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-review",
+      "type": "section",
+      "sectionName": "sec-review",
+      "titleKey": "sec.review.title",
+      "mode": "summary",
+      "order": 3,
+      "organisms": [
+        {
+          "id": "org-review-panel",
+          "type": "organism",
+          "organismName": "ReviewPanel",
+          "titleKey": "org.review.panel.title",
+          "purpose": "Exibir feedback textual da ultima acao de transicao executada",
+          "userActions": [],
+          "requiredEntities": [],
+          "readsFields": [],
+          "writesFields": [],
+          "rulesApplied": [
+            "Feedback dismissible apos sucesso ou erro"
+          ],
+          "order": 1,
+          "intentionRefs": [
+            {
+              "id": "intent-summary-feedback",
+              "intent": "summary",
+              "stateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
               "order": 1
             }
           ]
@@ -185,31 +215,69 @@ export const definition = {
   ],
   "templateId": "kanban_pipeline",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
+  "msgKeys": [
+    "action.markReady.label",
+    "action.select.label",
+    "action.startPreparation.label",
+    "action.updateOrderStatus.error",
+    "action.updateOrderStatus.label",
+    "action.updateOrderStatus.success",
+    "action.viewKitchenBoard.label",
+    "column.createdAt.label",
+    "column.inPreparationAt.label",
+    "column.orderId.label",
+    "column.orderType.label",
+    "column.priority.label",
+    "column.priorityReason.label",
+    "column.receivedAt.label",
+    "column.status.label",
+    "column.tableNumber.label",
+    "empty.kitchenBoard",
+    "empty.orderTransition",
+    "empty.review",
+    "field.orderId.label",
+    "field.status.label",
+    "lane.inPreparation.title",
+    "lane.ready.title",
+    "lane.received.title",
+    "org.kanban.board.title",
+    "org.review.panel.title",
+    "org.transition.panel.title",
+    "page.kitchenQueue.subtitle",
+    "page.kitchenQueue.title",
+    "sec.kitchen.board.title",
+    "sec.order.transition.title",
+    "sec.review.title",
+    "section.kitchenBoard.title",
+    "section.orderTransition.title",
+    "section.review.title",
+    "status.inPreparation",
+    "status.ready",
+    "status.received"
+  ],
   "layout": {
-    "id": "kanban_pipeline_page11",
+    "id": "kanban_pipeline",
     "type": "page",
     "sections": [
       {
         "id": "sec-kitchen-board",
         "type": "section",
-        "sectionName": "kitchenBoard",
-        "titleKey": "section.kitchenBoard.title",
+        "sectionName": "sec-kitchen-board",
+        "titleKey": "sec.kitchen.board.title",
         "mode": "kanban",
         "order": 1,
         "organisms": [
           {
-            "id": "org-kitchen-board",
+            "id": "org-kanban-board",
             "type": "organism",
-            "organismName": "kanbanBoard",
-            "titleKey": "org.kitchen.board.title",
-            "purpose": "Exibir pedidos da cozinha agrupados por status em colunas kanban (recebido, em preparo, pronto) com transições contextuais por cartão",
+            "organismName": "KanbanBoard",
+            "titleKey": "org.kanban.board.title",
+            "purpose": "Exibir pedidos da cozinha agrupados por status em colunas kanban (recebido, em preparo, pronto)",
             "userActions": [
-              "viewKitchenBoard",
-              "updateOrderStatus"
+              "viewKitchenBoard"
             ],
             "requiredEntities": [
-              "Order",
-              "OrderItem"
+              "Order"
             ],
             "readsFields": [
               "orderId",
@@ -224,23 +292,21 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "Pedidos agrupados por status em lanes: received, inPreparation, ready",
-              "Pedidos ordenados por receivedAt, priorizados primeiro",
-              "Apenas pedidos com status received ou inPreparation sao exibidos ativamente",
-              "Transicoes permitidas: received->inPreparation, inPreparation->ready",
-              "orderId derivado do selectedEntity, nunca digitado manualmente"
+              "Pedidos agrupados por status em lanes kanban",
+              "Pedidos priorizados destacados primeiro",
+              "Apenas pedidos recebidos, em preparo e prontos sao exibidos",
+              "Selecao de card define orderId para transicao"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "intent-board-query",
+                "id": "intent-query-board",
                 "intent": "queryList",
                 "order": 1,
                 "titleKey": "section.kitchenBoard.title",
                 "source": "viewKitchenBoard",
-                "binding": "ui.kitchenQueue.data.viewKitchenBoard",
                 "action": "viewKitchenBoard",
-                "emptyKey": "section.kitchenBoard.empty",
+                "emptyKey": "empty.kitchenBoard",
                 "displayHint": "kanban-lanes:received,inPreparation,ready",
                 "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
                 "fields": [],
@@ -251,7 +317,6 @@ export const definition = {
                     "labelKey": "column.orderId.label",
                     "order": 1,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -260,7 +325,6 @@ export const definition = {
                     "labelKey": "column.status.label",
                     "order": 2,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -269,7 +333,6 @@ export const definition = {
                     "labelKey": "column.orderType.label",
                     "order": 3,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -278,7 +341,6 @@ export const definition = {
                     "labelKey": "column.tableNumber.label",
                     "order": 4,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -287,7 +349,6 @@ export const definition = {
                     "labelKey": "column.priority.label",
                     "order": 5,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -296,7 +357,6 @@ export const definition = {
                     "labelKey": "column.priorityReason.label",
                     "order": 6,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -305,7 +365,6 @@ export const definition = {
                     "labelKey": "column.receivedAt.label",
                     "order": 7,
                     "required": false,
-                    "inputType": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -314,7 +373,6 @@ export const definition = {
                     "labelKey": "column.inPreparationAt.label",
                     "order": 8,
                     "required": false,
-                    "inputType": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
@@ -323,14 +381,13 @@ export const definition = {
                     "labelKey": "column.createdAt.label",
                     "order": 9,
                     "required": false,
-                    "inputType": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   }
                 ],
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb-refresh",
+                    "id": "tb-refresh-board",
                     "action": "viewKitchenBoard",
                     "labelKey": "action.viewKitchenBoard.label",
                     "order": 1,
@@ -338,24 +395,7 @@ export const definition = {
                     "actionKey": "viewKitchenBoard"
                   }
                 ],
-                "rowActions": [
-                  {
-                    "id": "ra-start-prep",
-                    "action": "updateOrderStatus",
-                    "labelKey": "transition.startPreparation.label",
-                    "order": 2,
-                    "displayHint": "visibleWhenStatus=received",
-                    "actionKey": "updateOrderStatus"
-                  },
-                  {
-                    "id": "ra-mark-ready",
-                    "action": "updateOrderStatus",
-                    "labelKey": "transition.markReady.label",
-                    "order": 3,
-                    "displayHint": "visibleWhenStatus=inPreparation",
-                    "actionKey": "updateOrderStatus"
-                  }
-                ],
+                "rowActions": [],
                 "actions": []
               }
             ]
@@ -363,19 +403,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-transition-panel",
+        "id": "sec-order-transition",
         "type": "section",
-        "sectionName": "transitionPanel",
-        "titleKey": "section.transitionPanel.title",
-        "mode": "detail",
+        "sectionName": "sec-order-transition",
+        "titleKey": "sec.order.transition.title",
+        "mode": "form",
         "order": 2,
         "organisms": [
           {
             "id": "org-transition-panel",
             "type": "organism",
-            "organismName": "transitionPanel",
+            "organismName": "TransitionPanel",
             "titleKey": "org.transition.panel.title",
-            "purpose": "Exibir pedido selecionado com contexto e executar transicao de status com feedback textual",
+            "purpose": "Permitir que o cozinheiro avance o status do pedido selecionado atraves de transicoes permitidas",
             "userActions": [
               "updateOrderStatus"
             ],
@@ -391,43 +431,43 @@ export const definition = {
               "status"
             ],
             "rulesApplied": [
-              "orderId derivado do selectedEntity, nunca digitado manualmente",
-              "status definido pela transicao escolhida: received->inPreparation ou inPreparation->ready",
-              "Feedback textual dismissible apos execucao",
-              "Apos sucesso: refresh viewKitchenBoard e limpar form e selecao"
+              "orderId derivado da entidade selecionada no kanban",
+              "status definido pelo botao de transicao clicado",
+              "Apenas transicoes permitidas sao exibidas: received->inPreparation, inPreparation->ready",
+              "Feedback textual apos executar comando"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "intent-transition-form",
+                "id": "intent-command-transition",
                 "intent": "commandForm",
                 "order": 1,
-                "titleKey": "section.transitionPanel.title",
+                "titleKey": "section.orderTransition.title",
                 "source": "updateOrderStatus",
-                "binding": "ui.kitchenQueue.output.updateOrderStatus",
+                "binding": "updateOrderStatus",
                 "action": "updateOrderStatus",
                 "submitAction": "updateOrderStatus",
-                "emptyKey": "section.transitionPanel.empty",
-                "displayHint": "transition-form",
-                "stateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
+                "emptyKey": "empty.orderTransition",
+                "displayHint": "transition-buttons",
+                "stateKey": "ui.kitchenQueue.output.updateOrderStatus",
                 "fields": [
                   {
-                    "id": "fld-orderId",
+                    "id": "fld-transition-orderId",
                     "field": "orderId",
                     "labelKey": "field.orderId.label",
                     "order": 1,
                     "required": true,
-                    "inputType": "text",
+                    "inputType": "hidden",
                     "source": "selectedEntity",
                     "stateKey": "ui.kitchenQueue.input.updateOrderStatus.orderId"
                   },
                   {
-                    "id": "fld-status",
+                    "id": "fld-transition-status",
                     "field": "status",
                     "labelKey": "field.status.label",
                     "order": 2,
                     "required": true,
-                    "inputType": "select",
+                    "inputType": "hidden",
                     "source": "userInput",
                     "stateKey": "ui.kitchenQueue.input.updateOrderStatus.status"
                   }
@@ -438,14 +478,64 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-submit",
+                    "id": "act-start-preparation",
                     "action": "updateOrderStatus",
-                    "labelKey": "action.updateOrderStatus.label",
-                    "order": 3,
-                    "displayHint": "primary",
+                    "labelKey": "action.startPreparation.label",
+                    "order": 1,
+                    "displayHint": "transition:received->inPreparation",
+                    "actionKey": "updateOrderStatus"
+                  },
+                  {
+                    "id": "act-mark-ready",
+                    "action": "updateOrderStatus",
+                    "labelKey": "action.markReady.label",
+                    "order": 2,
+                    "displayHint": "transition:inPreparation->ready",
                     "actionKey": "updateOrderStatus"
                   }
                 ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sec-review",
+        "type": "section",
+        "sectionName": "sec-review",
+        "titleKey": "sec.review.title",
+        "mode": "summary",
+        "order": 3,
+        "organisms": [
+          {
+            "id": "org-review-panel",
+            "type": "organism",
+            "organismName": "ReviewPanel",
+            "titleKey": "org.review.panel.title",
+            "purpose": "Exibir feedback textual da ultima acao de transicao executada",
+            "userActions": [],
+            "requiredEntities": [],
+            "readsFields": [],
+            "writesFields": [],
+            "rulesApplied": [
+              "Feedback dismissible apos sucesso ou erro"
+            ],
+            "order": 1,
+            "intentions": [
+              {
+                "id": "intent-summary-feedback",
+                "intent": "summary",
+                "order": 1,
+                "titleKey": "section.review.title",
+                "emptyKey": "empty.review",
+                "displayHint": "mutation-feedback",
+                "stateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
+                "fields": [],
+                "columns": [],
+                "filters": [],
+                "toolbar": [],
+                "rowActions": [],
+                "actions": []
               }
             ]
           }
@@ -455,17 +545,17 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "bind-viewKitchenBoard",
-      "source": "viewKitchenBoard",
+      "id": "binding-viewKitchenBoard",
+      "source": "query",
       "entity": "Order",
       "command": "viewKitchenBoard",
-      "description": "Carrega pedidos da cozinha do turno atual com status received ou inPreparation",
+      "description": "Carrega lista de pedidos da cozinha agrupados por status",
       "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
       "inputStateKeys": []
     },
     {
-      "id": "bind-updateOrderStatus",
-      "source": "updateOrderStatus",
+      "id": "binding-updateOrderStatus",
+      "source": "command",
       "entity": "Order",
       "command": "updateOrderStatus",
       "description": "Atualiza status do pedido selecionado na cozinha",
@@ -485,9 +575,7 @@ export const pipeline = [
     "outputPath": "_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.ts",
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page11/kitchenQueue.defs.ts",
     "dependsFiles": [
-      "_102051_/l2/cafeFlow/web/shared/kitchenQueue.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/kitchenQueue.ts",
-      "_102051_/l2/cafeFlow/web/contracts/kitchenQueue.defs.ts",
       "_102051_/l2/cafeFlow/web/contracts/kitchenQueue.ts",
       "_102051_/l2/designSystem.ts"
     ],

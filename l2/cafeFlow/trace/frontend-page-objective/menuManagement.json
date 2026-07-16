@@ -1,41 +1,51 @@
 {
-  "savedAt": "2026-07-15T23:07:04.267Z",
+  "savedAt": "2026-07-16T13:58:35.779Z",
   "pageId": "menuManagement",
   "genome": "page21",
   "objective": {
-    "actor": "Gerente do café",
-    "jobToBeDone": "Gerenciar itens do cardápio criando, editando e ativando/inativando itens para manter o menu do POS atualizado",
-    "primaryDecision": "Decidir o status de cada item do cardápio (rascunho, ativo, inativo) e editar suas informações comerciais (nome, categoria, preço, tipo)",
+    "actor": "Gerente do café (cafe manager)",
+    "jobToBeDone": "Gerenciar itens do cardápio criando, editando e ativando/inativando itens para disponibilizá-los ou removê-los do POS",
+    "primaryDecision": "Decidir o status do item (rascunho → ativo → inativo) e editar seus dados comerciais (nome, categoria, preço, tipo)",
     "decisiveInfo": [
       "name",
-      "price",
       "menuCategoryId",
+      "price",
       "itemType",
       "status"
     ],
-    "usageFrequency": "occasional/back-office — o gerente acessa algumas vezes por semana para ajustar o menu",
+    "usageFrequency": "occasional/back-office — gerente acessa para criar novos itens ou ajustar o cardápio existente",
     "criticalActions": [
       {
-        "action": "browseMenuItems",
-        "presentation": "filterable list with status and category filters, master-detail selection"
+        "action": "manageMenuItem (save edits)",
+        "presentation": "primary-button"
       },
       {
-        "action": "manageMenuItem",
-        "presentation": "contextual-transition-actions for status changes (activate/inactivate/draft) + inline form for editing commercial fields"
+        "action": "activate transition (draft/inactive → active)",
+        "presentation": "contextual-transition-actions"
+      },
+      {
+        "action": "inactivate transition (active → inactive)",
+        "presentation": "contextual-transition-actions"
+      },
+      {
+        "action": "new item (clear selection)",
+        "presentation": "primary-button"
       }
     ],
     "informationHierarchy": [
-      "Filtered list of menu items with status badges and key commercial fields",
-      "Selected item detail panel with editable form fields",
-      "Contextual status transition buttons (Ativar / Inativar / Rascunho) positioned next to the form"
+      "Lista de itens com filtros por status e categoria (master)",
+      "Item selecionado com dados editáveis (detail)",
+      "Status atual exibido como contexto read-only",
+      "Botões de transição de status contextuais (ativar/inativar)",
+      "Feedback de sucesso/erro da operação"
     ],
-    "successCriteria": "Manager can find items by status/category at a glance, see the current lifecycle state of each item, edit commercial details inline, and transition status with one click — without typing IDs or selecting from a free status dropdown",
+    "successCriteria": "Gerente localiza rapidamente itens por status/categoria, edita dados em painel contextual e ativa/inativa com um clique, recebendo feedback claro",
     "antiPatterns": [
-      "separate transition form for status changes",
-      "free status <select> over all enum values",
-      "manually typed menuItemId",
-      "showing system timestamps (activatedAt, inactivatedAt, updatedAt) as editable fields",
-      "stacking a full form below the list instead of master-detail contextual panel"
+      "Status renderizado como select livre sobre todo o enum",
+      "menuItemId digitado manualmente pelo usuário",
+      "Formulário de edição separado da lista em outra tela",
+      "Timestamps (activatedAt, inactivatedAt, updatedAt) expostos como inputs editáveis",
+      "Mostrar todos os campos do item no card da lista sobrecarregando a leitura"
     ]
   }
 }

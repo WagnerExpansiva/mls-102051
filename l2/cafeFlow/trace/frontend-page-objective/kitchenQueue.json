@@ -1,47 +1,45 @@
 {
-  "savedAt": "2026-07-15T23:06:05.793Z",
+  "savedAt": "2026-07-16T13:56:47.387Z",
   "pageId": "kitchenQueue",
   "genome": "page21",
   "objective": {
-    "actor": "cozinheiro (kitchen cook)",
-    "jobToBeDone": "Visualizar a fila de pedidos da cozinha em ordem de prioridade e avançar cada pedido de 'recebido' para 'em preparo' e de 'em preparo' para 'pronto' com o mínimo de interações.",
-    "primaryDecision": "Qual pedido avançar para a próxima etapa do preparo (iniciar preparo ou marcar como pronto)",
+    "actor": "Cozinheiro (kitchen cook)",
+    "jobToBeDone": "Visualizar a fila de pedidos recebidos na cozinha e avançar o status de cada pedido conforme o preparo progride, do recebimento até ficar pronto.",
+    "primaryDecision": "Decidir qual pedido avançar de status agora — iniciar preparo (recebido→em preparo) ou marcar como pronto (em preparo→pronto).",
     "decisiveInfo": [
-      "priority",
+      "orderId",
       "status",
       "orderType",
       "tableNumber",
-      "receivedAt",
-      "inPreparationAt",
-      "orderId",
-      "priorityReason"
+      "priority",
+      "priorityReason",
+      "receivedAt"
     ],
-    "usageFrequency": "continuous/hands-busy — operational kitchen screen during active service",
+    "usageFrequency": "Continuous, hands-busy operational screen during active service — the cook glances at the board and taps transitions repeatedly throughout a shift.",
     "criticalActions": [
       {
-        "action": "viewKitchenBoard",
-        "presentation": "auto-loaded query displayed as prioritized queue (summary-first)"
+        "action": "updateOrderStatus (received→inPreparation)",
+        "presentation": "inline-row-command"
       },
       {
-        "action": "updateOrderStatus",
-        "presentation": "contextual-transition-actions / inline-row-command — one button per allowed next state on each row"
+        "action": "updateOrderStatus (inPreparation→ready)",
+        "presentation": "inline-row-command"
       }
     ],
     "informationHierarchy": [
-      "1. Queue of orders sorted by priority then receivedAt (most urgent/oldest first)",
-      "2. Per-order identity: priority indicator, status, orderType, tableNumber",
-      "3. Timing context: receivedAt and inPreparationAt for aging awareness",
-      "4. Priority reason when present",
-      "5. Contextual transition buttons per row (Iniciar Preparo / Marcar Pronto)"
+      "Priority flag and reason — draws attention to urgent orders first",
+      "Order identity: type (mesa/viagem) and table number — tells the cook what and where",
+      "Time received — enables FIFO ordering within same priority",
+      "Current status — confirms what stage the order is in",
+      "Contextual transition buttons — the one-tap action to advance the order"
     ],
-    "successCriteria": "Cook sees the full queue at a glance, identifies the next order by priority and arrival time, and advances its status with a single tap — no forms, no typed ids, no free status selects.",
+    "successCriteria": "The cook can see the entire active queue at a glance, immediately identify priority orders, and advance any order's status with a single tap without navigating away from the board or typing any identifier.",
     "antiPatterns": [
-      "separate transition form below the list",
-      "manually typed orderId",
-      "free status <select> over all enum values",
-      "dense spreadsheet-style table",
-      "persuasion mechanics on operational screen",
-      "multi-step wizard for a single-decision transition"
+      "Separate transition form below the list — forces context switching",
+      "Free status <select> over all enum values — cook should only see valid next states",
+      "Manually typed orderId — error-prone and slow in a busy kitchen",
+      "Dense spreadsheet table — unreadable on kitchen displays and slow to scan",
+      "Multi-step wizard for a single-decision transition — adds friction to a high-frequency action"
     ]
   }
 }

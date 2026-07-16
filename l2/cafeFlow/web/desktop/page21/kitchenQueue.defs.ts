@@ -93,7 +93,7 @@ export const definition = {
           "type": "organism",
           "organismName": "KitchenBoard",
           "titleKey": "kitchen.board.title",
-          "purpose": "Live kitchen queue showing prioritized orders with inline contextual transition actions for advancing order status",
+          "purpose": "Live kitchen queue showing orders sorted by priority and arrival time, with inline contextual status transitions for each order card.",
           "userActions": [
             "viewKitchenBoard",
             "updateOrderStatus"
@@ -117,18 +117,88 @@ export const definition = {
             "status"
           ],
           "rulesApplied": [
-            "orderId derived from selectedEntity on row action, never manual input",
-            "status set by specific transition button (received→inPreparation or inPreparation→ready), never free select",
-            "only allowed kitchen transitions shown as contextual buttons per row",
-            "queue auto-loads on page entry and refreshes after each transition"
+            "Orders sorted by priority first then receivedAt (FIFO within same priority)",
+            "Only orders with status 'received' or 'inPreparation' are shown",
+            "Transition received→inPreparation allowed when status is 'received'",
+            "Transition inPreparation→ready allowed when status is 'inPreparation'",
+            "orderId is derived from selectedEntity, never manually typed",
+            "status is set by the contextual transition button, never a free select"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "view-kitchen-board",
-              "intent": "query",
+              "id": "board-query",
+              "intent": "View the live kitchen board with all active orders displayed as cards sorted by priority and arrival time",
               "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
               "order": 1
+            },
+            {
+              "id": "status-transition",
+              "intent": "Execute the order status transition using orderId from selectedEntity and status from the contextual button clicked",
+              "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+              "order": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kitchen-queue-section2",
+      "type": "section",
+      "sectionName": "kitchen-queue-section",
+      "titleKey": "kitchen.queue.section.title",
+      "mode": "main",
+      "order": 1,
+      "organisms": [
+        {
+          "id": "kitchen-board2",
+          "type": "organism",
+          "organismName": "KitchenBoard",
+          "titleKey": "kitchen.board.title",
+          "purpose": "Live kitchen queue showing orders sorted by priority and arrival time, with inline contextual status transitions for each order card.",
+          "userActions": [
+            "viewKitchenBoard",
+            "updateOrderStatus"
+          ],
+          "requiredEntities": [
+            "Order"
+          ],
+          "readsFields": [
+            "orderId",
+            "status",
+            "orderType",
+            "tableNumber",
+            "priority",
+            "priorityReason",
+            "receivedAt",
+            "inPreparationAt",
+            "createdAt"
+          ],
+          "writesFields": [
+            "orderId",
+            "status"
+          ],
+          "rulesApplied": [
+            "Orders sorted by priority first then receivedAt (FIFO within same priority)",
+            "Only orders with status 'received' or 'inPreparation' are shown",
+            "Transition received→inPreparation allowed when status is 'received'",
+            "Transition inPreparation→ready allowed when status is 'inPreparation'",
+            "orderId is derived from selectedEntity, never manually typed",
+            "status is set by the contextual transition button, never a free select"
+          ],
+          "order": 1,
+          "intentionRefs": [
+            {
+              "id": "board-query2",
+              "intent": "View the live kitchen board with all active orders displayed as cards sorted by priority and arrival time",
+              "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+              "order": 1
+            },
+            {
+              "id": "status-transition2",
+              "intent": "Execute the order status transition using orderId from selectedEntity and status from the contextual button clicked",
+              "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+              "order": 2
             }
           ]
         }
@@ -138,47 +208,68 @@ export const definition = {
   "templateId": "goal_first",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "pageObjective": {
-    "actor": "cozinheiro (kitchen cook)",
-    "jobToBeDone": "Visualizar a fila de pedidos da cozinha em ordem de prioridade e avançar cada pedido de 'recebido' para 'em preparo' e de 'em preparo' para 'pronto' com o mínimo de interações.",
-    "primaryDecision": "Qual pedido avançar para a próxima etapa do preparo (iniciar preparo ou marcar como pronto)",
+    "actor": "Cozinheiro (kitchen cook)",
+    "jobToBeDone": "Visualizar a fila de pedidos recebidos na cozinha e avançar o status de cada pedido conforme o preparo progride, do recebimento até ficar pronto.",
+    "primaryDecision": "Decidir qual pedido avançar de status agora — iniciar preparo (recebido→em preparo) ou marcar como pronto (em preparo→pronto).",
     "decisiveInfo": [
-      "priority",
+      "orderId",
       "status",
       "orderType",
       "tableNumber",
-      "receivedAt",
-      "inPreparationAt",
-      "orderId",
-      "priorityReason"
+      "priority",
+      "priorityReason",
+      "receivedAt"
     ],
-    "usageFrequency": "continuous/hands-busy — operational kitchen screen during active service",
+    "usageFrequency": "Continuous, hands-busy operational screen during active service — the cook glances at the board and taps transitions repeatedly throughout a shift.",
     "criticalActions": [
       {
-        "action": "viewKitchenBoard",
-        "presentation": "auto-loaded query displayed as prioritized queue (summary-first)"
+        "action": "updateOrderStatus (received→inPreparation)",
+        "presentation": "inline-row-command"
       },
       {
-        "action": "updateOrderStatus",
-        "presentation": "contextual-transition-actions / inline-row-command — one button per allowed next state on each row"
+        "action": "updateOrderStatus (inPreparation→ready)",
+        "presentation": "inline-row-command"
       }
     ],
     "informationHierarchy": [
-      "1. Queue of orders sorted by priority then receivedAt (most urgent/oldest first)",
-      "2. Per-order identity: priority indicator, status, orderType, tableNumber",
-      "3. Timing context: receivedAt and inPreparationAt for aging awareness",
-      "4. Priority reason when present",
-      "5. Contextual transition buttons per row (Iniciar Preparo / Marcar Pronto)"
+      "Priority flag and reason — draws attention to urgent orders first",
+      "Order identity: type (mesa/viagem) and table number — tells the cook what and where",
+      "Time received — enables FIFO ordering within same priority",
+      "Current status — confirms what stage the order is in",
+      "Contextual transition buttons — the one-tap action to advance the order"
     ],
-    "successCriteria": "Cook sees the full queue at a glance, identifies the next order by priority and arrival time, and advances its status with a single tap — no forms, no typed ids, no free status selects.",
+    "successCriteria": "The cook can see the entire active queue at a glance, immediately identify priority orders, and advance any order's status with a single tap without navigating away from the board or typing any identifier.",
     "antiPatterns": [
-      "separate transition form below the list",
-      "manually typed orderId",
-      "free status <select> over all enum values",
-      "dense spreadsheet-style table",
-      "persuasion mechanics on operational screen",
-      "multi-step wizard for a single-decision transition"
+      "Separate transition form below the list — forces context switching",
+      "Free status <select> over all enum values — cook should only see valid next states",
+      "Manually typed orderId — error-prone and slow in a busy kitchen",
+      "Dense spreadsheet table — unreadable on kitchen displays and slow to scan",
+      "Multi-step wizard for a single-decision transition — adds friction to a high-frequency action"
     ]
   },
+  "msgKeys": [
+    "action.markReady",
+    "action.refreshBoard",
+    "action.startPreparation",
+    "action.updateOrderStatus",
+    "action.updateOrderStatus.error",
+    "action.updateOrderStatus.success",
+    "empty.kitchenBoard",
+    "field.createdAt",
+    "field.inPreparationAt",
+    "field.orderId",
+    "field.orderType",
+    "field.priority",
+    "field.priorityReason",
+    "field.receivedAt",
+    "field.status",
+    "field.tableNumber",
+    "kitchen.board.title",
+    "kitchen.queue.section.title",
+    "page.kitchenQueue.title",
+    "section.kitchenQueue.title",
+    "section.transition.title"
+  ],
   "layout": {
     "id": "page21",
     "type": "page",
@@ -196,7 +287,7 @@ export const definition = {
             "type": "organism",
             "organismName": "KitchenBoard",
             "titleKey": "kitchen.board.title",
-            "purpose": "Live kitchen queue showing prioritized orders with inline contextual transition actions for advancing order status",
+            "purpose": "Live kitchen queue showing orders sorted by priority and arrival time, with inline contextual status transitions for each order card.",
             "userActions": [
               "viewKitchenBoard",
               "updateOrderStatus"
@@ -220,125 +311,122 @@ export const definition = {
               "status"
             ],
             "rulesApplied": [
-              "orderId derived from selectedEntity on row action, never manual input",
-              "status set by specific transition button (received→inPreparation or inPreparation→ready), never free select",
-              "only allowed kitchen transitions shown as contextual buttons per row",
-              "queue auto-loads on page entry and refreshes after each transition"
+              "Orders sorted by priority first then receivedAt (FIFO within same priority)",
+              "Only orders with status 'received' or 'inPreparation' are shown",
+              "Transition received→inPreparation allowed when status is 'received'",
+              "Transition inPreparation→ready allowed when status is 'inPreparation'",
+              "orderId is derived from selectedEntity, never manually typed",
+              "status is set by the contextual transition button, never a free select"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "view-kitchen-board",
-                "intent": "query",
+                "id": "board-query",
+                "intent": "View the live kitchen board with all active orders displayed as cards sorted by priority and arrival time",
                 "order": 1,
-                "titleKey": "intention.viewKitchenBoard.title",
-                "source": "viewKitchenBoard",
-                "binding": "ui.kitchenQueue.data.viewKitchenBoard",
-                "emptyKey": "empty.kitchenQueue",
-                "displayHint": "summary-first",
+                "titleKey": "section.kitchenQueue.title",
+                "emptyKey": "empty.kitchenBoard",
+                "displayHint": "card-board",
                 "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-priority",
-                    "field": "priority",
-                    "labelKey": "column.priority.label",
+                    "id": "col-order-id",
+                    "field": "orderId",
+                    "labelKey": "field.orderId",
                     "order": 1,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewKitchenBoard",
+                    "format": "id",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
                     "id": "col-status",
                     "field": "status",
-                    "labelKey": "column.status.label",
+                    "labelKey": "field.status",
                     "order": 2,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewKitchenBoard",
+                    "format": "enum",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-orderType",
+                    "id": "col-order-type",
                     "field": "orderType",
-                    "labelKey": "column.orderType.label",
+                    "labelKey": "field.orderType",
                     "order": 3,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewKitchenBoard",
+                    "format": "enum",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-tableNumber",
+                    "id": "col-table-number",
                     "field": "tableNumber",
-                    "labelKey": "column.tableNumber.label",
+                    "labelKey": "field.tableNumber",
                     "order": 4,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewKitchenBoard",
+                    "format": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-orderId",
-                    "field": "orderId",
-                    "labelKey": "column.orderId.label",
+                    "id": "col-priority",
+                    "field": "priority",
+                    "labelKey": "field.priority",
                     "order": 5,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewKitchenBoard",
+                    "format": "enum",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-receivedAt",
-                    "field": "receivedAt",
-                    "labelKey": "column.receivedAt.label",
+                    "id": "col-priority-reason",
+                    "field": "priorityReason",
+                    "labelKey": "field.priorityReason",
                     "order": 6,
                     "required": false,
-                    "inputType": "datetime",
-                    "format": "time",
-                    "source": "viewKitchenBoard",
+                    "inputType": "text",
+                    "format": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-inPreparationAt",
-                    "field": "inPreparationAt",
-                    "labelKey": "column.inPreparationAt.label",
+                    "id": "col-received-at",
+                    "field": "receivedAt",
+                    "labelKey": "field.receivedAt",
                     "order": 7,
                     "required": false,
-                    "inputType": "datetime",
-                    "format": "time",
-                    "source": "viewKitchenBoard",
+                    "inputType": "text",
+                    "format": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-priorityReason",
-                    "field": "priorityReason",
-                    "labelKey": "column.priorityReason.label",
+                    "id": "col-in-preparation-at",
+                    "field": "inPreparationAt",
+                    "labelKey": "field.inPreparationAt",
                     "order": 8,
                     "required": false,
                     "inputType": "text",
-                    "source": "viewKitchenBoard",
+                    "format": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-createdAt",
+                    "id": "col-created-at",
                     "field": "createdAt",
-                    "labelKey": "column.createdAt.label",
+                    "labelKey": "field.createdAt",
                     "order": 9,
                     "required": false,
-                    "inputType": "datetime",
+                    "inputType": "text",
                     "format": "datetime",
-                    "source": "viewKitchenBoard",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   }
                 ],
                 "filters": [],
                 "toolbar": [
                   {
-                    "id": "toolbar-refresh",
+                    "id": "refresh-board",
                     "action": "viewKitchenBoard",
-                    "labelKey": "toolbar.refresh.label",
+                    "labelKey": "action.refreshBoard",
                     "order": 1,
                     "displayHint": "primary-button",
                     "actionKey": "viewKitchenBoard"
@@ -346,23 +434,293 @@ export const definition = {
                 ],
                 "rowActions": [
                   {
-                    "id": "row-start-preparation",
+                    "id": "start-preparation",
                     "action": "updateOrderStatus",
-                    "labelKey": "rowAction.startPreparation.label",
+                    "labelKey": "action.startPreparation",
                     "order": 1,
                     "displayHint": "contextual-transition-actions",
                     "actionKey": "updateOrderStatus"
                   },
                   {
-                    "id": "row-mark-ready",
+                    "id": "mark-ready",
                     "action": "updateOrderStatus",
-                    "labelKey": "rowAction.markReady.label",
+                    "labelKey": "action.markReady",
                     "order": 2,
                     "displayHint": "contextual-transition-actions",
                     "actionKey": "updateOrderStatus"
                   }
                 ],
                 "actions": []
+              },
+              {
+                "id": "status-transition",
+                "intent": "Execute the order status transition using orderId from selectedEntity and status from the contextual button clicked",
+                "order": 2,
+                "titleKey": "section.transition.title",
+                "displayHint": "contextual-transition-actions",
+                "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+                "fields": [
+                  {
+                    "id": "trans-order-id",
+                    "field": "orderId",
+                    "labelKey": "field.orderId",
+                    "order": 1,
+                    "required": true,
+                    "inputType": "hidden",
+                    "source": "selectedEntity",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "trans-status",
+                    "field": "status",
+                    "labelKey": "field.status",
+                    "order": 2,
+                    "required": true,
+                    "inputType": "hidden",
+                    "source": "userInput",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  }
+                ],
+                "columns": [],
+                "filters": [],
+                "toolbar": [],
+                "rowActions": [],
+                "actions": [
+                  {
+                    "id": "submit-transition",
+                    "action": "updateOrderStatus",
+                    "labelKey": "action.updateOrderStatus",
+                    "order": 1,
+                    "displayHint": "contextual-transition-actions",
+                    "actionKey": "updateOrderStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "kitchen-queue-section2",
+        "type": "section",
+        "sectionName": "kitchen-queue-section",
+        "titleKey": "kitchen.queue.section.title",
+        "mode": "main",
+        "order": 1,
+        "organisms": [
+          {
+            "id": "kitchen-board2",
+            "type": "organism",
+            "organismName": "KitchenBoard",
+            "titleKey": "kitchen.board.title",
+            "purpose": "Live kitchen queue showing orders sorted by priority and arrival time, with inline contextual status transitions for each order card.",
+            "userActions": [
+              "viewKitchenBoard",
+              "updateOrderStatus"
+            ],
+            "requiredEntities": [
+              "Order"
+            ],
+            "readsFields": [
+              "orderId",
+              "status",
+              "orderType",
+              "tableNumber",
+              "priority",
+              "priorityReason",
+              "receivedAt",
+              "inPreparationAt",
+              "createdAt"
+            ],
+            "writesFields": [
+              "orderId",
+              "status"
+            ],
+            "rulesApplied": [
+              "Orders sorted by priority first then receivedAt (FIFO within same priority)",
+              "Only orders with status 'received' or 'inPreparation' are shown",
+              "Transition received→inPreparation allowed when status is 'received'",
+              "Transition inPreparation→ready allowed when status is 'inPreparation'",
+              "orderId is derived from selectedEntity, never manually typed",
+              "status is set by the contextual transition button, never a free select"
+            ],
+            "order": 1,
+            "intentions": [
+              {
+                "id": "board-query2",
+                "intent": "View the live kitchen board with all active orders displayed as cards sorted by priority and arrival time",
+                "order": 1,
+                "titleKey": "section.kitchenQueue.title",
+                "emptyKey": "empty.kitchenBoard",
+                "displayHint": "card-board",
+                "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+                "fields": [],
+                "columns": [
+                  {
+                    "id": "col-order-id",
+                    "field": "orderId",
+                    "labelKey": "field.orderId",
+                    "order": 1,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "id",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-status",
+                    "field": "status",
+                    "labelKey": "field.status",
+                    "order": 2,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "enum",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-order-type",
+                    "field": "orderType",
+                    "labelKey": "field.orderType",
+                    "order": 3,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "enum",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-table-number",
+                    "field": "tableNumber",
+                    "labelKey": "field.tableNumber",
+                    "order": 4,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "text",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-priority",
+                    "field": "priority",
+                    "labelKey": "field.priority",
+                    "order": 5,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "enum",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-priority-reason",
+                    "field": "priorityReason",
+                    "labelKey": "field.priorityReason",
+                    "order": 6,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "text",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-received-at",
+                    "field": "receivedAt",
+                    "labelKey": "field.receivedAt",
+                    "order": 7,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "datetime",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-in-preparation-at",
+                    "field": "inPreparationAt",
+                    "labelKey": "field.inPreparationAt",
+                    "order": 8,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "datetime",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "col-created-at",
+                    "field": "createdAt",
+                    "labelKey": "field.createdAt",
+                    "order": 9,
+                    "required": false,
+                    "inputType": "text",
+                    "format": "datetime",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  }
+                ],
+                "filters": [],
+                "toolbar": [
+                  {
+                    "id": "refresh-board",
+                    "action": "viewKitchenBoard",
+                    "labelKey": "action.refreshBoard",
+                    "order": 1,
+                    "displayHint": "primary-button",
+                    "actionKey": "viewKitchenBoard"
+                  }
+                ],
+                "rowActions": [
+                  {
+                    "id": "start-preparation",
+                    "action": "updateOrderStatus",
+                    "labelKey": "action.startPreparation",
+                    "order": 1,
+                    "displayHint": "contextual-transition-actions",
+                    "actionKey": "updateOrderStatus"
+                  },
+                  {
+                    "id": "mark-ready",
+                    "action": "updateOrderStatus",
+                    "labelKey": "action.markReady",
+                    "order": 2,
+                    "displayHint": "contextual-transition-actions",
+                    "actionKey": "updateOrderStatus"
+                  }
+                ],
+                "actions": []
+              },
+              {
+                "id": "status-transition2",
+                "intent": "Execute the order status transition using orderId from selectedEntity and status from the contextual button clicked",
+                "order": 2,
+                "titleKey": "section.transition.title",
+                "displayHint": "contextual-transition-actions",
+                "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+                "fields": [
+                  {
+                    "id": "trans-order-id",
+                    "field": "orderId",
+                    "labelKey": "field.orderId",
+                    "order": 1,
+                    "required": true,
+                    "inputType": "hidden",
+                    "source": "selectedEntity",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  },
+                  {
+                    "id": "trans-status",
+                    "field": "status",
+                    "labelKey": "field.status",
+                    "order": 2,
+                    "required": true,
+                    "inputType": "hidden",
+                    "source": "userInput",
+                    "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
+                  }
+                ],
+                "columns": [],
+                "filters": [],
+                "toolbar": [],
+                "rowActions": [],
+                "actions": [
+                  {
+                    "id": "submit-transition",
+                    "action": "updateOrderStatus",
+                    "labelKey": "action.updateOrderStatus",
+                    "order": 1,
+                    "displayHint": "contextual-transition-actions",
+                    "actionKey": "updateOrderStatus"
+                  }
+                ]
               }
             ]
           }
@@ -373,19 +731,19 @@ export const definition = {
   "dataBindings": [
     {
       "id": "binding-viewKitchenBoard",
-      "source": "cafeFlow.orderLifecycle.viewKitchenBoard",
+      "source": "query",
       "entity": "Order",
       "command": "viewKitchenBoard",
-      "description": "Load kitchen board orders for current shift",
+      "description": "Loads the kitchen board with active orders for the current shift",
       "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
       "inputStateKeys": []
     },
     {
       "id": "binding-updateOrderStatus",
-      "source": "cafeFlow.orderLifecycle.updateOrderStatus",
+      "source": "command",
       "entity": "Order",
       "command": "updateOrderStatus",
-      "description": "Transition order status (received→inPreparation or inPreparation→ready)",
+      "description": "Transitions an order's status (received→inPreparation or inPreparation→ready)",
       "stateKey": "ui.kitchenQueue.output.updateOrderStatus",
       "inputStateKeys": [
         "ui.kitchenQueue.input.updateOrderStatus.orderId",
@@ -402,9 +760,7 @@ export const pipeline = [
     "outputPath": "_102051_/l2/cafeFlow/web/desktop/page21/kitchenQueue.ts",
     "defPath": "_102051_/l2/cafeFlow/web/desktop/page21/kitchenQueue.defs.ts",
     "dependsFiles": [
-      "_102051_/l2/cafeFlow/web/shared/kitchenQueue.defs.ts",
       "_102051_/l2/cafeFlow/web/shared/kitchenQueue.ts",
-      "_102051_/l2/cafeFlow/web/contracts/kitchenQueue.defs.ts",
       "_102051_/l2/cafeFlow/web/contracts/kitchenQueue.ts",
       "_102051_/l2/designSystem.ts"
     ],

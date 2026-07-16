@@ -1,38 +1,39 @@
 {
-  "savedAt": "2026-07-15T23:08:31.958Z",
+  "savedAt": "2026-07-16T13:59:25.749Z",
   "pageId": "stockManagement",
   "genome": "page21",
   "objective": {
-    "actor": "Cafe manager (back-office)",
-    "jobToBeDone": "Monitor stock levels, identify low-stock items, and update stock item configurations (name, unit, minimum level) without leaving the page",
-    "primaryDecision": "Identify which stock items need attention and update their minimum level or attributes inline",
+    "actor": "Gerente do café",
+    "jobToBeDone": "Monitorar níveis de estoque, identificar alertas de itens baixos e ajustar configurações de insumos (nome, unidade, limite mínimo) para manter thresholds corretos",
+    "primaryDecision": "Qual item de estoque precisa ajuste e quais valores (nome, unidade, limite mínimo) atualizar",
     "decisiveInfo": [
       "name",
       "unit",
       "minimumLevel"
     ],
-    "usageFrequency": "occasional/back-office — daily, a few times per day",
+    "usageFrequency": "Occasional / back-office — o gerente consulta periodicamente e ajusta thresholds conforme necessário",
     "criticalActions": [
       {
         "action": "browseStockItems",
-        "presentation": "master-list-with-search-and-low-stock-highlighting"
+        "presentation": "master-detail list with search filter and low-stock highlighting"
       },
       {
         "action": "manageStockItem",
-        "presentation": "contextual-detail-form-for-selected-row"
+        "presentation": "contextual edit panel bound to selected row, primary-button submit"
       }
     ],
     "informationHierarchy": [
-      "Stock items list with low-stock alerts highlighted (master)",
-      "Search/filter by name to locate a specific ingredient",
-      "Contextual edit panel for the selected item with name, unit, minimumLevel (detail)"
+      "Lista de itens de estoque com destaque para alertas de estoque baixo",
+      "Busca por nome para localizar ingrediente específico",
+      "Painel de edição contextual do item selecionado (nome, unidade, limite mínimo)",
+      "Feedback de sucesso/erro da atualização"
     ],
-    "successCriteria": "Manager can see all stock items at a glance, identify low-stock alerts visually, search for a specific item by name, and update its configuration inline without page navigation",
+    "successCriteria": "O gerente consegue ver rapidamente quais itens estão com estoque baixo, encontrar um item específico por nome e ajustar suas configurações sem sair da página",
     "antiPatterns": [
-      "Separate edit form page requiring navigation",
-      "Manually typing stockItemId",
-      "Showing createdAt or updatedAt as editable inputs",
-      "Free status select for stock levels instead of derived alerts"
+      "Página de edição separada da lista",
+      "Digitação manual de stockItemId",
+      "Expor createdAt/updatedAt como inputs editáveis",
+      "Formulário CRUD genérico que mostra campos do sistema como inputs"
     ]
   }
 }
