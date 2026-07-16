@@ -19,7 +19,7 @@ export const stockLevelRepositoryPort = {
         "name": "getById",
         "returns": "StockLevel",
         "params": [
-          "productId: ProductId"
+          "id: StockLevelId"
         ]
       },
       {
@@ -37,16 +37,16 @@ export const stockLevelRepositoryPort = {
         ]
       },
       {
-        "name": "findBelowMinimum",
-        "returns": "StockLevel[]",
-        "params": []
+        "name": "findByProductId",
+        "returns": "StockLevel | null",
+        "params": [
+          "productId: ProductId"
+        ]
       },
       {
-        "name": "findByLocation",
+        "name": "listLowStock",
         "returns": "StockLevel[]",
-        "params": [
-          "location: Location"
-        ]
+        "params": []
       }
     ]
   }

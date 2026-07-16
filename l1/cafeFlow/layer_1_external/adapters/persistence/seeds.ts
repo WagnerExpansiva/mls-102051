@@ -1614,6 +1614,13 @@
 }
 </agentCbSeedsPlan> */
 
+// <agentCbSeedAssetUrls>
+const seedAssetUrls: Record<string, string> = {};
+const seedAssetWarnings: string[] = [];
+// </agentCbSeedAssetUrls>
+
+function seedAssetUrl(assetId: string): string | null { return seedAssetUrls[assetId] ?? null; }
+
 import type { TableSeedRows } from '/_102034_/l1/server/layer_1_external/persistence/contracts.js';
 
 export const menuItemIngredientSeeds: TableSeedRows = {
@@ -2157,6 +2164,177 @@ export const mdmEntityIndexSeeds: TableSeedRows = {
       "dynamoPk": "f738c0d0-f838-4263-8938-c3f6fa38c589",
       "createdAt": "2026-07-01T08:00:00.000Z",
       "updatedAt": "2026-07-01T08:00:00.000Z"
+    },
+    {
+      "mdmId": "8c8b764b-8b8b-44b8-8e8b-79718d8b77de",
+      "subtype": "Person",
+      "name": "Atendente / Caixa 1",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "atendente"
+      ],
+      "searchVector": "atendente / caixa 1 atendente cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "8c8b764b-8b8b-44b8-8e8b-79718d8b77de",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "4faf837a-50af-450d-8daf-80544eaf81e7",
+      "subtype": "Person",
+      "name": "Atendente / Caixa 2",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "atendente"
+      ],
+      "searchVector": "atendente / caixa 2 atendente cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "4faf837a-50af-450d-8daf-80544eaf81e7",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "363d0001-353c-4e6e-843c-fcdb333cfb48",
+      "subtype": "Person",
+      "name": "Atendente / Caixa 3",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "atendente"
+      ],
+      "searchVector": "atendente / caixa 3 atendente cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "363d0001-353c-4e6e-843c-fcdb333cfb48",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "f3e1912b-f2e1-4f98-85e1-9451f4e192be",
+      "subtype": "Person",
+      "name": "Cozinheiro 1",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "cozinheiro"
+      ],
+      "searchVector": "cozinheiro 1 cozinheiro cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "f3e1912b-f2e1-4f98-85e1-9451f4e192be",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "38439c5a-3943-4ded-8643-993437439ac7",
+      "subtype": "Person",
+      "name": "Cozinheiro 2",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "cozinheiro"
+      ],
+      "searchVector": "cozinheiro 2 cozinheiro cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "38439c5a-3943-4ded-8643-993437439ac7",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "1ed118e1-1dd1-474e-8cd1-15bb1bd11428",
+      "subtype": "Person",
+      "name": "Cozinheiro 3",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "cozinheiro"
+      ],
+      "searchVector": "cozinheiro 3 cozinheiro cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "1ed118e1-1dd1-474e-8cd1-15bb1bd11428",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "92796e03-9179-4c70-8479-712993796f96",
+      "subtype": "Person",
+      "name": "Gerente / Proprietário 1",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "gerente"
+      ],
+      "searchVector": "gerente / proprietário 1 gerente cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "92796e03-9179-4c70-8479-712993796f96",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "559d7b32-569d-4cc5-839d-780c549d799f",
+      "subtype": "Person",
+      "name": "Gerente / Proprietário 2",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "gerente"
+      ],
+      "searchVector": "gerente / proprietário 2 gerente cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "559d7b32-569d-4cc5-839d-780c549d799f",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "mdmId": "3c2af7b9-3b2a-4626-8a2a-f493392af300",
+      "subtype": "Person",
+      "name": "Gerente / Proprietário 3",
+      "status": "Active",
+      "docType": null,
+      "docId": null,
+      "countryCode": "US",
+      "tags": [
+        "cafeFlow",
+        "actor",
+        "gerente"
+      ],
+      "searchVector": "gerente / proprietário 3 gerente cafeflow",
+      "mergedInto": null,
+      "dynamoPk": "3c2af7b9-3b2a-4626-8a2a-f493392af300",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
     }
   ]
 };
@@ -2537,6 +2715,240 @@ export const mdmDocumentSeeds: TableSeedRows = {
           "createdAt": "2026-07-01T08:00:00.000Z",
           "updatedAt": "2026-07-01T08:00:00.000Z"
         }
+      }
+    },
+    {
+      "mdmId": "8c8b764b-8b8b-44b8-8e8b-79718d8b77de",
+      "version": 1,
+      "details": {
+        "mdmId": "8c8b764b-8b8b-44b8-8e8b-79718d8b77de",
+        "subtype": "Person",
+        "name": "Atendente / Caixa 1",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "atendente"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "atendente"
+      }
+    },
+    {
+      "mdmId": "4faf837a-50af-450d-8daf-80544eaf81e7",
+      "version": 1,
+      "details": {
+        "mdmId": "4faf837a-50af-450d-8daf-80544eaf81e7",
+        "subtype": "Person",
+        "name": "Atendente / Caixa 2",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "atendente"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "atendente"
+      }
+    },
+    {
+      "mdmId": "363d0001-353c-4e6e-843c-fcdb333cfb48",
+      "version": 1,
+      "details": {
+        "mdmId": "363d0001-353c-4e6e-843c-fcdb333cfb48",
+        "subtype": "Person",
+        "name": "Atendente / Caixa 3",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "atendente"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "atendente"
+      }
+    },
+    {
+      "mdmId": "f3e1912b-f2e1-4f98-85e1-9451f4e192be",
+      "version": 1,
+      "details": {
+        "mdmId": "f3e1912b-f2e1-4f98-85e1-9451f4e192be",
+        "subtype": "Person",
+        "name": "Cozinheiro 1",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "cozinheiro"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "cozinheiro"
+      }
+    },
+    {
+      "mdmId": "38439c5a-3943-4ded-8643-993437439ac7",
+      "version": 1,
+      "details": {
+        "mdmId": "38439c5a-3943-4ded-8643-993437439ac7",
+        "subtype": "Person",
+        "name": "Cozinheiro 2",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "cozinheiro"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "cozinheiro"
+      }
+    },
+    {
+      "mdmId": "1ed118e1-1dd1-474e-8cd1-15bb1bd11428",
+      "version": 1,
+      "details": {
+        "mdmId": "1ed118e1-1dd1-474e-8cd1-15bb1bd11428",
+        "subtype": "Person",
+        "name": "Cozinheiro 3",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "cozinheiro"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "cozinheiro"
+      }
+    },
+    {
+      "mdmId": "92796e03-9179-4c70-8479-712993796f96",
+      "version": 1,
+      "details": {
+        "mdmId": "92796e03-9179-4c70-8479-712993796f96",
+        "subtype": "Person",
+        "name": "Gerente / Proprietário 1",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "gerente"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "gerente"
+      }
+    },
+    {
+      "mdmId": "559d7b32-569d-4cc5-839d-780c549d799f",
+      "version": 1,
+      "details": {
+        "mdmId": "559d7b32-569d-4cc5-839d-780c549d799f",
+        "subtype": "Person",
+        "name": "Gerente / Proprietário 2",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "gerente"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "gerente"
+      }
+    },
+    {
+      "mdmId": "3c2af7b9-3b2a-4626-8a2a-f493392af300",
+      "version": 1,
+      "details": {
+        "mdmId": "3c2af7b9-3b2a-4626-8a2a-f493392af300",
+        "subtype": "Person",
+        "name": "Gerente / Proprietário 3",
+        "status": "Active",
+        "docType": null,
+        "docId": null,
+        "countryCode": "US",
+        "tags": [
+          "cafeFlow",
+          "actor",
+          "gerente"
+        ],
+        "aliases": [],
+        "contacts": [],
+        "relationshipRefs": {},
+        "addresses": [],
+        "mergedInto": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-01T00:00:00.000Z",
+        "actorId": "gerente"
       }
     }
   ]

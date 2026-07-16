@@ -23,9 +23,3 @@ export function canTransitionStockAdjustment(
 ): boolean {
   return STOCK_ADJUSTMENT_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
-
-export function isStockAdjustmentActive(
-  adjustment: Pick<StockAdjustment, 'status'>,
-): boolean {
-  return adjustment.status === 'posted';
-}

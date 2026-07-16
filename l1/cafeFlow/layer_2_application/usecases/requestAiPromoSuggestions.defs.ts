@@ -22,26 +22,44 @@ export const requestAiPromoSuggestionsUsecase = {
       {
         "functionName": "requestAiPromoSuggestions",
         "inputTypeName": "RequestAiPromoSuggestionsInput",
-        "outputTypeName": "RequestAiPromoSuggestionsOutput",
+        "outputTypeName": "AiPromoSuggestion",
         "input": [],
         "output": [
           {
-            "name": "suggestions",
-            "type": "array",
-            "required": true,
-            "description": "Promo suggestion items derived from 7-day sales patterns and stock levels. Each element: { menuItemId: string, totalQuantity: number, orderCount: number, suggestedPromoType: string, reason: string }"
-          },
-          {
-            "name": "windowStart",
+            "name": "menuItemId",
             "type": "string",
             "required": true,
-            "description": "ISO datetime marking the start of the 7-day analysis window (now - 7 days)"
+            "description": "ID do item de menu sugerido para promoção"
           },
           {
-            "name": "windowEnd",
+            "name": "totalQuantitySold",
+            "type": "number",
+            "required": true,
+            "description": "Quantidade total vendida do item nos últimos 7 dias"
+          },
+          {
+            "name": "currentStockQuantity",
+            "type": "number",
+            "required": true,
+            "description": "Quantidade atual em estoque do item"
+          },
+          {
+            "name": "stockUnit",
             "type": "string",
             "required": true,
-            "description": "ISO datetime marking the end of the analysis window (current timestamp)"
+            "description": "Unidade de medida do estoque (kg, liter, portion, unit)"
+          },
+          {
+            "name": "suggestionReason",
+            "type": "string",
+            "required": true,
+            "description": "Motivo da sugestão derivado do padrão de vendas e nível de estoque"
+          },
+          {
+            "name": "suggestedDiscountPercent",
+            "type": "number",
+            "required": false,
+            "description": "Percentual de desconto sugerido com base no volume de vendas e estoque"
           }
         ],
         "ports": [
@@ -52,22 +70,20 @@ export const requestAiPromoSuggestionsUsecase = {
           "aiPromoBasedOnLast7Days",
           "aiConsumesDomainData"
         ],
-        "transactional": false,
+        "transactional": true,
         "steps": [
-          "Resolve windowEnd = ctx.clock.now() and windowStart = windowEnd minus 7 days (rule aiPromoBasedOnLast7Days)",
-          "Resolve actorId from ctx.sessionContext for audit/permission context — not a public input",
-          "Load orders with createdAt >= windowStart via Order port (list query filtered by date range); each Order carries its embedded OrderItem collection",
-          "Aggregate OrderItem data across all loaded orders: for each menuItemId compute totalQuantity (sum of quantity) and orderCount (distinct orders containing the item)",
-          "Load all current StockLevel records via StockLevel port to identify items with currentQuantity above minimumLevel (overstock candidates)",
-          "Generate promo suggestions by joining sales-frequency data (from OrderItem aggregation) with stock data (from StockLevel): items with high stock relative to minimum and moderate sales volume in the window are flagged for promotion (rule aiConsumesDomainData — only domain data from Order/OrderItem/StockLevel is used, no external sources)",
-          "Build suggestion records: menuItemId, totalQuantity, orderCount, suggestedPromoType ('discount' | 'bundle' | 'featured'), and a human-readable reason string",
-          "Return { suggestions, windowStart, windowEnd } — no aggregate is mutated, no events are emitted (strictly read-only)"
+          "Resolve windowStart = ctx.clock.now() minus 7 days (rule aiPromoBasedOnLast7Days) — this is the analysis window; no user input needed",
+          "Resolve actorId from ctx.sessionContext for audit and permission context",
+          "Query Order port for all orders with createdAt >= windowStart (last 7 days only)",
+          "From each loaded Order aggregate, collect embedded OrderItems and aggregate total quantity by menuItemId across the entire window",
+          "Query StockLevel port for all current stock levels to cross-reference with aggregated sales data (rule aiConsumesDomainData — only domain data from Order, OrderItem, StockLevel is consumed, no external sources)",
+          "Cross-reference: items with high sales volume AND sufficient stock (currentQuantity > minimumLevel) are promo candidates; items with low stock (currentQuantity <= minimumLevel) are excluded to avoid supply constraints",
+          "Compute suggestedDiscountPercent proportional to sales volume and stock surplus — higher volume + higher surplus yields larger suggested discount",
+          "Build the promo suggestion list with menuItemId, totalQuantitySold, currentStockQuantity, stockUnit, suggestionReason, and suggestedDiscountPercent",
+          "Append audit event to StockConsumption port recording the AI suggestion request (actorId, windowStart, suggestionCount) — note: StockConsumption port is referenced by eventWrites but not present in provided ports; this is a modeling gap that should be resolved by adding StockConsumption to ports",
+          "Return the list of promo suggestions as the operation result — no Order, OrderItem, or StockLevel records are modified (strictly read-only)"
         ]
       }
-    ],
-    "rulesApplied": [
-      "aiPromoBasedOnLast7Days",
-      "aiConsumesDomainData"
     ],
     "mdmRefs": []
   }
@@ -94,10 +110,6 @@ export const pipeline = [
       "_102021_/l2/agentChangeBackend/skills/architecture.md",
       "_102021_/l2/agentChangeBackend/skills/applicationUsecase.md",
       "_102034_.d.ts"
-    ],
-    "rulesApplied": [
-      "aiPromoBasedOnLast7Days",
-      "aiConsumesDomainData"
     ],
     "agent": "agentCbMaterialize"
   }

@@ -3,8 +3,8 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { viewOrderBoard, type ViewOrderBoardInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/viewOrderBoard.js';
 
 export const cafeFlowViewOrderBoardHandler: BffHandler = async ({ ctx }) => {
-  // shiftId is resolved by the usecase from the open Shift (activeLifecycleInstance),
-  // not sent by the client — ViewOrderBoardInput is empty.
+  // The shiftId is resolved by the usecase from the open Shift (activeLifecycleInstance),
+  // not sent by the client. ViewOrderBoardInput is empty — no client boundary fields.
   const input: ViewOrderBoardInput = {};
   const result = await viewOrderBoard(ctx, input);
   return ok(result);

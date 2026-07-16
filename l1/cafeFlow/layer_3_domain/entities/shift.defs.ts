@@ -84,11 +84,12 @@ export const shiftDomainEntity = {
       "closed"
     ],
     "invariants": [
-      "closedAt e closedBy são obrigatórios quando status for 'closed'",
-      "closedAt deve ser posterior a openedAt",
-      "totalApurado deve ser preenchido quando status for 'closed'",
-      "Não pode haver dois turnos abertos simultaneamente",
-      "status não pode voltar de 'closed' para 'open'"
+      "closedAt is required when status is 'closed'",
+      "closedBy is required when status is 'closed'",
+      "closedAt must be after openedAt",
+      "A closed shift cannot be reopened",
+      "totalApurado is required when status is 'closed'",
+      "Only one shift may be open at a time"
     ],
     "valueObjects": []
   }

@@ -4,10 +4,9 @@ import { resolveRepository } from '/_102034_/l1/server/layer_2_application/repos
 import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.js';
 import type { IStockLevelRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.js';
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
-import type { OrderStatus, OrderType } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
-import type { StockUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import type { Order, OrderItem, OrderStatus, OrderType } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
+import type { StockLevel, StockLevelUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 import type { Shift } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
-import { isLowStock } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 
 export interface ViewDashboardInput {}
 
@@ -30,7 +29,7 @@ export interface LowStockAlert {
   stockItemId: string;
   currentQuantity: number;
   minimumLevel: number;
-  unit: StockUnit;
+  unit: StockLevelUnit;
 }
 
 export interface ViewDashboardOutput {
@@ -42,30 +41,23 @@ export interface ViewDashboardOutput {
   lowStockAlerts: LowStockAlert[];
 }
 
-export async function viewDashboard(
-  ctx: RequestContext,
-  _input: ViewDashboardInput,
-): Promise<ViewDashboardOutput> {
-  // Step 2: Authorization — actor must be an authenticated manager
+export async function viewDashboard(ctx: RequestContext, _input: ViewDashboardInput): Promise<ViewDashboardOutput> {
+  // Step 2 — authorization context: actor must be authenticated
   const actorId = ctx.sessionContext?.actorSession?.actorId;
   if (!actorId) {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'Authenticated manager session is required to view the dashboard.',
-      401,
-      { ruleId: 'authorization' },
-    );
+    throw new AppError('VALIDATION_ERROR', 'Authenticated actor is required to view the dashboard.', 401, {
+      ruleId: 'actorSessionRequired',
+    });
   }
 
   const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
   const stockLevels = resolveRepository<IStockLevelRepository>(ctx, 'StockLevel');
 
-  // Step 1: Resolve the currently open shift (activeLifecycleInstance resolution)
-  const openShifts = await shifts.list({ status: 'open' });
-  const openShift: Shift | null = openShifts.length > 0 ? openShifts[0] : null;
+  // Step 1 — resolve the currently open shift (activeLifecycleInstance)
+  const openShift: Shift | null = await shifts.findOpenShift();
 
-  // If no open shift exists, return an empty dashboard (rule dashboardCurrentShiftOnly)
+  // Rule dashboardCurrentShiftOnly: if no open shift, return empty dashboard
   if (!openShift) {
     return {
       shiftId: null,
@@ -79,10 +71,10 @@ export async function viewDashboard(
 
   const shiftId = openShift.shiftId;
 
-  // Step 3: Load all orders for the resolved shift
-  const shiftOrders = await orders.list({ shiftId });
+  // Step 3 — load all orders for the current shift
+  const shiftOrders: Order[] = await orders.listByShiftId(shiftId);
 
-  // Step 4: Build order summaries
+  // Step 4 — build order summaries
   const orderSummaries: OrderSummary[] = shiftOrders.map((order) => ({
     orderId: order.orderId,
     status: order.status,
@@ -92,29 +84,24 @@ export async function viewDashboard(
     deliveredAt: order.deliveredAt,
   }));
 
-  // Step 5 & 6: Compute totalSales and topSellers from OrderItems of current shift only
-  let totalSales = 0;
+  // Step 5 — compute totalSales from all OrderItems across all orders
+  const allItems: OrderItem[] = shiftOrders.flatMap((order) => order.items);
+  const totalSales = allItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+  // Step 6 — compute topSellers grouped by menuItemId (rule topSellersFromDayOrders)
   const sellerMap = new Map<string, { totalQuantity: number; totalRevenue: number }>();
-
-  for (const order of shiftOrders) {
-    for (const item of order.items) {
-      const itemTotal = item.unitPrice * item.quantity;
-      totalSales += itemTotal;
-
-      const existing = sellerMap.get(item.menuItemId);
-      if (existing) {
-        existing.totalQuantity += item.quantity;
-        existing.totalRevenue += itemTotal;
-      } else {
-        sellerMap.set(item.menuItemId, {
-          totalQuantity: item.quantity,
-          totalRevenue: itemTotal,
-        });
-      }
+  for (const item of allItems) {
+    const existing = sellerMap.get(item.menuItemId);
+    if (existing) {
+      existing.totalQuantity += item.quantity;
+      existing.totalRevenue += item.unitPrice * item.quantity;
+    } else {
+      sellerMap.set(item.menuItemId, {
+        totalQuantity: item.quantity,
+        totalRevenue: item.unitPrice * item.quantity,
+      });
     }
   }
-
-  // Sort descending by totalQuantity (rule topSellersFromDayOrders)
   const topSellers: TopSeller[] = Array.from(sellerMap.entries())
     .map(([menuItemId, data]) => ({
       menuItemId,
@@ -123,10 +110,10 @@ export async function viewDashboard(
     }))
     .sort((a, b) => b.totalQuantity - a.totalQuantity);
 
-  // Step 7: Query stock levels and filter for low-stock alerts
-  const allStockLevels = await stockLevels.list();
+  // Step 7 — query stock levels and filter for low-stock alerts
+  const allStockLevels: StockLevel[] = await stockLevels.list();
   const lowStockAlerts: LowStockAlert[] = allStockLevels
-    .filter((sl) => isLowStock(sl))
+    .filter((sl) => sl.currentQuantity < sl.minimumLevel)
     .map((sl) => ({
       stockItemId: sl.stockItemId,
       currentQuantity: sl.currentQuantity,
@@ -134,7 +121,7 @@ export async function viewDashboard(
       unit: sl.unit,
     }));
 
-  // Step 8: Assemble and return the dashboard (rule dashboardCurrentShiftOnly)
+  // Step 8 — assemble and return dashboard output
   return {
     shiftId,
     totalSales,

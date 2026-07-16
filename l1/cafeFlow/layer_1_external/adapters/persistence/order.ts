@@ -12,12 +12,12 @@ export const orderTableDef: TableDefinition = {
   storageProfile: 'postgres',
   writeMode: 'sync',
   columns: [
-    { name: 'order_id', postgresType: 'TEXT' },
-    { name: 'shift_id', postgresType: 'TEXT' },
-    { name: 'status', postgresType: 'TEXT' },
-    { name: 'order_type', postgresType: 'TEXT' },
-    { name: 'created_at', postgresType: 'TIMESTAMPTZ', defaultSql: 'NOW()' },
-    { name: 'details', postgresType: 'JSONB', nullable: true },
+    { name: 'order_id', postgresType: 'TEXT', description: 'PK – unique order identifier' },
+    { name: 'shift_id', postgresType: 'TEXT', description: 'FK to shift' },
+    { name: 'status', postgresType: 'TEXT', description: 'order lifecycle status' },
+    { name: 'order_type', postgresType: 'TEXT', description: 'order type discriminator' },
+    { name: 'created_at', postgresType: 'TIMESTAMPTZ', defaultSql: 'NOW()', description: 'ordering timestamp' },
+    { name: 'details', postgresType: 'JSONB', description: 'tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + child collection OrderItem' },
   ],
   primaryKey: ['order_id'],
   indexes: [

@@ -76,18 +76,6 @@ export const closeShiftUsecase = {
             "type": "string",
             "required": false,
             "ofEntity": "Shift"
-          },
-          {
-            "name": "shiftClosingReportId",
-            "type": "string",
-            "required": true,
-            "ofEntity": "ShiftClosingReport"
-          },
-          {
-            "name": "paidOrderCount",
-            "type": "number",
-            "required": true,
-            "ofEntity": "ShiftClosingReport"
           }
         ],
         "ports": [
@@ -102,18 +90,19 @@ export const closeShiftUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Resolve the active lifecycle instance: query the Shift port for all Shifts with status='open' (list by status filter).",
-          "2. Apply rule 'singleOpenShift': validate that exactly one Shift with status='open' exists. If zero or more than one, throw a validation error referencing rule 'singleOpenShift'.",
-          "3. Use the found open Shift's shiftId as the target for closing.",
-          "4. Resolve closedBy from ctx.sessionContext.actorId (the authenticated manager).",
-          "5. Resolve closedAt from ctx.clock.now() formatted as ISO datetime.",
-          "6. Apply rule 'shiftClosingRecordsRevenue': set Shift.totalApurado to the user-provided totalApurado value, Shift.status to 'closed', Shift.closedBy, Shift.closedAt, and Shift.notes from input.",
-          "7. Update the Shift aggregate through its port (save) inside the transaction.",
-          "8. Query the Order port for all Orders where shiftId equals the closed shift's id; count those with status='delivered' to determine paidOrderCount.",
-          "9. Generate a new shiftClosingReportId via ctx.idGenerator.",
-          "10. Create a ShiftClosingReport record through its port with: shiftClosingReportId, shiftId, totalApurado (from input), paidOrderCount, createdAt = ctx.clock.now(), updatedAt = ctx.clock.now().",
-          "11. Apply rule 'dashboardCurrentShiftOnly': after the transaction commits, no Shift remains with status='open' — this is guaranteed by the status transition in step 6.",
-          "12. Return the closed Shift fields (shiftId, status, closedAt, closedBy, totalApurado, notes) and the generated ShiftClosingReport fields (shiftClosingReportId, paidOrderCount)."
+          "1. Query Shift port for all shifts with status='open' (resolve activeLifecycleInstance).",
+          "2. Apply rule singleOpenShift: if zero or more than one open shift is found, throw validation error 'closeShift.singleOpenShift: exactly one open shift required'.",
+          "3. Resolve closedBy from ctx.sessionContext.actorId (actorSession).",
+          "4. Resolve closedAt from ctx.clock.now() (systemDefault).",
+          "5. Load the open Shift aggregate via Shift port getById.",
+          "6. Validate the Shift is in 'open' status (guard against race condition).",
+          "7. Mutate the Shift: set status='closed', closedAt=resolved timestamp, closedBy=resolved actor id, totalApurado=input value, notes=input value (or null), updatedAt=ctx.clock.now().",
+          "8. Save the Shift aggregate via Shift port save.",
+          "9. Query Order port for all orders with shiftId=open shift id and status='delivered' to count paid orders (shiftClosingRecordsRevenue context).",
+          "10. Generate shiftClosingReportId via ctx.idGenerator.",
+          "11. Create ShiftClosingReport via ShiftClosingReport port: shiftId, totalApurado (from input), paidOrderCount (count of delivered orders), createdAt=ctx.clock.now(), updatedAt=ctx.clock.now().",
+          "12. Apply rule dashboardCurrentShiftOnly: after closing, no shift remains 'open', so dashboard will show no active shift — this is the expected terminal state.",
+          "13. Return shiftId, status='closed', closedAt, closedBy, totalApurado, notes."
         ]
       }
     ],

@@ -3,9 +3,9 @@ import { ok, AppError, type BffHandler, type ControllerRoute } from '/_102034_/l
 import { viewDashboard, type ViewDashboardInput } from '/_102051_/l1/cafeFlow/layer_2_application/usecases/viewDashboard.js';
 
 export const cafeFlowViewDashboardHandler: BffHandler = async ({ ctx }) => {
-  // The dashboard input has no client-supplied fields.
+  // The dashboard requires no client-supplied input.
   // shiftId (activeLifecycleInstance) and actorId (actorSession) are resolved
-  // inside the usecase from ctx — they are NOT public boundary inputs.
+  // inside the usecase from ctx.sessionContext and the Shift repository port.
   const input: ViewDashboardInput = {};
   const result = await viewDashboard(ctx, input);
   return ok(result);

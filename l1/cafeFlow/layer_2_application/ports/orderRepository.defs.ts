@@ -19,7 +19,7 @@ export const orderRepositoryPort = {
         "name": "getById",
         "returns": "Order",
         "params": [
-          "orderId: OrderId"
+          "id: OrderId"
         ]
       },
       {
@@ -37,25 +37,17 @@ export const orderRepositoryPort = {
         ]
       },
       {
-        "name": "findByCustomerId",
-        "returns": "Order[]",
+        "name": "findByOrderNumber",
+        "returns": "Order | null",
         "params": [
-          "customerId: CustomerId"
+          "orderNumber: OrderNumber"
         ]
       },
       {
-        "name": "findByStatus",
+        "name": "listByShiftId",
         "returns": "Order[]",
         "params": [
-          "status: OrderStatus"
-        ]
-      },
-      {
-        "name": "findByPeriod",
-        "returns": "Order[]",
-        "params": [
-          "start: Date",
-          "end: Date"
+          "shiftId: ShiftId"
         ]
       }
     ]

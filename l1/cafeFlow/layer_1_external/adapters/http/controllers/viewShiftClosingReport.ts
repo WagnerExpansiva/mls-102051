@@ -14,7 +14,6 @@ export const cafeFlowViewShiftClosingReportHandler: BffHandler = async ({ reques
   };
 
   const result = await viewShiftClosingReport(ctx, input);
-
   return ok(result);
 };
 

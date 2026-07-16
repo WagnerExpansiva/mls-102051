@@ -31,25 +31,25 @@ export const orderTableDefinition = {
         "name": "status",
         "type": "text",
         "nullable": false,
-        "description": "Order lifecycle status"
+        "description": "order lifecycle status"
       },
       {
         "name": "order_type",
         "type": "text",
         "nullable": false,
-        "description": "Order type (e.g. dine-in, takeaway)"
+        "description": "order type discriminator"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "Creation timestamp for ordering"
+        "description": "ordering timestamp"
       },
       {
         "name": "details",
         "type": "jsonb",
-        "nullable": true,
-        "description": "Details JSONB: tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + child collection OrderItem"
+        "nullable": false,
+        "description": "tableNumber, priority, priorityReason, receivedAt, inPreparationAt, readyAt, deliveredAt, updatedAt + child collection OrderItem"
       }
     ],
     "primaryKey": [
@@ -60,41 +60,35 @@ export const orderTableDefinition = {
         "indexName": "idx_order_shift_id",
         "columns": [
           "shift_id"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_order_status",
         "columns": [
           "status"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_order_order_type",
         "columns": [
           "order_type"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_order_created_at",
         "columns": [
           "created_at"
-        ],
-        "unique": false
+        ]
       }
     ],
     "detailsColumn": {
       "enabled": true,
-      "columnName": "details",
       "childCollections": [
         "OrderItem"
       ]
     },
-    "appendOnly": false,
     "purpose": "operational",
-    "retentionDays": 0
+    "appendOnly": false
   }
 } as const;
 

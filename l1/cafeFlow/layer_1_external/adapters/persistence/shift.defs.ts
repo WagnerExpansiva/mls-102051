@@ -25,19 +25,19 @@ export const shiftTableDefinition = {
         "name": "status",
         "type": "text",
         "nullable": false,
-        "description": "Shift lifecycle status"
+        "description": "shift lifecycle status"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "Creation timestamp for ordering"
+        "description": "ordering timestamp"
       },
       {
         "name": "details",
         "type": "jsonb",
-        "nullable": true,
-        "description": "Details JSONB: openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt"
+        "nullable": false,
+        "description": "openedAt, closedAt, openedBy, closedBy, totalApurado, notes, updatedAt"
       }
     ],
     "primaryKey": [
@@ -48,25 +48,21 @@ export const shiftTableDefinition = {
         "indexName": "idx_shift_status",
         "columns": [
           "status"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_shift_created_at",
         "columns": [
           "created_at"
-        ],
-        "unique": false
+        ]
       }
     ],
     "detailsColumn": {
       "enabled": true,
-      "columnName": "details",
       "childCollections": []
     },
-    "appendOnly": false,
     "purpose": "operational",
-    "retentionDays": 0
+    "appendOnly": false
   }
 } as const;
 

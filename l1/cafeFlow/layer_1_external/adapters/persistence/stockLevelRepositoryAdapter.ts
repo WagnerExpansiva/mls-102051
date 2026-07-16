@@ -1,7 +1,7 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_1_external/adapters/persistence/stockLevelRepositoryAdapter.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
 import type { IStockLevelRepository, StockLevelFilter } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.js';
-import type { StockLevel, StockUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import type { StockLevel, StockLevelUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 
 interface StockLevelRow {
   stock_level_id: string;
@@ -57,7 +57,7 @@ function toDomain(row: StockLevelRow): StockLevel {
     stockItemId: row.stock_item_id,
     currentQuantity: d.currentQuantity,
     minimumLevel: d.minimumLevel,
-    unit: row.unit as StockUnit,
+    unit: row.unit as StockLevelUnit,
     lastDecrementAt: d.lastDecrementAt,
     lastAdjustmentAt: d.lastAdjustmentAt,
     createdAt: row.created_at,
@@ -69,26 +69,45 @@ export function createStockLevelRepositoryAdapter(ctx: RequestContext): IStockLe
   const getTable = () => ctx.data.moduleData.getTable<StockLevelRow>('stock_level');
 
   return {
-    async getById(productId) {
+    async getById(id) {
       const repo = await getTable();
-      const row = await repo.findOne({ where: { stock_level_id: productId } });
-      if (!row) {
-        throw new AppError('NOT_FOUND', `StockLevel ${productId} not found`, 404, { stockLevelId: productId });
-      }
+      const row = await repo.findOne({ where: { stock_level_id: id } });
+      if (!row) throw new AppError('NOT_FOUND', `StockLevel ${id} not found`, 404, { stockLevelId: id });
       return toDomain(row);
     },
 
+    async findById(id) {
+      const repo = await getTable();
+      const row = await repo.findOne({ where: { stock_level_id: id } });
+      return row ? toDomain(row) : null;
+    },
+
+    async findByProductId(productId) {
+      const repo = await getTable();
+      const row = await repo.findOne({ where: { stock_item_id: productId } });
+      return row ? toDomain(row) : null;
+    },
+
     async list(filter?: StockLevelFilter) {
+      const repo = await getTable();
       const where: Partial<StockLevelRow> = {};
       if (filter?.stockLevelId) where.stock_level_id = filter.stockLevelId;
       if (filter?.stockItemId) where.stock_item_id = filter.stockItemId;
       if (filter?.unit) where.unit = filter.unit;
-      const repo = await getTable();
       const rows = await repo.findMany({
         where,
-        orderBy: { field: 'created_at', direction: 'desc' },
+        orderBy: { field: 'created_at', direction: 'asc' },
       });
       return rows.map(toDomain);
+    },
+
+    async listLowStock() {
+      const repo = await getTable();
+      const rows = await repo.findMany({
+        orderBy: { field: 'created_at', direction: 'asc' },
+      });
+      const all = rows.map(toDomain);
+      return all.filter((sl) => sl.currentQuantity <= sl.minimumLevel);
     },
 
     async save(stockLevel) {
@@ -99,24 +118,6 @@ export function createStockLevelRepositoryAdapter(ctx: RequestContext): IStockLe
       } else {
         await repo.insert({ record: toRow(stockLevel) });
       }
-    },
-
-    async findBelowMinimum() {
-      const repo = await getTable();
-      const rows = await repo.findMany({
-        orderBy: { field: 'created_at', direction: 'asc' },
-      });
-      const all = rows.map(toDomain);
-      return all.filter((sl) => sl.currentQuantity < sl.minimumLevel);
-    },
-
-    async findByLocation(location) {
-      const repo = await getTable();
-      const rows = await repo.findMany({
-        where: { unit: location },
-        orderBy: { field: 'created_at', direction: 'desc' },
-      });
-      return rows.map(toDomain);
     },
   };
 }

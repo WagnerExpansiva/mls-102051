@@ -67,7 +67,7 @@ export const manageMenuItemUsecase = {
             "type": "string",
             "required": true,
             "ofEntity": "MenuItem",
-            "description": "Status do item: rascunho, ativo ou inativo"
+            "description": "Status do item: draft, active ou inactive"
           }
         ],
         "output": [
@@ -75,7 +75,8 @@ export const manageMenuItemUsecase = {
             "name": "menuItemId",
             "type": "string",
             "required": true,
-            "ofEntity": "MenuItem"
+            "ofEntity": "MenuItem",
+            "description": "Identificador do item atualizado"
           },
           {
             "name": "name",
@@ -139,16 +140,18 @@ export const manageMenuItemUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Resolve actorId from ctx.sessionContext (actorSession) and now from ctx.clock (systemDefault) — these are context values, not public input.",
-          "2. Load the current MenuItem via ctx.mdm.entity.get({ mdmId: menuItemId }) to obtain the existing record including its current status, activatedAt, and inactivatedAt.",
-          "3. Apply rule simpleItemsOnly: validate that itemType === 'simple'; if not, reject with error detail referencing rule 'simpleItemsOnly'.",
-          "4. Validate that menuCategoryId references an existing MenuCategory via ctx.mdm.entity.get({ mdmId: menuCategoryId }); reject if not found or inactive.",
-          "5. If status is transitioning to 'active' (current status is 'draft' or 'inactive' and new status is 'active'), apply rule menuItemRequiresIngredient: query related entities of the MenuItem via ctx.mdm.collection.relatedOfMany({ mdmIds: [menuItemId] }) to check for linked ingredients (StockItems related as ingredients). MODELING GAP: MenuItemIngredient is neither a declared MDM entity type nor a runtime port — it is not in mdmRefs [MenuItem, MenuCategory] nor in the valid MDM entities [MenuCategory, MenuItem, StockItem] nor in the valid ports [Order, Shift, StockLevel, ShiftClosingReport, StockAdjustment, StockConsumption]. The relatedOfMany call is the closest available proxy: if it returns zero related entities, reject with error detail referencing rule 'menuItemRequiresIngredient'. If relatedOfMany returns results, proceed.",
-          "6. If status transitions from 'draft' or 'inactive' to 'active', set activatedAt = ctx.clock.now().",
-          "7. If status transitions from 'active' to 'inactive', set inactivatedAt = ctx.clock.now().",
-          "8. Set updatedAt = ctx.clock.now().",
-          "9. Persist the updated MenuItem via ctx.mdm.entity.update({ mdmId: menuItemId, details: { name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt } }).",
-          "10. Return the updated MenuItem fields: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt."
+          "1. Resolve actorId from ctx.sessionContext and now from ctx.clock (systemDefault for updatedAt).",
+          "2. Load existing MenuItem via ctx.mdm.entity.get({ mdmId: menuItemId }). If not found, throw validation error 'MenuItem not found'.",
+          "3. Validate menuCategoryId exists via ctx.mdm.entity.get({ mdmId: menuCategoryId }) (MenuCategory is an MDM ref). If not found, throw validation error 'MenuCategory not found'.",
+          "4. Apply rule simpleItemsOnly: if itemType !== 'simple', throw validation error with ruleId 'simpleItemsOnly' — 'Only simple items are allowed in this phase'.",
+          "5. Determine status transition from existing.status to input.status:",
+          "   5a. If transitioning from 'draft' or 'inactive' to 'active': set activatedAt = now (ctx.clock).",
+          "   5b. If transitioning from 'active' to 'inactive': set inactivatedAt = now (ctx.clock).",
+          "   5c. If status remains unchanged, preserve existing activatedAt/inactivatedAt.",
+          "6. Apply rule menuItemRequiresIngredient: if the resulting status is 'active', query MenuItemIngredient via ctx.mdm.collection.listByType({ type: 'MenuItemIngredient', filter: { menuItemId } }). If the returned collection is empty, throw validation error with ruleId 'menuItemRequiresIngredient' — 'Cannot activate a MenuItem without at least one ingredient'.",
+          "7. Build the update payload: name, description, menuCategoryId, price, itemType, status, activatedAt (if set), inactivatedAt (if set), updatedAt = now.",
+          "8. Persist via ctx.mdm.entity.update({ mdmId: menuItemId, details: updatePayload }) inside a single ctx.data transaction wrapper.",
+          "9. Return the updated MenuItem projection: menuItemId, name, description, menuCategoryId, price, itemType, status, activatedAt, inactivatedAt, updatedAt."
         ]
       }
     ],

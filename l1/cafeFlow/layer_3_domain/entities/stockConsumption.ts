@@ -24,14 +24,8 @@ export function canTransitionStockConsumption(
   return STOCK_CONSUMPTION_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export function isStockConsumptionVoided(
+export function isStockConsumptionActive(
   consumption: Pick<StockConsumption, 'status'>,
 ): boolean {
-  return consumption.status === 'voided';
-}
-
-export function stockConsumptionRequiresPositiveQuantity(
-  consumption: Pick<StockConsumption, 'quantity'>,
-): boolean {
-  return consumption.quantity > 0;
+  return consumption.status === 'posted';
 }

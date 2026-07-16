@@ -6,7 +6,7 @@ export const shiftClosingReportTableDef: TableDefinition = {
   repositoryName: 'cafeFlowShiftClosingReport',
   tableName: 'shift_closing_report',
   purpose: 'transacao',
-  description: 'Shift closing reports. Non-indexed fields (totalApurado, paidOrderCount, updatedAt) stored in details JSONB.',
+  description: 'Fechamento de turno. Campos não indexados (totalApurado, paidOrderCount, updatedAt) em details (JSONB).',
   backupHot: false,
   storageProfile: 'postgres',
   writeMode: 'sync',
@@ -14,7 +14,7 @@ export const shiftClosingReportTableDef: TableDefinition = {
     { name: 'shift_closing_report_id', postgresType: 'TEXT' },
     { name: 'shift_id', postgresType: 'TEXT' },
     { name: 'created_at', postgresType: 'TIMESTAMPTZ', defaultSql: 'NOW()' },
-    { name: 'details', postgresType: 'JSONB', nullable: true },
+    { name: 'details', postgresType: 'JSONB' },
   ],
   primaryKey: ['shift_closing_report_id'],
   indexes: [

@@ -2,20 +2,21 @@
 import type { Order, OrderStatus, OrderType } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
 
 export type OrderId = string;
-export type CustomerId = string;
+export type OrderNumber = string;
+export type ShiftId = string;
 
 export interface OrderFilter {
-  shiftId?: string;
+  shiftId?: ShiftId;
   status?: OrderStatus;
   orderType?: OrderType;
   tableNumber?: string;
 }
 
 export interface IOrderRepository {
-  getById(orderId: OrderId): Promise<Order>;
+  getById(id: OrderId): Promise<Order>;
+  findById(id: OrderId): Promise<Order | null>;
+  findByOrderNumber(orderNumber: OrderNumber): Promise<Order | null>;
   list(filter?: OrderFilter): Promise<Order[]>;
+  listByShiftId(shiftId: ShiftId): Promise<Order[]>;
   save(order: Order): Promise<void>;
-  findByCustomerId(customerId: CustomerId): Promise<Order[]>;
-  findByStatus(status: OrderStatus): Promise<Order[]>;
-  findByPeriod(start: Date, end: Date): Promise<Order[]>;
 }

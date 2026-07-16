@@ -14,7 +14,7 @@ export const shiftTableDef: TableDefinition = {
     { name: 'shift_id', postgresType: 'TEXT' },
     { name: 'status', postgresType: 'TEXT' },
     { name: 'created_at', postgresType: 'TIMESTAMPTZ', defaultSql: 'NOW()' },
-    { name: 'details', postgresType: 'JSONB', nullable: true },
+    { name: 'details', postgresType: 'JSONB' },
   ],
   primaryKey: ['shift_id'],
   indexes: [
