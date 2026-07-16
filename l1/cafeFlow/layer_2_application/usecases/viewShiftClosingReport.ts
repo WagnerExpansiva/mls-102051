@@ -5,8 +5,9 @@ import type { IShiftClosingReportRepository } from '/_102051_/l1/cafeFlow/layer_
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
 import type { ShiftClosingReport } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.js';
 import {
-  validateShiftClosingReportTotalApurado,
-  validateShiftClosingReportPaidOrderCount,
+  shiftClosingReportRequiresClosedShift,
+  shiftClosingReportTotalApuradoIsValid,
+  shiftClosingReportPaidOrderCountIsValid,
 } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shiftClosingReport.js';
 
 export interface ViewShiftClosingReportInput {
@@ -29,59 +30,57 @@ export async function viewShiftClosingReport(
   const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
   const reports = resolveRepository<IShiftClosingReportRepository>(ctx, 'ShiftClosingReport');
 
-  // Step 2: Load the Shift to validate it exists and is closed.
+  // Step 1–2: Load the Shift aggregate and verify it exists.
   const shift = await shifts.getById(input.shiftId);
   if (!shift) {
     throw new AppError(
       'NOT_FOUND',
-      'Turno não encontrado.',
+      `Shift not found: ${input.shiftId}`,
       404,
       { shiftId: input.shiftId },
     );
   }
 
-  if (String(shift.status) !== 'closed') {
+  // Step 3: Verify the shift status is 'closed' (rule: shiftClosingRecordsRevenue requires a finalized shift).
+  if (!shiftClosingReportRequiresClosedShift(shift.status)) {
     throw new AppError(
       'VALIDATION_ERROR',
-      'O relatório de fechamento só está disponível para turnos fechados.',
+      'Closing report is only available for closed shifts (rule: shiftClosingRecordsRevenue).',
       400,
-      { shiftId: input.shiftId, currentStatus: shift.status },
+      { ruleId: 'shiftClosingRecordsRevenue', shiftId: input.shiftId, currentStatus: shift.status },
     );
   }
 
-  // Step 3: Load the ShiftClosingReport by shiftId.
+  // Step 4–5: Load the ShiftClosingReport by shiftId.
   const report: ShiftClosingReport | null = await reports.findByShiftId(input.shiftId);
   if (!report) {
-    // No report found for this shift — return empty result.
     throw new AppError(
       'NOT_FOUND',
-      'Não há relatório de fechamento para este turno.',
+      `No shift closing report found for shift: ${input.shiftId}`,
       404,
       { shiftId: input.shiftId },
     );
   }
 
-  // Step 4: Apply rule shiftClosingRecordsRevenue — totalApurado must be >= 0.
-  if (!validateShiftClosingReportTotalApurado(report)) {
+  // Step 6: Validate data integrity — totalApurado >= 0 and paidOrderCount >= 0.
+  if (!shiftClosingReportTotalApuradoIsValid(report.totalApurado)) {
     throw new AppError(
-      'VALIDATION_ERROR',
-      'Inconsistência no relatório: totalApurado inválido (deve ser >= 0).',
-      400,
+      'CONFLICT',
+      'Data integrity error: totalApurado must be >= 0 (rule: shiftClosingRecordsRevenue).',
+      409,
       { ruleId: 'shiftClosingRecordsRevenue', totalApurado: report.totalApurado },
     );
   }
-
-  // Step 5: Apply rule shiftClosingConsolidatesPaidOrders — paidOrderCount must be >= 0.
-  if (!validateShiftClosingReportPaidOrderCount(report)) {
+  if (!shiftClosingReportPaidOrderCountIsValid(report.paidOrderCount)) {
     throw new AppError(
-      'VALIDATION_ERROR',
-      'Inconsistência no relatório: paidOrderCount inválido (deve ser >= 0).',
-      400,
+      'CONFLICT',
+      'Data integrity error: paidOrderCount must be >= 0 (rule: shiftClosingConsolidatesPaidOrders).',
+      409,
       { ruleId: 'shiftClosingConsolidatesPaidOrders', paidOrderCount: report.paidOrderCount },
     );
   }
 
-  // Step 6: Return the report projection.
+  // Step 7: Return the report fields.
   return {
     shiftClosingReportId: report.shiftClosingReportId,
     shiftId: report.shiftId,

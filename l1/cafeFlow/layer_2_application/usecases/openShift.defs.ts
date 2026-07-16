@@ -68,14 +68,13 @@ export const openShiftUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Resolve o identificador do gerente autenticado a partir de ctx.sessionContext.actorId (originRef: actorSession.actorId).",
-          "2. Gera um novo UUID para shiftId via ctx.idGenerator.",
-          "3. Obtém o timestamp atual do servidor via ctx.clock.now() para openedAt, createdAt e updatedAt.",
-          "4. Consulta a porta Shift (list/find) para verificar se já existe algum Shift com status igual a 'open'.",
-          "5. Aplica a regra singleOpenShift: se existir um Shift com status 'open', lança erro de validação com a regra 'singleOpenShift' impedindo a criação de um novo turno.",
-          "6. Se não houver Shift aberto, constrói o novo Shift com shiftId gerado, status='open', openedAt=now, openedBy=actorId, notes (se fornecido), createdAt=now, updatedAt=now, e campos closedAt, closedBy, totalApurado como nulos.",
-          "7. Persiste o novo Shift através da porta Shift dentro de uma transação única (ctx.data).",
-          "8. Retorna shiftId, status, openedAt e openedBy do turno recém-criado."
+          "1. Query the Shift port for any existing Shift with status 'open' (singleOpenShift rule). If one is found, reject the operation with a validation error referencing rule 'singleOpenShift'.",
+          "2. Generate a new UUID for shiftId via ctx.idGenerator.",
+          "3. Resolve openedBy from ctx.sessionContext.actorId (actorSession).",
+          "4. Set status = 'open', openedAt = ctx.clock.now(), createdAt = ctx.clock.now(), updatedAt = ctx.clock.now().",
+          "5. Build the Shift aggregate with the provided notes (optional) and all resolved fields; closedAt, closedBy and totalApurado remain null.",
+          "6. Persist the Shift through its port inside a single transaction (ctx.data transaction wrapper).",
+          "7. Return shiftId, status, openedAt, openedBy."
         ]
       }
     ],

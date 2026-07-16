@@ -31,19 +31,19 @@ export const stockAdjustmentTableDefinition = {
         "name": "status",
         "type": "text",
         "nullable": false,
-        "description": "Adjustment status"
+        "description": "adjustment status"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "Creation timestamp for ordering"
+        "description": "ordering timestamp"
       },
       {
         "name": "details",
         "type": "jsonb",
-        "nullable": true,
-        "description": "Details JSONB: quantity, reason, voidedAt, voidedReason"
+        "nullable": false,
+        "description": "quantity, reason, voidedAt, voidedReason"
       }
     ],
     "primaryKey": [
@@ -54,31 +54,27 @@ export const stockAdjustmentTableDefinition = {
         "indexName": "idx_stock_adjustment_stock_item_id",
         "columns": [
           "stock_item_id"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_stock_adjustment_status",
         "columns": [
           "status"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_stock_adjustment_created_at",
         "columns": [
           "created_at"
-        ],
-        "unique": false
+        ]
       }
     ],
     "detailsColumn": {
       "enabled": true,
-      "columnName": "details",
       "childCollections": []
     },
-    "appendOnly": true,
     "purpose": "controle",
+    "appendOnly": true,
     "retentionDays": 365
   }
 } as const;

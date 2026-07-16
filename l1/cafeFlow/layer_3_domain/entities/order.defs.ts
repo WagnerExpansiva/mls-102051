@@ -112,16 +112,17 @@ export const orderDomainEntity = {
       "delivered"
     ],
     "invariants": [
-      "tableNumber é obrigatório quando orderType for 'table'",
-      "tableNumber deve ser nulo quando orderType for 'takeout'",
-      "priority true exige priorityReason preenchido",
-      "status deve avançar na sequência: registered → received → inPreparation → ready → delivered (não pode retroceder)",
-      "receivedAt deve ser preenchido quando status for received ou posterior",
-      "inPreparationAt deve ser preenchido quando status for inPreparation ou posterior",
-      "readyAt deve ser preenchido quando status for ready ou posterior",
-      "deliveredAt deve ser preenchido quando status for delivered",
-      "shiftId deve referenciar um turno aberto no momento da criação do pedido",
-      "Pelo menos um OrderItem deve existir no pedido"
+      "tableNumber is required when orderType is 'table'",
+      "tableNumber must be null when orderType is 'takeout'",
+      "priorityReason is required when priority is true",
+      "Status transitions must follow the sequence: registered → received → inPreparation → ready → delivered",
+      "receivedAt must be set when status transitions to 'received'",
+      "inPreparationAt must be set when status transitions to 'inPreparation'",
+      "readyAt must be set when status transitions to 'ready'",
+      "deliveredAt must be set when status transitions to 'delivered'",
+      "Order must belong to a shift whose status is 'open'",
+      "Order must contain at least one OrderItem",
+      "Timestamps must be chronologically ordered: receivedAt ≤ inPreparationAt ≤ readyAt ≤ deliveredAt"
     ],
     "valueObjects": [
       {

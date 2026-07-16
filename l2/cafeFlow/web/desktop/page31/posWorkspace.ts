@@ -2,321 +2,292 @@
 
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { CafeFlowPosWorkspaceBase } from '/_102051_/l2/cafeFlow/web/shared/posWorkspace.js';
 import type { CafeFlowViewOrderBoardOutputItem } from '/_102051_/l2/cafeFlow/web/contracts/posWorkspace.js';
+import { CafeFlowPosWorkspaceBase } from '/_102051_/l2/cafeFlow/web/shared/posWorkspace.js';
 
 @customElement('cafe-flow--web--desktop--page31--pos-workspace-102051')
 export class CafeFlowDesktopPage31PosWorkspacePage extends CafeFlowPosWorkspaceBase {
-  render() {
-    const items: CafeFlowViewOrderBoardOutputItem[] = this.viewOrderBoardData?.items ?? [];
+render() {
+const boardItems: CafeFlowViewOrderBoardOutputItem[] = this.viewOrderBoardData.items ?? [];
+const boardLoading: boolean = this.viewOrderBoardState === 'loading';
+const createLoading: boolean = this.createOrderState === 'loading';
+const deliverLoading: boolean = this.deliverOrderState === 'loading';
+const createSuccess: boolean = this.createOrderState === 'success';
+const createError: boolean = this.createOrderState === 'error';
+const deliverSuccess: boolean = this.deliverOrderState === 'success';
+const deliverError: boolean = this.deliverOrderState === 'error';
+const priorityChecked: boolean = this.createOrderPriority === 'true';
+const showCreateFeedback: boolean = createSuccess || createError;
+const showDeliverFeedback: boolean = deliverSuccess || deliverError;
+const createFeedbackText: string = createSuccess
+? this.msg['action.createOrder.success']
+: this.createOrderError || this.msg['action.createOrder.error'];
+const deliverFeedbackText: string = deliverSuccess
+? this.msg['action.deliverOrder.success']
+: this.deliverOrderError || this.msg['action.deliverOrder.error'];
+const showReviewEmpty: boolean =
+!this.createOrderOutput && !this.deliverOrderOutput && !showCreateFeedback && !showDeliverFeedback;
 
-    return html`
-      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
-        <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
-            ${this.msg['page.posWorkspace.title']}
-          </h1>
+return html`
+<div class="min-h-full bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)]">
+  <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <header>
+      <h1 class="text-2xl font-semibold">${this.msg['page.posWorkspace.title']}</h1>
+    </header>
 
-          <!-- ── Queue Section ─────────────────────────────── -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+    <section class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+      <h2 class="text-xl font-semibold">${this.msg['queueSection.title']}</h2>
+
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold">${this.msg['orderBoard.title']}</h3>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h4 class="text-base font-semibold">${this.msg['section.queue.title']}</h4>
+          <button
+            class="inline-flex items-center rounded-md border border-[var(--grey-color,#e2e8f0)] px-3 py-1.5 text-sm font-medium text-[var(--text-secondary-color,#1c91cd)]"
+            @click=${this.handleViewOrderBoardClick}
+            ?disabled=${boardLoading}
+            aria-busy=${boardLoading}
           >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['section.queue.title']}
-            </h2>
-
-            <!-- Toolbar -->
-            <div class="flex justify-end">
-              <button
-                class="px-4 py-2 rounded-lg border border-[var(--grey-color,#e6e6e6)] text-[var(--text-primary-color,#403f3f)] text-sm hover:bg-[var(--bg-secondary-color,#e6e6e6)]"
-                @click=${() => this.handleViewOrderBoardClick()}
-              >
-                ${this.msg['action.refresh.label']}
-              </button>
-            </div>
-
-            <!-- Queue table / loading / empty -->
-            ${this.viewOrderBoardState === 'loading'
-              ? html`<div class="py-8 text-center text-sm text-[var(--text-primary-color-disabled,#525151)]">…</div>`
-              : items.length === 0
-                ? html`<div class="py-8 text-center text-sm text-[var(--text-primary-color-disabled,#525151)]">${this.msg['empty.queue']}</div>`
-                : html`
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-sm border-collapse">
-                      <thead>
-                        <tr class="border-b border-[var(--grey-color,#e6e6e6)] text-left text-[var(--text-primary-color,#403f3f)]">
-                          <th class="py-2 px-2 font-medium">${this.msg['column.orderId']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.status']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.orderType']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.tableNumber']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.priority']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.priorityReason']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.receivedAt']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.inPreparationAt']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.readyAt']}</th>
-                          <th class="py-2 px-2 font-medium">${this.msg['column.createdAt']}</th>
-                          <th class="py-2 px-2 font-medium"></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${items.map((item: CafeFlowViewOrderBoardOutputItem) => {
-                          const laneLabel: string =
-                            item.status === 'registered' ? this.msg['lane.registered'] :
-                            item.status === 'received' ? this.msg['lane.received'] :
-                            item.status === 'inPreparation' ? this.msg['lane.inPreparation'] :
-                            item.status === 'ready' ? this.msg['lane.ready'] :
-                            item.status === 'delivered' ? this.msg['lane.delivered'] :
-                            item.status;
-                          const statusColor: string =
-                            item.status === 'ready' ? 'var(--success-color,#52c41a)' :
-                            item.status === 'inPreparation' ? 'var(--warning-color,#faad14)' :
-                            item.status === 'delivered' ? 'var(--text-primary-color-disabled,#525151)' :
-                            'var(--info-color,#0a6dc9)';
-                          return html`
-                            <tr
-                              class="border-b border-[var(--grey-color,#e6e6e6)] ${item.priority ? 'border-l-4 border-l-[var(--warning-color,#faad14)]' : ''}"
-                            >
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.orderId}</td>
-                              <td class="py-2 px-2">
-                                <span
-                                  class="inline-block px-2 py-0.5 rounded text-xs font-medium"
-                                  style="color: ${statusColor};"
-                                >${laneLabel}</span>
-                              </td>
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.orderType}</td>
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.tableNumber || '—'}</td>
-                              <td class="py-2 px-2">
-                                ${item.priority
-                                  ? html`<span class="inline-block px-2 py-0.5 rounded text-xs font-medium text-white" style="background-color: var(--warning-color,#faad14);">${this.msg['column.priority']}</span>`
-                                  : html`<span class="text-[var(--text-primary-color-disabled,#525151)]">—</span>`}
-                              </td>
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.priorityReason || '—'}</td>
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.receivedAt || '—'}</td>
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.inPreparationAt || '—'}</td>
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.readyAt || '—'}</td>
-                              <td class="py-2 px-2 text-[var(--text-primary-color,#403f3f)]">${item.createdAt || '—'}</td>
-                              <td class="py-2 px-2">
-                                ${item.status === 'ready'
-                                  ? html`<button
-                                      class="px-3 py-1 rounded text-xs text-white ${this.deliverOrderOrderId === item.orderId ? 'ring-2 ring-[var(--active-color,#1890ff)]' : ''}"
-                                      style="background-color: var(--active-color,#1890ff);"
-                                      @click=${() => this.setDeliverOrderOrderId(item.orderId)}
-                                    >${this.msg['action.deliverOrder.label']}</button>`
-                                  : null}
-                              </td>
-                            </tr>
-                          `;
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                `}
-
-            <!-- Deliver transition panel -->
-            <div class="border-t border-[var(--grey-color,#e6e6e6)] pt-4 space-y-3">
-              <h3 class="text-base font-medium text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['section.queue.deliverTitle']}
-              </h3>
-              <div class="text-sm text-[var(--text-primary-color,#403f3f)]">
-                <span class="font-medium">${this.msg['field.orderId']}:</span>
-                <span>${this.deliverOrderOrderId || '—'}</span>
-              </div>
-              <button
-                class="px-4 py-2 rounded-lg text-white text-sm disabled:opacity-50"
-                style="background-color: var(--active-color,#1890ff);"
-                ?disabled=${!this.deliverOrderOrderId || this.deliverOrderState === 'loading'}
-                @click=${() => this.handleDeliverOrderClick()}
-              >
-                ${this.deliverOrderState === 'loading' ? '…' : this.msg['action.confirmDeliver.label']}
-              </button>
-
-              ${this.deliverOrderState === 'success'
-                ? html`<div class="text-sm text-[var(--success-color,#52c41a)]">${this.msg['action.deliverOrder.success']}</div>`
-                : null}
-              ${this.deliverOrderState === 'error'
-                ? html`<div class="text-sm text-[var(--error-color,#ff4d4f)]">${this.deliverOrderError || this.msg['action.deliverOrder.error']}</div>`
-                : null}
-            </div>
-          </section>
-
-          <!-- ── Create Order Section ──────────────────────── -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['section.createOrder.title']}
-            </h2>
-
-            <div class="space-y-4">
-              <!-- orderType -->
-              <div class="space-y-1">
-                <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['field.orderType']}
-                </label>
-                <select
-                  class="w-full px-3 py-2 rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)] text-sm"
-                  .value=${this.createOrderOrderType}
-                  @change=${(e: Event) => this.handleCreateOrderOrderTypeChange(e)}
-                >
-                  <option value="">—</option>
-                  <option value="table">Mesa</option>
-                  <option value="takeout">Para viagem</option>
-                </select>
-              </div>
-
-              <!-- tableNumber (only when orderType is 'table') -->
-              ${this.createOrderOrderType === 'table'
-                ? html`
-                  <div class="space-y-1">
-                    <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                      ${this.msg['field.tableNumber']}
-                    </label>
-                    <input
-                      type="number"
-                      class="w-full px-3 py-2 rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)] text-sm"
-                      .value=${this.createOrderTableNumber}
-                      @input=${(e: Event) => this.handleCreateOrderTableNumberChange(e)}
-                    />
-                  </div>
-                `
-                : null}
-
-              <!-- orderItems -->
-              <div class="space-y-1">
-                <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['field.orderItems']}
-                </label>
-                <input
-                  type="text"
-                  class="w-full px-3 py-2 rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)] text-sm"
-                  .value=${this.createOrderOrderItems}
-                  @input=${(e: Event) => this.handleCreateOrderOrderItemsChange(e)}
-                />
-              </div>
-
-              <!-- priority toggle -->
-              <div class="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="f-priority"
-                  class="rounded border-[var(--grey-color,#e6e6e6)]"
-                  .checked=${this.createOrderPriority === 'true'}
-                  @change=${(e: Event) => this.handleCreateOrderPriorityChange(e)}
-                />
-                <label for="f-priority" class="text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                  ${this.msg['field.priority']}
-                </label>
-              </div>
-
-              <!-- priorityReason (only when priority is true) -->
-              ${this.createOrderPriority === 'true'
-                ? html`
-                  <div class="space-y-1">
-                    <label class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)]">
-                      ${this.msg['field.priorityReason']}
-                    </label>
-                    <input
-                      type="text"
-                      class="w-full px-3 py-2 rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)] text-sm"
-                      .value=${this.createOrderPriorityReason}
-                      @input=${(e: Event) => this.handleCreateOrderPriorityReasonChange(e)}
-                    />
-                  </div>
-                `
-                : null}
-
-              <!-- Submit -->
-              <button
-                class="px-4 py-2 rounded-lg text-white text-sm disabled:opacity-50"
-                style="background-color: var(--active-color,#1890ff);"
-                ?disabled=${this.createOrderState === 'loading'}
-                @click=${() => this.handleCreateOrderClick()}
-              >
-                ${this.createOrderState === 'loading' ? '…' : this.msg['action.createOrder.label']}
-              </button>
-
-              <!-- Feedback -->
-              ${this.createOrderState === 'success'
-                ? html`<div class="text-sm text-[var(--success-color,#52c41a)]">${this.msg['action.createOrder.success']}</div>`
-                : null}
-              ${this.createOrderState === 'error'
-                ? html`<div class="text-sm text-[var(--error-color,#ff4d4f)]">${this.createOrderError || this.msg['action.createOrder.error']}</div>`
-                : null}
-            </div>
-          </section>
-
-          <!-- ── Review Section ─────────────────────────────── -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e6e6e6)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['section.review.title']}
-            </h2>
-
-            ${this.createOrderOutput || this.deliverOrderOutput
-              ? html`
-                <div class="space-y-4">
-                  ${this.createOrderOutput
-                    ? html`
-                      <div class="space-y-2">
-                        <h3 class="text-sm font-semibold text-[var(--text-primary-color,#403f3f)]">
-                          ${this.msg['intention.createOrder.title']}
-                        </h3>
-                        <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.orderId']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">${this.createOrderOutput.orderId}</dd>
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.status']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">
-                            ${this.createOrderOutput.status === 'registered' ? this.msg['lane.registered'] :
-                              this.createOrderOutput.status === 'received' ? this.msg['lane.received'] :
-                              this.createOrderOutput.status === 'inPreparation' ? this.msg['lane.inPreparation'] :
-                              this.createOrderOutput.status === 'ready' ? this.msg['lane.ready'] :
-                              this.createOrderOutput.status === 'delivered' ? this.msg['lane.delivered'] :
-                              this.createOrderOutput.status}
-                          </dd>
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.orderType']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">${this.createOrderOutput.orderType}</dd>
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.tableNumber']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">${this.createOrderOutput.tableNumber || '—'}</dd>
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.createdAt']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">${this.createOrderOutput.createdAt || '—'}</dd>
-                        </dl>
-                      </div>
-                    `
-                    : null}
-
-                  ${this.deliverOrderOutput
-                    ? html`
-                      <div class="space-y-2">
-                        <h3 class="text-sm font-semibold text-[var(--text-primary-color,#403f3f)]">
-                          ${this.msg['intention.deliverOrder.title']}
-                        </h3>
-                        <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.orderId']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">${this.deliverOrderOutput.orderId}</dd>
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.status']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">
-                            ${this.deliverOrderOutput.status === 'registered' ? this.msg['lane.registered'] :
-                              this.deliverOrderOutput.status === 'received' ? this.msg['lane.received'] :
-                              this.deliverOrderOutput.status === 'inPreparation' ? this.msg['lane.inPreparation'] :
-                              this.deliverOrderOutput.status === 'ready' ? this.msg['lane.ready'] :
-                              this.deliverOrderOutput.status === 'delivered' ? this.msg['lane.delivered'] :
-                              this.deliverOrderOutput.status}
-                          </dd>
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.deliveredAt']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">${this.deliverOrderOutput.deliveredAt || '—'}</dd>
-                          <dt class="text-[var(--text-primary-color-disabled,#525151)]">${this.msg['column.updatedAt']}</dt>
-                          <dd class="text-[var(--text-primary-color,#403f3f)]">${this.deliverOrderOutput.updatedAt || '—'}</dd>
-                        </dl>
-                      </div>
-                    `
-                    : null}
-                </div>
-              `
-              : html`<div class="py-4 text-center text-sm text-[var(--text-primary-color-disabled,#525151)]">${this.msg['empty.review']}</div>`}
-          </section>
+            ${this.msg['action.refresh.label']}
+          </button>
         </div>
+
+        ${boardLoading
+? html`<div class="rounded-md border border-dashed border-[var(--grey-color,#e2e8f0)] p-4 text-sm">
+              <!-- TODO: i18n for loading state -->
+              Loading...
+            </div>`
+: html`
+              ${boardItems.length === 0
+? html`<p class="text-sm text-[var(--text-primary-color,#0f172a)]">${this.msg['empty.queue']}</p>`
+: html`
+                      <div class="overflow-x-auto">
+                        <table class="min-w-full border-collapse text-sm">
+                          <thead>
+                            <tr class="border-b border-[var(--grey-color,#e2e8f0)]">
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.orderId']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.status']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.orderType']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.tableNumber']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.priority']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.priorityReason']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.receivedAt']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.inPreparationAt']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.readyAt']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['column.createdAt']}</th>
+                              <th class="px-3 py-2 text-left font-semibold">${this.msg['action.deliverOrder.label']}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${boardItems.map((item: CafeFlowViewOrderBoardOutputItem, index: number) => {
+const canDeliver: boolean = item.status === 'ready';
+const rowClasses =
+index % 2 === 0
+? 'border-b border-[var(--grey-color,#e2e8f0)]'
+: 'border-b border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color-lighter,#f9f9f9)]';
+return html`
+                                <tr class=${rowClasses}>
+                                  <td class="px-3 py-2">${item.orderId}</td>
+                                  <td class="px-3 py-2">${item.status}</td>
+                                  <td class="px-3 py-2">${item.orderType}</td>
+                                  <td class="px-3 py-2">${item.tableNumber}</td>
+                                  <td class="px-3 py-2">${String(item.priority)}</td>
+                                  <td class="px-3 py-2">${item.priorityReason}</td>
+                                  <td class="px-3 py-2">${item.receivedAt}</td>
+                                  <td class="px-3 py-2">${item.inPreparationAt}</td>
+                                  <td class="px-3 py-2">${item.readyAt}</td>
+                                  <td class="px-3 py-2">${item.createdAt}</td>
+                                  <td class="px-3 py-2">
+                                    <button
+                                      class="inline-flex items-center rounded-md border border-[var(--grey-color,#e2e8f0)] px-2 py-1 text-xs font-semibold"
+                                      @click=${(event: MouseEvent) => {
+if (!canDeliver) {
+return;
+}
+event.preventDefault();
+this.setDeliverOrderOrderId(item.orderId);
+this.handleDeliverOrderClick();
+}}
+                                      ?disabled=${!canDeliver || deliverLoading}
+                                    >
+                                      ${this.msg['action.deliverOrder.label']}
+                                    </button>
+                                  </td>
+                                </tr>
+                              `;
+})}
+                          </tbody>
+                        </table>
+                      </div>
+                    `}
+            `}
       </div>
-    `;
-  }
+
+      <div class="space-y-3">
+        <h4 class="text-base font-semibold">${this.msg['section.queue.deliverTitle']}</h4>
+        ${this.deliverOrderOrderId
+? html`
+              <div class="rounded-md border border-[var(--grey-color,#e2e8f0)] p-3 space-y-3">
+                <div class="text-sm">
+                  <span class="font-semibold">${this.msg['field.orderId']}</span>
+                  <span class="ml-2">${this.deliverOrderOrderId}</span>
+                </div>
+                <button
+                  class="inline-flex items-center justify-center rounded-md bg-[var(--active-color,#1890ff)] px-4 py-2 text-sm font-semibold text-[var(--text-primary-color-lighter,#ffffff)]"
+                  @click=${this.handleDeliverOrderClick}
+                  ?disabled=${deliverLoading}
+                  aria-busy=${deliverLoading}
+                >
+                  ${this.msg['action.confirmDeliver.label']}
+                </button>
+              </div>
+            `
+: html`<p class="text-sm">${this.msg['empty.deliverOrder']}</p>`}
+      </div>
+    </section>
+
+    <section class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+      <h2 class="text-xl font-semibold">${this.msg['createOrderSection.title']}</h2>
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold">${this.msg['createOrderForm.title']}</h3>
+        <h4 class="text-base font-semibold">${this.msg['section.createOrder.title']}</h4>
+        <form class="space-y-3">
+          <label class="block text-sm font-medium">
+            ${this.msg['field.orderType']}
+            <select
+              class="mt-1 block w-full rounded-md border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] px-3 py-2"
+              .value=${this.createOrderOrderType}
+              @change=${this.handleCreateOrderOrderTypeChange}
+            >
+              <!-- TODO: i18n for order type options -->
+              <option value="">--</option>
+              <option value="table">table</option>
+              <option value="takeout">takeout</option>
+            </select>
+          </label>
+
+          ${this.createOrderOrderType === 'table'
+? html`
+                <label class="block text-sm font-medium">
+                  ${this.msg['field.tableNumber']}
+                  <input
+                    class="mt-1 block w-full rounded-md border border-[var(--grey-color,#e2e8f0)] px-3 py-2"
+                    type="number"
+                    .value=${this.createOrderTableNumber}
+                    @input=${this.handleCreateOrderTableNumberChange}
+                  />
+                </label>
+              `
+: null}
+
+          <label class="block text-sm font-medium">
+            ${this.msg['field.orderItems']}
+            <textarea
+              class="mt-1 block w-full rounded-md border border-[var(--grey-color,#e2e8f0)] px-3 py-2"
+              .value=${this.createOrderOrderItems}
+              @input=${this.handleCreateOrderOrderItemsChange}
+              rows="3"
+            ></textarea>
+          </label>
+
+          <label class="flex items-center gap-2 text-sm font-medium">
+            <input
+              type="checkbox"
+              .checked=${priorityChecked}
+              @change=${this.handleCreateOrderPriorityChange}
+            />
+            ${this.msg['field.priority']}
+          </label>
+
+          ${priorityChecked
+? html`
+                <label class="block text-sm font-medium">
+                  ${this.msg['field.priorityReason']}
+                  <input
+                    class="mt-1 block w-full rounded-md border border-[var(--grey-color,#e2e8f0)] px-3 py-2"
+                    type="text"
+                    .value=${this.createOrderPriorityReason}
+                    @input=${this.handleCreateOrderPriorityReasonChange}
+                  />
+                </label>
+              `
+: null}
+
+          <button
+            class="inline-flex items-center justify-center rounded-md bg-[var(--active-color,#1890ff)] px-4 py-2 text-sm font-semibold text-[var(--text-primary-color-lighter,#ffffff)]"
+            type="button"
+            @click=${this.handleCreateOrderClick}
+            ?disabled=${createLoading}
+            aria-busy=${createLoading}
+          >
+            ${this.msg['action.createOrder.label']}
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4">
+      <h2 class="text-xl font-semibold">${this.msg['reviewSection.title']}</h2>
+      <div class="space-y-3">
+        <h3 class="text-lg font-semibold">${this.msg['actionSummary.title']}</h3>
+        <h4 class="text-base font-semibold">${this.msg['section.review.title']}</h4>
+
+        ${showCreateFeedback
+? html`
+              <details class="rounded-md border border-[var(--grey-color,#e2e8f0)] p-3">
+                <!-- TODO: i18n for dismiss summary -->
+                <summary class="cursor-pointer text-sm font-semibold">Fechar</summary>
+                <p class="mt-2 text-sm">${createFeedbackText}</p>
+              </details>
+            `
+: null}
+
+        ${showDeliverFeedback
+? html`
+              <details class="rounded-md border border-[var(--grey-color,#e2e8f0)] p-3">
+                <!-- TODO: i18n for dismiss summary -->
+                <summary class="cursor-pointer text-sm font-semibold">Fechar</summary>
+                <p class="mt-2 text-sm">${deliverFeedbackText}</p>
+              </details>
+            `
+: null}
+
+        ${this.createOrderOutput
+? html`
+              <div class="rounded-md border border-[var(--grey-color,#e2e8f0)] p-3 space-y-2">
+                <div class="text-sm font-semibold">${this.msg['intention.createOrder.title']}</div>
+                <div class="grid gap-2 text-sm">
+                  <div><span class="font-semibold">${this.msg['column.orderId']}:</span> ${this.createOrderOutput.orderId}</div>
+                  <div><span class="font-semibold">${this.msg['column.status']}:</span> ${this.createOrderOutput.status}</div>
+                  <div><span class="font-semibold">${this.msg['column.orderType']}:</span> ${this.createOrderOutput.orderType}</div>
+                  <div><span class="font-semibold">${this.msg['column.tableNumber']}:</span> ${this.createOrderOutput.tableNumber}</div>
+                  <div><span class="font-semibold">${this.msg['column.createdAt']}:</span> ${this.createOrderOutput.createdAt}</div>
+                </div>
+              </div>
+            `
+: null}
+
+        ${this.deliverOrderOutput
+? html`
+              <div class="rounded-md border border-[var(--grey-color,#e2e8f0)] p-3 space-y-2">
+                <div class="text-sm font-semibold">${this.msg['intention.deliverOrder.title']}</div>
+                <div class="grid gap-2 text-sm">
+                  <div><span class="font-semibold">${this.msg['column.orderId']}:</span> ${this.deliverOrderOutput.orderId}</div>
+                  <div><span class="font-semibold">${this.msg['column.status']}:</span> ${this.deliverOrderOutput.status}</div>
+                  <div><span class="font-semibold">${this.msg['column.deliveredAt']}:</span> ${this.deliverOrderOutput.deliveredAt}</div>
+                  <div><span class="font-semibold">${this.msg['column.updatedAt']}:</span> ${this.deliverOrderOutput.updatedAt}</div>
+                </div>
+              </div>
+            `
+: null}
+
+        ${showReviewEmpty
+? html`<p class="text-sm">${this.msg['empty.review']}</p>`
+: null}
+      </div>
+    </section>
+  </div>
+</div>
+`;
+}
 }

@@ -18,78 +18,69 @@ export interface DeliverOrderOutput {
   updatedAt: string;
 }
 
-export async function deliverOrder(
-  ctx: RequestContext,
-  input: DeliverOrderInput,
-): Promise<DeliverOrderOutput> {
+export async function deliverOrder(ctx: RequestContext, input: DeliverOrderInput): Promise<DeliverOrderOutput> {
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
   const stockConsumptions = resolveRepository<IStockConsumptionRepository>(ctx, 'StockConsumption');
 
-  // Step 1: Load the Order aggregate by orderId.
-  let order: Order;
-  try {
-    order = await orders.getById(input.orderId);
-  } catch {
-    throw new AppError('NOT_FOUND', `Pedido não encontrado: ${input.orderId}`, 404, {
-      orderId: input.orderId,
-    });
+  // Step 1 — Load the Order aggregate
+  const order = await orders.findById(input.orderId);
+  if (!order) {
+    throw new AppError('NOT_FOUND', `Order not found: ${input.orderId}`, 404, { orderId: input.orderId });
   }
 
-  // Step 2: Apply rule 'readyBeforeDelivered' — order must be in 'ready' status.
+  // Step 2 — Rule readyBeforeDelivered: order must be 'ready' before it can be delivered
   if (order.status !== 'ready') {
     throw new AppError(
       'VALIDATION_ERROR',
-      'readyBeforeDelivered: o pedido deve estar no status "ready" antes da entrega.',
+      'readyBeforeDelivered: o pedido precisa estar no status "ready" antes da entrega.',
       400,
-      { ruleId: 'readyBeforeDelivered', currentStatus: order.status },
+      { rule: 'readyBeforeDelivered', currentStatus: order.status, expectedStatus: 'ready' },
     );
   }
 
-  // Step 3: Apply rule 'orderStatusFlow' — confirm transition 'ready' -> 'delivered' is valid.
+  // Step 3 — Rule orderStatusFlow: verify transition 'ready' -> 'delivered' is permitted
   const targetStatus: OrderStatus = 'delivered';
   if (!canTransitionOrder(order.status, targetStatus)) {
     throw new AppError(
       'VALIDATION_ERROR',
-      'orderStatusFlow: a transição de status não é válida.',
+      'orderStatusFlow: transição de status não permitida.',
       400,
-      { ruleId: 'orderStatusFlow', from: order.status, to: targetStatus },
+      { rule: 'orderStatusFlow', from: order.status, to: targetStatus },
     );
   }
 
   const now = ctx.clock.nowIso();
 
-  // Steps 4–6: Mutate the order aggregate.
+  // Step 4 — Mutate the Order in memory
   const updatedOrder: Order = {
     ...order,
-    status: targetStatus,
+    status: 'delivered',
     deliveredAt: now,
     updatedAt: now,
   };
 
-  // Steps 7–8: Save order and append StockConsumption audit events inside one transaction.
+  // Step 5 & 6 — Persist Order and append StockConsumption audit event in the same transaction
+  const auditRecord: StockConsumption = {
+    stockConsumptionId: ctx.idGenerator.newId(),
+    stockItemId: input.orderId,
+    orderId: input.orderId,
+    quantity: 0,
+    status: 'posted',
+    createdAt: now,
+    voidedAt: null,
+    voidReason: null,
+  };
+
   await ctx.data.runInTransaction(async () => {
     await orders.save(updatedOrder);
-
-    for (const item of updatedOrder.items) {
-      const consumption: StockConsumption = {
-        stockConsumptionId: ctx.idGenerator.newId(),
-        stockItemId: item.menuItemId,
-        orderId: updatedOrder.orderId,
-        quantity: item.quantity,
-        status: 'posted',
-        createdAt: now,
-        voidedAt: null,
-        voidReason: null,
-      };
-      await stockConsumptions.append(consumption);
-    }
+    await stockConsumptions.append(auditRecord);
   });
 
-  // Step 9: Return the output.
+  // Step 7 — Return result
   return {
     orderId: updatedOrder.orderId,
     status: updatedOrder.status,
-    deliveredAt: updatedOrder.deliveredAt as string,
-    updatedAt: updatedOrder.updatedAt,
+    deliveredAt: now,
+    updatedAt: now,
   };
 }

@@ -67,15 +67,13 @@ export const deliverOrderUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Load the Order aggregate by orderId via OrderPort.getById(orderId). If not found, throw a not-found error.",
-          "2. Apply rule 'readyBeforeDelivered': verify order.status === 'ready'. If status is any other value, throw a validation error with ruleId 'readyBeforeDelivered' stating the order must be in 'ready' status before delivery.",
-          "3. Apply rule 'orderStatusFlow': confirm the transition 'ready' -> 'delivered' is the next valid step in the status enum sequence. If not, throw a validation error with ruleId 'orderStatusFlow'.",
-          "4. Set order.status = 'delivered'.",
-          "5. Set order.deliveredAt = ctx.clock.now() (systemDefault resolution — never accepted from client input).",
-          "6. Set order.updatedAt = ctx.clock.now() (systemDefault resolution — never accepted from client input).",
-          "7. Save the Order aggregate via OrderPort.save(order) inside the same transaction.",
-          "8. Build a StockConsumption audit event record for this delivery and append it via StockConsumptionPort inside the same transaction (persisted=true, purpose=audit).",
-          "9. Return { orderId, status, deliveredAt, updatedAt }."
+          "Load the Order aggregate by orderId via OrderPort.getById(orderId); throw NotFoundError if absent.",
+          "Apply rule readyBeforeDelivered: verify order.status === 'ready'; if not, throw ValidationError with detail { rule: 'readyBeforeDelivered', currentStatus: order.status, expectedStatus: 'ready' }.",
+          "Apply rule orderStatusFlow: verify the transition 'ready' -> 'delivered' is permitted in the status flow enum [registered, received, inPreparation, ready, delivered]; if not allowed, throw ValidationError with detail { rule: 'orderStatusFlow', from: order.status, to: 'delivered' }.",
+          "Mutate the Order in memory: set status = 'delivered', deliveredAt = ctx.clock.now(), updatedAt = ctx.clock.now().",
+          "Persist the updated Order via OrderPort.save(order) inside the transaction.",
+          "Append a StockConsumption audit event record (entityId: StockConsumption, owner: Order, purpose: audit) through the StockConsumption port inside the same transaction, capturing the orderId, previous status 'ready', new status 'delivered', and deliveredAt timestamp.",
+          "Return { orderId, status: 'delivered', deliveredAt, updatedAt }."
         ]
       }
     ],

@@ -37,19 +37,19 @@ export const stockConsumptionTableDefinition = {
         "name": "status",
         "type": "text",
         "nullable": false,
-        "description": "Consumption status"
+        "description": "consumption status"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "Creation timestamp for ordering"
+        "description": "ordering timestamp"
       },
       {
         "name": "details",
         "type": "jsonb",
-        "nullable": true,
-        "description": "Details JSONB: quantity, voidedAt, voidReason"
+        "nullable": false,
+        "description": "quantity, voidedAt, voidReason"
       }
     ],
     "primaryKey": [
@@ -60,38 +60,33 @@ export const stockConsumptionTableDefinition = {
         "indexName": "idx_stock_consumption_stock_item_id",
         "columns": [
           "stock_item_id"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_stock_consumption_order_id",
         "columns": [
           "order_id"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_stock_consumption_status",
         "columns": [
           "status"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_stock_consumption_created_at",
         "columns": [
           "created_at"
-        ],
-        "unique": false
+        ]
       }
     ],
     "detailsColumn": {
       "enabled": true,
-      "columnName": "details",
       "childCollections": []
     },
-    "appendOnly": true,
     "purpose": "controle",
+    "appendOnly": true,
     "retentionDays": 365
   }
 } as const;

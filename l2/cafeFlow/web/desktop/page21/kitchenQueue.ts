@@ -8,233 +8,311 @@ import type { CafeFlowViewKitchenBoardOutputItem } from '/_102051_/l2/cafeFlow/w
 @customElement('cafe-flow--web--desktop--page21--kitchen-queue-102051')
 export class CafeFlowDesktopPage21KitchenQueuePage extends CafeFlowKitchenQueueBase {
   render() {
-    const items: CafeFlowViewKitchenBoardOutputItem[] = this.viewKitchenBoardData.items ?? [];
-    const isLoadingBoard: boolean = this.viewKitchenBoardState === 'loading';
-    const isSubmitting: boolean = this.updateOrderStatusState === 'loading';
-    const showSuccess: boolean = this.updateOrderStatusState === 'success';
-    const showError: boolean = this.updateOrderStatusState === 'error';
-    const selectedOrderId: string = this.updateOrderStatusOrderId;
+    const items: CafeFlowViewKitchenBoardOutputItem[] =
+      this.viewKitchenBoardData?.items ?? [];
+    const isLoading = this.viewKitchenBoardState === 'loading';
+    const isUpdating = this.updateOrderStatusState === 'loading';
+
+    const formatTime = (iso: string): string => {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } catch {
+        return iso;
+      }
+    };
+
+    const receivedItems = items.filter(
+      (i: CafeFlowViewKitchenBoardOutputItem) => i.status === 'received'
+    );
+    const inPrepItems = items.filter(
+      (i: CafeFlowViewKitchenBoardOutputItem) => i.status === 'inPreparation'
+    );
+    const readyItems = items.filter(
+      (i: CafeFlowViewKitchenBoardOutputItem) => i.status === 'ready'
+    );
+
+    const startPreparation = (item: CafeFlowViewKitchenBoardOutputItem): void => {
+      this.setUpdateOrderStatusOrderId(item.orderId);
+      this.setUpdateOrderStatusStatus('inPreparation');
+      this.handleUpdateOrderStatusClick(new Event('click'));
+    };
+
+    const markReady = (item: CafeFlowViewKitchenBoardOutputItem): void => {
+      this.setUpdateOrderStatusOrderId(item.orderId);
+      this.setUpdateOrderStatusStatus('ready');
+      this.handleUpdateOrderStatusClick(new Event('click'));
+    };
+
+    const renderCard = (item: CafeFlowViewKitchenBoardOutputItem) => {
+      return html`
+        <div
+          class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 shadow-sm"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <span
+              class="text-sm font-bold text-[var(--text-primary-color,#403f3f)]"
+            >
+              ${this.msg['column.orderId.label']} #${item.orderId}
+            </span>
+            ${item.priority
+              ? html`
+                  <span
+                    class="rounded-full bg-[var(--warning-color,#FAAD14)] px-2 py-0.5 text-xs font-bold text-white"
+                  >
+                    ${this.msg['column.priority.label']}
+                  </span>
+                `
+              : null}
+          </div>
+
+          <div
+            class="flex flex-wrap gap-2 mb-2 text-xs text-[var(--text-primary-color,#403f3f)]"
+          >
+            <span
+              class="rounded bg-[var(--bg-secondary-color,#E6E6E6)] px-2 py-0.5"
+            >
+              ${this.msg['column.orderType.label']}:
+              ${item.orderType === 'table'
+                ? this.msg['column.tableNumber.label'] + ' ' + (item.tableNumber || '—')
+                : 'Takeout'}
+            </span>
+          </div>
+
+          <div
+            class="text-xs text-[var(--text-primary-color,#403f3f)] mb-2 space-y-0.5"
+          >
+            <div>
+              ${this.msg['column.receivedAt.label']}:
+              ${formatTime(item.receivedAt)}
+            </div>
+            ${item.inPreparationAt
+              ? html`<div>
+                  ${this.msg['column.inPreparationAt.label']}:
+                  ${formatTime(item.inPreparationAt)}
+                </div>`
+              : null}
+          </div>
+
+          ${item.priorityReason
+            ? html`
+                <div
+                  class="text-xs text-[var(--text-secondary-color,#1C91CD)] mb-2"
+                >
+                  ${this.msg['column.priorityReason.label']}:
+                  ${item.priorityReason}
+                </div>
+              `
+            : null}
+
+          ${item.status === 'received'
+            ? html`
+                <button
+                  type="button"
+                  class="w-full rounded-lg bg-[var(--active-color,#1890FF)] px-4 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                  ?disabled=${isUpdating}
+                  @click=${() => startPreparation(item)}
+                >
+                  ${isUpdating ? '...' : this.msg['rowAction.startPreparation.label']}
+                </button>
+              `
+            : null}
+          ${item.status === 'inPreparation'
+            ? html`
+                <button
+                  type="button"
+                  class="w-full rounded-lg bg-[var(--success-color,#52C41A)] px-4 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                  ?disabled=${isUpdating}
+                  @click=${() => markReady(item)}
+                >
+                  ${isUpdating ? '...' : this.msg['rowAction.markReady.label']}
+                </button>
+              `
+            : null}
+        </div>
+      `;
+    };
+
+    const renderLane = (
+      laneTitle: string,
+      laneItems: CafeFlowViewKitchenBoardOutputItem[],
+      emptyMsg: string,
+      accentClass: string
+    ) => {
+      return html`
+        <div class="flex flex-col gap-3 min-w-0">
+          <div class="flex items-center justify-between">
+            <h3
+              class="text-sm font-bold text-[var(--text-primary-color,#403f3f)]"
+            >
+              ${laneTitle}
+            </h3>
+            <span
+              class="rounded-full bg-[var(--bg-secondary-color,#E6E6E6)] px-2 py-0.5 text-xs font-bold text-[var(--text-primary-color,#403f3f)]"
+            >
+              ${laneItems.length}
+            </span>
+          </div>
+          <div
+            class="border-l-4 ${accentClass} pl-3 flex flex-col gap-3 min-h-24"
+          >
+            ${isLoading
+              ? html`
+                  <div
+                    class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-4 animate-pulse"
+                  >
+                    <div
+                      class="h-4 w-24 bg-[var(--grey-color,#E6E6E6)] rounded mb-2"
+                    ></div>
+                    <div
+                      class="h-3 w-16 bg-[var(--grey-color,#E6E6E6)] rounded mb-1"
+                    ></div>
+                    <div
+                      class="h-8 w-full bg-[var(--grey-color,#E6E6E6)] rounded mt-2"
+                    ></div>
+                  </div>
+                `
+              : laneItems.length === 0
+                ? html`
+                    <div
+                      class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-60 py-4 text-center"
+                    >
+                      ${emptyMsg}
+                    </div>
+                  `
+                : laneItems.map(
+                    (item: CafeFlowViewKitchenBoardOutputItem) =>
+                      renderCard(item)
+                  )}
+          </div>
+        </div>
+      `;
+    };
 
     return html`
-      <div class="min-h-full bg-[var(--bg-secondary-color-lighter,#F9F9F9)]">
-        <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
-            ${this.msg['page.title']}
-          </h1>
+      <div
+        class="min-h-screen bg-[var(--bg-secondary-color-lighter,#F9F9F9)] p-4 md:p-6"
+      >
+        <div class="mx-auto max-w-7xl">
+          <!-- Page title and refresh -->
+          <div class="flex items-center justify-between mb-4">
+            <h1
+              class="text-xl font-bold text-[var(--text-primary-color,#403f3f)]"
+            >
+              ${this.msg['page.kitchenQueue.title']}
+            </h1>
+            <button
+              type="button"
+              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] px-4 py-2 text-sm font-medium text-[var(--text-primary-color,#403f3f)] transition hover:bg-[var(--bg-primary-color-hover,#f2f2f2)] disabled:opacity-50"
+              ?disabled=${isLoading}
+              @click=${(e: Event) => this.handleViewKitchenBoardClick(e)}
+            >
+              ${this.msg['toolbar.refresh.label']}
+            </button>
+          </div>
 
-          <!-- Section: Kitchen Board (queryList) -->
-          <section
-            class="rounded-lg bg-[var(--bg-primary-color,#ffffff)] border border-[var(--grey-color,#E6E6E6)] p-4 space-y-4"
-          >
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-                ${this.msg['section.discover.title']}
-              </h2>
-              <button
-                class="px-3 py-1.5 rounded text-sm border border-[var(--grey-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)] hover:bg-[var(--bg-secondary-color,#E6E6E6)] disabled:opacity-50"
-                @click="${this.handleViewKitchenBoardClick}"
-                ?disabled="${isLoadingBoard}"
+          <!-- Summary stats -->
+          <div class="grid grid-cols-3 gap-3 mb-6">
+            <div
+              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-3 text-center"
+            >
+              <div
+                class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]"
               >
-                ${this.msg['action.viewKitchenBoard.label']}
-              </button>
+                ${receivedItems.length}
+              </div>
+              <div
+                class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+              >
+                ${this.msg['lane.received.title']}
+              </div>
             </div>
-
-            ${isLoadingBoard
-              ? html`<div class="space-y-3">
-                  ${[0, 1, 2].map(
-                    (_i: number) => html`
-                      <div
-                        class="h-24 rounded-lg bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"
-                      ></div>
-                    `
-                  )}
-                </div>`
-              : items.length === 0
-                ? html`<p
-                    class="text-[var(--text-primary-color-disabled,#525151)] text-center py-8"
-                  >
-                    ${this.msg['section.discover.empty']}
-                  </p>`
-                : html`<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    ${items.map((item: CafeFlowViewKitchenBoardOutputItem) => {
-                      const isSelected: boolean = selectedOrderId === item.orderId;
-                      const statusLabel: string =
-                        item.status === 'received'
-                          ? this.msg['status.received.label']
-                          : item.status === 'inPreparation'
-                            ? this.msg['status.inPreparation.label']
-                            : item.status === 'ready'
-                              ? this.msg['status.ready.label']
-                              : item.status === 'delivered'
-                                ? this.msg['status.delivered.label']
-                                : item.status === 'registered'
-                                  ? this.msg['status.registered.label']
-                                  : item.status;
-                      const statusColor: string =
-                        item.status === 'received'
-                          ? 'var(--warning-color,#FAAD14)'
-                          : item.status === 'inPreparation'
-                            ? 'var(--active-color,#1890FF)'
-                            : item.status === 'ready'
-                              ? 'var(--success-color,#52C41A)'
-                              : 'var(--grey-color-dark,#D3D3D3)';
-                      return html`
-                        <div
-                          class="rounded-lg border p-4 cursor-pointer transition-colors ${isSelected
-                            ? 'border-[var(--active-color,#1890FF)] ring-2 ring-[var(--active-color,#1890FF)]'
-                            : 'border-[var(--grey-color,#E6E6E6)] hover:border-[var(--grey-color-dark,#D3D3D3)]'}"
-                          @click="${() => this.setUpdateOrderStatusOrderId(item.orderId)}"
-                        >
-                          <div class="flex items-start justify-between mb-2">
-                            <span
-                              class="font-semibold text-[var(--text-primary-color,#403f3f)]"
-                            >
-                              ${this.msg['field.orderId.label']}: ${item.orderId}
-                            </span>
-                            <span
-                              class="px-2 py-0.5 rounded text-xs font-medium text-white"
-                              style="background-color: ${statusColor};"
-                            >
-                              ${statusLabel}
-                            </span>
-                          </div>
-
-                          ${item.priority
-                            ? html`<div
-                                class="mb-2 px-2 py-1 rounded text-xs font-medium text-white"
-                                style="background-color: var(--warning-color,#FAAD14);"
-                              >
-                                ${this.msg['field.priority.label']}${item.priorityReason
-                                  ? ': ' + item.priorityReason
-                                  : ''}
-                              </div>`
-                            : null}
-
-                          <div
-                            class="text-sm text-[var(--text-primary-color-lighter,#535353)] space-y-1"
-                          >
-                            <div>
-                              <span class="font-medium"
-                                >${this.msg['field.orderType.label']}:</span
-                              >
-                              ${item.orderType}
-                            </div>
-                            ${item.tableNumber
-                              ? html`<div>
-                                  <span class="font-medium"
-                                    >${this.msg['field.tableNumber.label']}:</span
-                                  >
-                                  ${item.tableNumber}
-                                </div>`
-                              : null}
-                            <div>
-                              <span class="font-medium"
-                                >${this.msg['field.receivedAt.label']}:</span
-                              >
-                              ${item.receivedAt}
-                            </div>
-                            ${item.inPreparationAt
-                              ? html`<div>
-                                  <span class="font-medium"
-                                    >${this.msg['field.inPreparationAt.label']}:</span
-                                  >
-                                  ${item.inPreparationAt}
-                                </div>`
-                              : null}
-                          </div>
-                        </div>
-                      `;
-                    })}
-                  </div>`}
-          </section>
-
-          <!-- Section: Update Status (commandForm) -->
-          <section
-            class="rounded-lg bg-[var(--bg-primary-color,#ffffff)] border border-[var(--grey-color,#E6E6E6)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['section.execute.title']}
-            </h2>
-
-            ${!selectedOrderId
-              ? html`<p
-                  class="text-[var(--text-primary-color-disabled,#525151)] text-center py-4"
-                >
-                  ${this.msg['section.transition.empty']}
-                </p>`
-              : html`<form class="space-y-4" @submit="${(e: Event) => e.preventDefault()}">
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)] mb-1"
-                    >
-                      ${this.msg['field.orderId.label']}
-                    </label>
-                    <input
-                      type="text"
-                      .value="${selectedOrderId}"
-                      readonly
-                      class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] text-[var(--text-primary-color,#403f3f)]"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-[var(--text-primary-color,#403f3f)] mb-1"
-                    >
-                      ${this.msg['field.status.label']}
-                    </label>
-                    <select
-                      @change="${this.handleUpdateOrderStatusStatusChange}"
-                      class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    >
-                      <option value="" ?selected="${this.updateOrderStatusStatus === ''}">--</option>
-                      <option
-                        value="inPreparation"
-                        ?selected="${this.updateOrderStatusStatus === 'inPreparation'}"
-                      >
-                        ${this.msg['status.inPreparation.label']}
-                      </option>
-                      <option
-                        value="ready"
-                        ?selected="${this.updateOrderStatusStatus === 'ready'}"
-                      >
-                        ${this.msg['status.ready.label']}
-                      </option>
-                    </select>
-                  </div>
-                  <button
-                    type="submit"
-                    class="px-4 py-2 rounded bg-[var(--active-color,#1890FF)] text-white font-medium disabled:opacity-50"
-                    @click="${this.handleUpdateOrderStatusClick}"
-                    ?disabled="${isSubmitting || !this.updateOrderStatusStatus}"
-                  >
-                    ${isSubmitting
-                      ? this.msg['action.updateOrderStatus.label'] + '...'
-                      : this.msg['action.updateOrderStatus.label']}
-                  </button>
-                </form>`}
-          </section>
-
-          <!-- Section: Review / Feedback (summary) -->
-          ${showSuccess || showError
-            ? html`<section
-                class="rounded-lg border p-4 bg-[var(--bg-primary-color,#ffffff)] ${showSuccess
-                  ? 'border-[var(--success-color,#52C41A)]'
-                  : 'border-[var(--error-color,#FF4D4F)]'}"
+            <div
+              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-3 text-center"
+            >
+              <div
+                class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]"
               >
-                <div class="flex items-start justify-between gap-3">
-                  <p
-                    class="${showSuccess
-                      ? 'text-[var(--success-color,#52C41A)]'
-                      : 'text-[var(--error-color,#FF4D4F)]'}"
-                  >
-                    ${showSuccess
-                      ? this.msg['action.updateOrderStatus.success']
-                      : this.updateOrderStatusError ||
-                        this.msg['action.updateOrderStatus.error']}
-                  </p>
+                ${inPrepItems.length}
+              </div>
+              <div
+                class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+              >
+                ${this.msg['lane.inPreparation.title']}
+              </div>
+            </div>
+            <div
+              class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-3 text-center"
+            >
+              <div
+                class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]"
+              >
+                ${readyItems.length}
+              </div>
+              <div
+                class="text-xs text-[var(--text-primary-color,#403f3f)] opacity-70"
+              >
+                ${this.msg['lane.ready.title']}
+              </div>
+            </div>
+          </div>
+
+          <!-- Feedback region -->
+          ${this.updateOrderStatusState === 'success'
+            ? html`
+                <div
+                  class="mb-4 rounded-lg border border-[var(--success-color,#52C41A)] bg-[var(--bg-primary-color,#ffffff)] p-3 text-sm text-[var(--success-color,#52C41A)]"
+                >
+                  ${this.msg['action.updateOrderStatus.success']}
                 </div>
-              </section>`
+              `
             : null}
+          ${this.updateOrderStatusState === 'error'
+            ? html`
+                <div
+                  class="mb-4 rounded-lg border border-[var(--error-color,#FF4D4F)] bg-[var(--bg-primary-color,#ffffff)] p-3 text-sm text-[var(--error-color,#FF4D4F)]"
+                >
+                  ${this.updateOrderStatusError ||
+                  this.msg['action.updateOrderStatus.error']}
+                </div>
+              `
+            : null}
+
+          <!-- Kanban board -->
+          ${!isLoading && items.length === 0
+            ? html`
+                <div
+                  class="rounded-lg border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] p-8 text-center text-[var(--text-primary-color,#403f3f)] opacity-60"
+                >
+                  ${this.msg['empty.kitchenQueue']}
+                </div>
+              `
+            : html`
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  ${renderLane(
+                    this.msg['lane.received.title'],
+                    receivedItems,
+                    this.msg['lane.received.empty'],
+                    'border-[var(--warning-color,#FAAD14)]'
+                  )}
+                  ${renderLane(
+                    this.msg['lane.inPreparation.title'],
+                    inPrepItems,
+                    this.msg['lane.inPreparation.empty'],
+                    'border-[var(--active-color,#1890FF)]'
+                  )}
+                  ${renderLane(
+                    this.msg['lane.ready.title'],
+                    readyItems,
+                    this.msg['lane.ready.empty'],
+                    'border-[var(--success-color,#52C41A)]'
+                  )}
+                </div>
+              `}
         </div>
       </div>
     `;

@@ -29,14 +29,6 @@ export interface Order {
   items: OrderItem[];
 }
 
-export const ORDER_STATUS_SEQUENCE: OrderStatus[] = [
-  'registered',
-  'received',
-  'inPreparation',
-  'ready',
-  'delivered',
-];
-
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   registered: ['received'],
   received: ['inPreparation'],
@@ -49,71 +41,45 @@ export function canTransitionOrder(from: OrderStatus, to: OrderStatus): boolean 
   return ORDER_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export function orderStatusIndex(status: OrderStatus): number {
-  return ORDER_STATUS_SEQUENCE.indexOf(status);
-}
-
-export function canAdvanceTo(current: OrderStatus, target: OrderStatus): boolean {
-  return orderStatusIndex(target) > orderStatusIndex(current);
-}
-
 export function orderRequiresItem(order: Pick<Order, 'items'>): boolean {
   return order.items.length > 0;
 }
 
-export function validateTableNumber(orderType: OrderType, tableNumber: string | null): boolean {
-  if (orderType === 'table') {
-    return tableNumber !== null && tableNumber.trim().length > 0;
+export function validateTableNumber(order: Pick<Order, 'orderType' | 'tableNumber'>): boolean {
+  if (order.orderType === 'table') {
+    return order.tableNumber !== null && order.tableNumber.trim().length > 0;
   }
-  return tableNumber === null;
+  return order.tableNumber === null;
 }
 
-export function validatePriority(priority: boolean | null, priorityReason: string | null): boolean {
-  if (priority === true) {
-    return priorityReason !== null && priorityReason.trim().length > 0;
+export function validatePriorityReason(order: Pick<Order, 'priority' | 'priorityReason'>): boolean {
+  if (order.priority === true) {
+    return order.priorityReason !== null && order.priorityReason.trim().length > 0;
   }
   return true;
 }
 
-export function validateStatusTimestamps(order: Pick<Order, 'status' | 'receivedAt' | 'inPreparationAt' | 'readyAt' | 'deliveredAt'>): boolean {
-  const statusOrder = orderStatusIndex(order.status);
-  if (statusOrder >= orderStatusIndex('received') && !order.receivedAt) {
-    return false;
-  }
-  if (statusOrder >= orderStatusIndex('inPreparation') && !order.inPreparationAt) {
-    return false;
-  }
-  if (statusOrder >= orderStatusIndex('ready') && !order.readyAt) {
-    return false;
-  }
-  if (statusOrder >= orderStatusIndex('delivered') && !order.deliveredAt) {
-    return false;
-  }
+export function validateStatusTimestamp(
+  status: OrderStatus,
+  timestamps: Pick<Order, 'receivedAt' | 'inPreparationAt' | 'readyAt' | 'deliveredAt'>,
+): boolean {
+  if (status === 'received' && timestamps.receivedAt === null) return false;
+  if (status === 'inPreparation' && timestamps.inPreparationAt === null) return false;
+  if (status === 'ready' && timestamps.readyAt === null) return false;
+  if (status === 'delivered' && timestamps.deliveredAt === null) return false;
   return true;
 }
 
-export function validateOrderInvariants(order: Order): string[] {
-  const violations: string[] = [];
+export function validateChronologicalTimestamps(
+  timestamps: Pick<Order, 'receivedAt' | 'inPreparationAt' | 'readyAt' | 'deliveredAt'>,
+): boolean {
+  const { receivedAt, inPreparationAt, readyAt, deliveredAt } = timestamps;
+  if (receivedAt && inPreparationAt && inPreparationAt < receivedAt) return false;
+  if (inPreparationAt && readyAt && readyAt < inPreparationAt) return false;
+  if (readyAt && deliveredAt && deliveredAt < readyAt) return false;
+  return true;
+}
 
-  if (!validateTableNumber(order.orderType, order.tableNumber)) {
-    if (order.orderType === 'table') {
-      violations.push('tableNumber é obrigatório quando orderType for "table"');
-    } else {
-      violations.push('tableNumber deve ser nulo quando orderType for "takeout"');
-    }
-  }
-
-  if (!validatePriority(order.priority ?? null, order.priorityReason)) {
-    violations.push('priority true exige priorityReason preenchido');
-  }
-
-  if (!validateStatusTimestamps(order)) {
-    violations.push('timestamps de status não correspondem ao status atual');
-  }
-
-  if (!orderRequiresItem(order)) {
-    violations.push('Pelo menos um OrderItem deve existir no pedido');
-  }
-
-  return violations;
+export function recomputeOrderTotal(items: OrderItem[]): number {
+  return items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 }

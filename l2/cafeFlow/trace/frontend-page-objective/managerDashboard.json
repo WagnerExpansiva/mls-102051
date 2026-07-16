@@ -1,0 +1,46 @@
+{
+  "savedAt": "2026-07-15T23:03:53.270Z",
+  "pageId": "managerDashboard",
+  "genome": "page21",
+  "objective": {
+    "actor": "Cafe manager (gerente)",
+    "jobToBeDone": "Get an at-a-glance overview of today's cafe operations (orders, sales, stock alerts) and optionally request AI-generated insights for sales summary and promotion suggestions.",
+    "primaryDecision": "Assess today's operational performance from the dashboard and decide whether to act on AI-generated sales summaries and promo suggestions.",
+    "decisiveInfo": [
+      "status",
+      "orderType",
+      "createdAt",
+      "deliveredAt",
+      "orderId",
+      "shiftId"
+    ],
+    "usageFrequency": "Occasional / back-office — checked a few times per shift, not continuous hands-busy operation.",
+    "criticalActions": [
+      {
+        "action": "viewDashboard",
+        "presentation": "summary-first — auto-loaded on page open, displayed as a compact summary list of today's orders by status and type; a refresh button is available in the toolbar."
+      },
+      {
+        "action": "requestAiSalesSummary",
+        "presentation": "primary-button — on-demand AI query triggered by a prominent button; results appear in a summary panel below."
+      },
+      {
+        "action": "requestAiPromoSuggestions",
+        "presentation": "primary-button — on-demand AI query triggered by a prominent button; results appear in a summary panel for marketing decisions."
+      }
+    ],
+    "informationHierarchy": [
+      "1. Today's dashboard: orders grouped by status and type, with timestamps (summary-first)",
+      "2. AI sales summary: on-demand aggregated sales insights for the current shift",
+      "3. AI promo suggestions: on-demand promotion recommendations based on recent sales and stock levels"
+    ],
+    "successCriteria": "The manager sees today's key operational metrics immediately on page load without any manual input, and can request AI insights with a single click per insight type.",
+    "antiPatterns": [
+      "No manual input fields — all three operations are parameterless queries",
+      "No CRUD forms — this is a read-only dashboard, not an entity management screen",
+      "No free status selects or typed IDs — everything is auto-loaded from the open shift context",
+      "No persuasion mechanics — this is an operational dashboard, not a growth funnel",
+      "Do not stack three identical-looking tables — differentiate the dashboard summary from the AI panels visually"
+    ]
+  }
+}

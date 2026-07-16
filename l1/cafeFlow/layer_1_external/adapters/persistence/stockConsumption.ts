@@ -7,7 +7,7 @@ export const stockConsumptionTableDef: TableDefinition = {
   tableName: 'stock_consumption',
   purpose: 'controle',
   description:
-    'Append-only stock consumption records. Non-indexed fields (quantity, voidedAt, voidReason) stored in details JSONB.',
+    'Append-only stock consumption records. Non-indexed fields (quantity, voidedAt, voidReason) stored in details (JSONB).',
   backupHot: false,
   storageProfile: 'postgres',
   writeMode: 'sync',
@@ -18,7 +18,7 @@ export const stockConsumptionTableDef: TableDefinition = {
     { name: 'order_id', postgresType: 'TEXT' },
     { name: 'status', postgresType: 'TEXT' },
     { name: 'created_at', postgresType: 'TIMESTAMPTZ', defaultSql: 'NOW()' },
-    { name: 'details', postgresType: 'JSONB', nullable: true },
+    { name: 'details', postgresType: 'JSONB' },
   ],
   primaryKey: ['stock_consumption_id'],
   indexes: [

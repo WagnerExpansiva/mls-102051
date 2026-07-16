@@ -12,15 +12,16 @@ export const shiftClosingReportRepositoryAdapter = {
     "planId": ""
   },
   "data": {
-    "className": "ShiftClosingReportRepository",
+    "className": "ShiftClosingReportRepositoryAdapter",
     "entityId": "ShiftClosingReport",
     "portRef": "IShiftClosingReportRepository",
     "tableRef": "shift_closing_reports",
     "mdmReads": [],
     "notes": [
-      "Real columns (snake_case): shift_closing_report_id, shift_id, created_at.",
-      "Details JSONB fields: totalApurado, paidOrderCount, updatedAt.",
-      "Uses ctx.data.moduleData.shift_closing_reports for CRUD."
+      "Domain aggregate ShiftClosingReport <-> shift_closing_reports table row",
+      "Real columns: shift_closing_report_id, shift_id, created_at",
+      "details JSONB contains: totalApurado, paidOrderCount, updatedAt",
+      "Uses ctx.data.moduleData.shift_closing_reports"
     ]
   }
 } as const;

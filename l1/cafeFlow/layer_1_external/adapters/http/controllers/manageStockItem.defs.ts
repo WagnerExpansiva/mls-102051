@@ -20,8 +20,8 @@ export const manageStockItemController = {
       {
         "handlerName": "cafeFlowManageStockItemHandler",
         "command": "manageStockItem",
-        "usecaseRef": "updateStockItem",
-        "inputTypeName": "UpdateStockItemInput",
+        "usecaseRef": "manageStockItem",
+        "inputTypeName": "ManageStockItemInput",
         "kind": "update",
         "inputContract": [
           {

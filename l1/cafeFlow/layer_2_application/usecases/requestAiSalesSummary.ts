@@ -1,21 +1,18 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/usecases/requestAiSalesSummary.ts" enhancement="_blank"/>
 import type { RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
 import { resolveRepository } from '/_102034_/l1/server/layer_2_application/repositoryRegistry.js';
-
 import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.js';
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
 import type { IStockLevelRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockLevelRepository.js';
-
-import type { Order, OrderStatus, OrderType } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
-import type { Shift } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
-import type { StockLevel, StockUnit } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import type { Order, OrderItem } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
+import type { StockLevel } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 
 export interface AiSalesSummaryInput {}
 
 export interface AiSalesSummaryOrderProjection {
   orderId: string;
-  status: OrderStatus;
-  orderType: OrderType;
+  status: string;
+  orderType: string;
   createdAt: string;
   deliveredAt: string | null;
 }
@@ -30,7 +27,7 @@ export interface AiSalesSummaryStockLevelProjection {
   stockItemId: string;
   currentQuantity: number;
   minimumLevel: number;
-  unit: StockUnit;
+  unit: string;
 }
 
 export interface AiSalesSummaryOutput {
@@ -51,12 +48,11 @@ export async function requestAiSalesSummary(
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
   const stockLevels = resolveRepository<IStockLevelRepository>(ctx, 'StockLevel');
 
-  // 1. Resolve the active lifecycle instance: the single open Shift (rule: dashboardCurrentShiftOnly)
-  const openShifts = await shifts.list({ status: 'open' });
-  const openShift: Shift | null = openShifts.length > 0 ? openShifts[0] : null;
+  // Step 1: Resolve the active lifecycle instance — the single open Shift.
+  // Rule: dashboardCurrentShiftOnly
+  const openShift = await shifts.findOpenShift();
 
   if (!openShift) {
-    // No open shift — return empty summary, never expose historical or multi-shift data
     return {
       shiftId: null,
       shiftOpenedAt: null,
@@ -68,14 +64,14 @@ export async function requestAiSalesSummary(
     };
   }
 
-  // 2. Extract shiftId and shiftOpenedAt
+  // Step 2: Extract shiftId and shiftOpenedAt from the open Shift.
   const shiftId = openShift.shiftId;
   const shiftOpenedAt = openShift.openedAt;
 
-  // 3. Load all Orders for the resolved shiftId
-  const shiftOrders: Order[] = await orders.list({ shiftId });
+  // Step 3: Load all Orders for the resolved shiftId.
+  const shiftOrders: Order[] = await orders.listByShiftId(shiftId);
 
-  // 4. Project each Order to {orderId, status, orderType, createdAt, deliveredAt}
+  // Step 4: Project each Order to the output shape.
   const orderProjections: AiSalesSummaryOrderProjection[] = shiftOrders.map((order) => ({
     orderId: order.orderId,
     status: order.status,
@@ -84,13 +80,14 @@ export async function requestAiSalesSummary(
     deliveredAt: order.deliveredAt,
   }));
 
-  // 5. Aggregate OrderItems across all loaded Orders (rule: topSellersFromDayOrders)
+  // Step 5: Aggregate OrderItems across all loaded Orders.
+  // Rule: topSellersFromDayOrders
   const sellerMap = new Map<string, AiSalesSummaryTopSeller>();
   let totalRevenue = 0;
 
   for (const order of shiftOrders) {
     for (const item of order.items) {
-      const itemRevenue = item.quantity * item.unitPrice;
+      const itemRevenue = item.unitPrice * item.quantity;
       totalRevenue += itemRevenue;
 
       const existing = sellerMap.get(item.menuItemId);
@@ -111,10 +108,10 @@ export async function requestAiSalesSummary(
     (a, b) => b.totalQuantity - a.totalQuantity,
   );
 
-  // 6. Compute totalOrders and totalRevenue
+  // Step 6: Compute totalOrders and totalRevenue.
   const totalOrders = shiftOrders.length;
 
-  // 7. Load all StockLevel records and project each
+  // Step 7: Load all StockLevel records and project each.
   const allStockLevels: StockLevel[] = await stockLevels.list();
   const stockLevelProjections: AiSalesSummaryStockLevelProjection[] = allStockLevels.map((sl) => ({
     stockItemId: sl.stockItemId,
@@ -123,7 +120,8 @@ export async function requestAiSalesSummary(
     unit: sl.unit,
   }));
 
-  // 8. Assemble and return the output (rule: aiConsumesDomainData)
+  // Step 8: Assemble and return the output — only domain-sourced data.
+  // Rule: aiConsumesDomainData
   return {
     shiftId,
     shiftOpenedAt,

@@ -97,21 +97,22 @@ export const definition = {
   "navigationRefs": [],
   "sections": [
     {
-      "id": "sec_orderBoard",
+      "id": "sec-order-board",
       "type": "section",
       "sectionName": "orderBoard",
       "titleKey": "section.orderBoard.title",
-      "mode": "discover",
+      "mode": "view",
       "order": 1,
       "organisms": [
         {
-          "id": "org_orderBoardCards",
-          "type": "organism",
+          "id": "org-order-board-cards",
+          "type": "cardsList",
           "organismName": "orderBoardCards",
           "titleKey": "organism.orderBoardCards.title",
-          "purpose": "Exibir pedidos do turno atual como cartões com status, tipo, mesa e prioridade, permitindo seleção para entrega.",
+          "purpose": "Exibir painel de pedidos em cartões com status e ações rápidas.",
           "userActions": [
-            "viewOrderBoard"
+            "viewOrderBoard",
+            "deliverOrder"
           ],
           "requiredEntities": [
             "Order",
@@ -130,14 +131,11 @@ export const definition = {
             "createdAt"
           ],
           "writesFields": [],
-          "rulesApplied": [
-            "Filtrar pedidos do turno atualmente aberto",
-            "Ordenar por data de criação (ordem de chegada)"
-          ],
+          "rulesApplied": [],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int_orderBoard_list",
+              "id": "int-order-board-list",
               "intent": "queryList",
               "stateKey": "ui.posWorkspace.data.viewOrderBoard",
               "order": 1
@@ -147,24 +145,25 @@ export const definition = {
       ]
     },
     {
-      "id": "sec_createOrder",
+      "id": "sec-create-order",
       "type": "section",
       "sectionName": "createOrder",
       "titleKey": "section.createOrder.title",
-      "mode": "execute",
+      "mode": "create",
       "order": 2,
       "organisms": [
         {
-          "id": "org_createOrderForm",
-          "type": "organism",
+          "id": "org-create-order-form",
+          "type": "form",
           "organismName": "createOrderForm",
           "titleKey": "organism.createOrderForm.title",
-          "purpose": "Formulário para lançar novo pedido no POS com tipo, mesa, itens e prioridade.",
+          "purpose": "Lançar novo pedido com tipo, mesa e itens.",
           "userActions": [
             "createOrder"
           ],
           "requiredEntities": [
             "Order",
+            "OrderItem",
             "MenuItem",
             "StockLevel",
             "Shift"
@@ -183,18 +182,12 @@ export const definition = {
             "tableNumber",
             "createdAt"
           ],
-          "rulesApplied": [
-            "Decrementar estoque conforme ingredientes vinculados",
-            "Gerar número do pedido",
-            "Definir status inicial 'registered'"
-          ],
+          "rulesApplied": [],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int_createOrder_form",
+              "id": "int-create-order-form",
               "intent": "commandForm",
-              "stateKey": "ui.posWorkspace.action.createOrder.status",
-              "submitAction": "createOrder",
               "order": 1
             }
           ]
@@ -202,19 +195,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec_deliverOrder",
+      "id": "sec-deliver-order",
       "type": "section",
       "sectionName": "deliverOrder",
       "titleKey": "section.deliverOrder.title",
-      "mode": "execute",
+      "mode": "update",
       "order": 3,
       "organisms": [
         {
-          "id": "org_deliverOrderSheet",
-          "type": "organism",
-          "organismName": "deliverOrderSheet",
-          "titleKey": "organism.deliverOrderSheet.title",
-          "purpose": "Confirmar entrega do pedido selecionado ao cliente, validando status 'ready'.",
+          "id": "org-deliver-order-form",
+          "type": "form",
+          "organismName": "deliverOrderForm",
+          "titleKey": "organism.deliverOrderForm.title",
+          "purpose": "Confirmar entrega do pedido selecionado.",
           "userActions": [
             "deliverOrder"
           ],
@@ -222,7 +215,8 @@ export const definition = {
             "Order"
           ],
           "readsFields": [
-            "orderId"
+            "orderId",
+            "status"
           ],
           "writesFields": [
             "orderId",
@@ -230,17 +224,77 @@ export const definition = {
             "deliveredAt",
             "updatedAt"
           ],
-          "rulesApplied": [
-            "Validar status atual 'ready'",
-            "Atualizar para 'delivered' registrando momento da entrega"
-          ],
+          "rulesApplied": [],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int_deliverOrder_form",
+              "id": "int-deliver-order-form",
               "intent": "commandForm",
-              "stateKey": "ui.posWorkspace.action.deliverOrder.status",
-              "submitAction": "deliverOrder",
+              "order": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-review",
+      "type": "section",
+      "sectionName": "review",
+      "titleKey": "section.review.title",
+      "mode": "summary",
+      "order": 4,
+      "organisms": [
+        {
+          "id": "org-review-create",
+          "type": "summary",
+          "organismName": "reviewCreateOrder",
+          "titleKey": "organism.reviewCreate.title",
+          "purpose": "Exibir o resultado do último pedido lançado.",
+          "userActions": [],
+          "requiredEntities": [
+            "Order"
+          ],
+          "readsFields": [
+            "orderId",
+            "status",
+            "orderType",
+            "tableNumber",
+            "createdAt"
+          ],
+          "writesFields": [],
+          "rulesApplied": [],
+          "order": 1,
+          "intentionRefs": [
+            {
+              "id": "int-review-create",
+              "intent": "summary",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "id": "org-review-deliver",
+          "type": "summary",
+          "organismName": "reviewDeliverOrder",
+          "titleKey": "organism.reviewDeliver.title",
+          "purpose": "Exibir o resultado da última entrega confirmada.",
+          "userActions": [],
+          "requiredEntities": [
+            "Order"
+          ],
+          "readsFields": [
+            "orderId",
+            "status",
+            "deliveredAt",
+            "updatedAt"
+          ],
+          "writesFields": [],
+          "rulesApplied": [],
+          "order": 2,
+          "intentionRefs": [
+            {
+              "id": "int-review-deliver",
+              "intent": "summary",
               "order": 1
             }
           ]
@@ -251,25 +305,26 @@ export const definition = {
   "templateId": "mobile_cards",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "layout": {
-    "id": "page11_mobile_cards",
+    "id": "posWorkspace.page11.mobile_cards",
     "type": "page",
     "sections": [
       {
-        "id": "sec_orderBoard",
+        "id": "sec-order-board",
         "type": "section",
         "sectionName": "orderBoard",
         "titleKey": "section.orderBoard.title",
-        "mode": "discover",
+        "mode": "view",
         "order": 1,
         "organisms": [
           {
-            "id": "org_orderBoardCards",
-            "type": "organism",
+            "id": "org-order-board-cards",
+            "type": "cardsList",
             "organismName": "orderBoardCards",
             "titleKey": "organism.orderBoardCards.title",
-            "purpose": "Exibir pedidos do turno atual como cartões com status, tipo, mesa e prioridade, permitindo seleção para entrega.",
+            "purpose": "Exibir painel de pedidos em cartões com status e ações rápidas.",
             "userActions": [
-              "viewOrderBoard"
+              "viewOrderBoard",
+              "deliverOrder"
             ],
             "requiredEntities": [
               "Order",
@@ -288,135 +343,130 @@ export const definition = {
               "createdAt"
             ],
             "writesFields": [],
-            "rulesApplied": [
-              "Filtrar pedidos do turno atualmente aberto",
-              "Ordenar por data de criação (ordem de chegada)"
-            ],
+            "rulesApplied": [],
             "order": 1,
             "intentions": [
               {
-                "id": "int_orderBoard_list",
+                "id": "int-order-board-list",
                 "intent": "queryList",
                 "order": 1,
-                "titleKey": "intention.orderBoard.list.title",
-                "source": "ui.posWorkspace.data.viewOrderBoard",
-                "binding": "db_viewOrderBoard",
+                "titleKey": "intention.orderBoardList.title",
                 "emptyKey": "empty.orderBoard",
-                "displayHint": "card",
-                "stateKey": "ui.posWorkspace.data.viewOrderBoard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col_orderId",
+                    "id": "col-order-id",
                     "field": "orderId",
-                    "labelKey": "column.orderId",
+                    "labelKey": "field.orderId",
                     "order": 1,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col_status",
+                    "id": "col-status",
                     "field": "status",
-                    "labelKey": "column.status",
+                    "labelKey": "field.status",
                     "order": 2,
                     "required": false,
-                    "inputType": "badge",
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col_orderType",
+                    "id": "col-order-type",
                     "field": "orderType",
-                    "labelKey": "column.orderType",
+                    "labelKey": "field.orderType",
                     "order": 3,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col_tableNumber",
+                    "id": "col-table-number",
                     "field": "tableNumber",
-                    "labelKey": "column.tableNumber",
+                    "labelKey": "field.tableNumber",
                     "order": 4,
                     "required": false,
-                    "inputType": "text",
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col_priority",
+                    "id": "col-priority",
                     "field": "priority",
-                    "labelKey": "column.priority",
+                    "labelKey": "field.priority",
                     "order": 5,
                     "required": false,
-                    "inputType": "badge",
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "col_createdAt",
-                    "field": "createdAt",
-                    "labelKey": "column.createdAt",
+                    "id": "col-priority-reason",
+                    "field": "priorityReason",
+                    "labelKey": "field.priorityReason",
                     "order": 6,
                     "required": false,
-                    "inputType": "datetime",
-                    "stateKey": "ui.posWorkspace.data.viewOrderBoard"
-                  }
-                ],
-                "filters": [
-                  {
-                    "id": "flt_status",
-                    "field": "status",
-                    "labelKey": "filter.status",
-                    "order": 1,
-                    "required": false,
-                    "inputType": "select",
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   },
                   {
-                    "id": "flt_orderType",
-                    "field": "orderType",
-                    "labelKey": "filter.orderType",
-                    "order": 2,
+                    "id": "col-ready-at",
+                    "field": "readyAt",
+                    "labelKey": "field.readyAt",
+                    "order": 7,
                     "required": false,
-                    "inputType": "select",
+                    "stateKey": "ui.posWorkspace.data.viewOrderBoard"
+                  },
+                  {
+                    "id": "col-created-at",
+                    "field": "createdAt",
+                    "labelKey": "field.createdAt",
+                    "order": 8,
+                    "required": false,
                     "stateKey": "ui.posWorkspace.data.viewOrderBoard"
                   }
                 ],
+                "filters": [],
                 "toolbar": [
                   {
-                    "id": "tb_refresh",
+                    "id": "tb-refresh",
                     "action": "viewOrderBoard",
                     "labelKey": "action.viewOrderBoard.label",
                     "order": 1,
-                    "displayHint": "icon",
+                    "displayHint": "primary",
                     "actionKey": "viewOrderBoard"
                   }
                 ],
-                "rowActions": [],
-                "actions": []
+                "rowActions": [
+                  {
+                    "id": "ra-deliver-order",
+                    "action": "deliverOrder",
+                    "labelKey": "action.deliverOrder.label",
+                    "order": 2,
+                    "displayHint": "primary",
+                    "actionKey": "deliverOrder"
+                  }
+                ],
+                "actions": [],
+                "stateKey": "ui.posWorkspace.data.viewOrderBoard"
               }
             ]
           }
         ]
       },
       {
-        "id": "sec_createOrder",
+        "id": "sec-create-order",
         "type": "section",
         "sectionName": "createOrder",
         "titleKey": "section.createOrder.title",
-        "mode": "execute",
+        "mode": "create",
         "order": 2,
         "organisms": [
           {
-            "id": "org_createOrderForm",
-            "type": "organism",
+            "id": "org-create-order-form",
+            "type": "form",
             "organismName": "createOrderForm",
             "titleKey": "organism.createOrderForm.title",
-            "purpose": "Formulário para lançar novo pedido no POS com tipo, mesa, itens e prioridade.",
+            "purpose": "Lançar novo pedido com tipo, mesa e itens.",
             "userActions": [
               "createOrder"
             ],
             "requiredEntities": [
               "Order",
+              "OrderItem",
               "MenuItem",
               "StockLevel",
               "Shift"
@@ -435,26 +485,17 @@ export const definition = {
               "tableNumber",
               "createdAt"
             ],
-            "rulesApplied": [
-              "Decrementar estoque conforme ingredientes vinculados",
-              "Gerar número do pedido",
-              "Definir status inicial 'registered'"
-            ],
+            "rulesApplied": [],
             "order": 1,
             "intentions": [
               {
-                "id": "int_createOrder_form",
+                "id": "int-create-order-form",
                 "intent": "commandForm",
                 "order": 1,
-                "titleKey": "intention.createOrder.form.title",
-                "source": "ui.posWorkspace.output.createOrder",
-                "binding": "db_createOrder",
-                "submitAction": "createOrder",
-                "displayHint": "form",
-                "stateKey": "ui.posWorkspace.action.createOrder.status",
+                "titleKey": "intention.createOrderForm.title",
                 "fields": [
                   {
-                    "id": "fld_orderType",
+                    "id": "fld-order-type",
                     "field": "orderType",
                     "labelKey": "field.orderType",
                     "order": 1,
@@ -463,25 +504,25 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.input.createOrder.orderType"
                   },
                   {
-                    "id": "fld_tableNumber",
+                    "id": "fld-table-number",
                     "field": "tableNumber",
                     "labelKey": "field.tableNumber",
                     "order": 2,
                     "required": false,
-                    "inputType": "number",
+                    "inputType": "text",
                     "stateKey": "ui.posWorkspace.input.createOrder.tableNumber"
                   },
                   {
-                    "id": "fld_orderItems",
+                    "id": "fld-order-items",
                     "field": "orderItems",
                     "labelKey": "field.orderItems",
                     "order": 3,
                     "required": true,
-                    "inputType": "composite",
+                    "inputType": "list",
                     "stateKey": "ui.posWorkspace.input.createOrder.orderItems"
                   },
                   {
-                    "id": "fld_priority",
+                    "id": "fld-priority",
                     "field": "priority",
                     "labelKey": "field.priority",
                     "order": 4,
@@ -490,7 +531,7 @@ export const definition = {
                     "stateKey": "ui.posWorkspace.input.createOrder.priority"
                   },
                   {
-                    "id": "fld_priorityReason",
+                    "id": "fld-priority-reason",
                     "field": "priorityReason",
                     "labelKey": "field.priorityReason",
                     "order": 5,
@@ -505,9 +546,9 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act_createOrder",
+                    "id": "act-create-order",
                     "action": "createOrder",
-                    "labelKey": "action.createOrder.submit",
+                    "labelKey": "action.createOrder.label",
                     "order": 1,
                     "displayHint": "primary",
                     "actionKey": "createOrder"
@@ -519,19 +560,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec_deliverOrder",
+        "id": "sec-deliver-order",
         "type": "section",
         "sectionName": "deliverOrder",
         "titleKey": "section.deliverOrder.title",
-        "mode": "execute",
+        "mode": "update",
         "order": 3,
         "organisms": [
           {
-            "id": "org_deliverOrderSheet",
-            "type": "organism",
-            "organismName": "deliverOrderSheet",
-            "titleKey": "organism.deliverOrderSheet.title",
-            "purpose": "Confirmar entrega do pedido selecionado ao cliente, validando status 'ready'.",
+            "id": "org-deliver-order-form",
+            "type": "form",
+            "organismName": "deliverOrderForm",
+            "titleKey": "organism.deliverOrderForm.title",
+            "purpose": "Confirmar entrega do pedido selecionado.",
             "userActions": [
               "deliverOrder"
             ],
@@ -539,7 +580,8 @@ export const definition = {
               "Order"
             ],
             "readsFields": [
-              "orderId"
+              "orderId",
+              "status"
             ],
             "writesFields": [
               "orderId",
@@ -547,32 +589,22 @@ export const definition = {
               "deliveredAt",
               "updatedAt"
             ],
-            "rulesApplied": [
-              "Validar status atual 'ready'",
-              "Atualizar para 'delivered' registrando momento da entrega"
-            ],
+            "rulesApplied": [],
             "order": 1,
             "intentions": [
               {
-                "id": "int_deliverOrder_form",
+                "id": "int-deliver-order-form",
                 "intent": "commandForm",
                 "order": 1,
-                "titleKey": "intention.deliverOrder.form.title",
-                "source": "ui.posWorkspace.output.deliverOrder",
-                "binding": "db_deliverOrder",
-                "submitAction": "deliverOrder",
-                "emptyKey": "empty.deliverOrder",
-                "displayHint": "bottomSheet",
-                "stateKey": "ui.posWorkspace.action.deliverOrder.status",
+                "titleKey": "intention.deliverOrderForm.title",
                 "fields": [
                   {
-                    "id": "fld_deliverOrderId",
+                    "id": "fld-deliver-order-id",
                     "field": "orderId",
                     "labelKey": "field.orderId",
                     "order": 1,
                     "required": true,
                     "inputType": "text",
-                    "source": "selectedEntity",
                     "stateKey": "ui.posWorkspace.input.deliverOrder.orderId"
                   }
                 ],
@@ -582,9 +614,9 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act_deliverOrder",
+                    "id": "act-deliver-order",
                     "action": "deliverOrder",
-                    "labelKey": "action.deliverOrder.submit",
+                    "labelKey": "action.deliverOrder.label",
                     "order": 1,
                     "displayHint": "primary",
                     "actionKey": "deliverOrder"
@@ -594,46 +626,154 @@ export const definition = {
             ]
           }
         ]
+      },
+      {
+        "id": "sec-review",
+        "type": "section",
+        "sectionName": "review",
+        "titleKey": "section.review.title",
+        "mode": "summary",
+        "order": 4,
+        "organisms": [
+          {
+            "id": "org-review-create",
+            "type": "summary",
+            "organismName": "reviewCreateOrder",
+            "titleKey": "organism.reviewCreate.title",
+            "purpose": "Exibir o resultado do último pedido lançado.",
+            "userActions": [],
+            "requiredEntities": [
+              "Order"
+            ],
+            "readsFields": [
+              "orderId",
+              "status",
+              "orderType",
+              "tableNumber",
+              "createdAt"
+            ],
+            "writesFields": [],
+            "rulesApplied": [],
+            "order": 1,
+            "intentions": [
+              {
+                "id": "int-review-create",
+                "intent": "summary",
+                "order": 1,
+                "titleKey": "intention.reviewCreate.title",
+                "fields": [
+                  {
+                    "id": "sum-create-order-id",
+                    "field": "orderId",
+                    "labelKey": "field.orderId",
+                    "order": 1,
+                    "required": false
+                  },
+                  {
+                    "id": "sum-create-status",
+                    "field": "status",
+                    "labelKey": "field.status",
+                    "order": 2,
+                    "required": false
+                  },
+                  {
+                    "id": "sum-create-order-type",
+                    "field": "orderType",
+                    "labelKey": "field.orderType",
+                    "order": 3,
+                    "required": false
+                  },
+                  {
+                    "id": "sum-create-table-number",
+                    "field": "tableNumber",
+                    "labelKey": "field.tableNumber",
+                    "order": 4,
+                    "required": false
+                  },
+                  {
+                    "id": "sum-create-created-at",
+                    "field": "createdAt",
+                    "labelKey": "field.createdAt",
+                    "order": 5,
+                    "required": false
+                  }
+                ],
+                "columns": [],
+                "filters": [],
+                "toolbar": [],
+                "rowActions": [],
+                "actions": []
+              }
+            ]
+          },
+          {
+            "id": "org-review-deliver",
+            "type": "summary",
+            "organismName": "reviewDeliverOrder",
+            "titleKey": "organism.reviewDeliver.title",
+            "purpose": "Exibir o resultado da última entrega confirmada.",
+            "userActions": [],
+            "requiredEntities": [
+              "Order"
+            ],
+            "readsFields": [
+              "orderId",
+              "status",
+              "deliveredAt",
+              "updatedAt"
+            ],
+            "writesFields": [],
+            "rulesApplied": [],
+            "order": 2,
+            "intentions": [
+              {
+                "id": "int-review-deliver",
+                "intent": "summary",
+                "order": 1,
+                "titleKey": "intention.reviewDeliver.title",
+                "fields": [
+                  {
+                    "id": "sum-deliver-order-id",
+                    "field": "orderId",
+                    "labelKey": "field.orderId",
+                    "order": 1,
+                    "required": false
+                  },
+                  {
+                    "id": "sum-deliver-status",
+                    "field": "status",
+                    "labelKey": "field.status",
+                    "order": 2,
+                    "required": false
+                  },
+                  {
+                    "id": "sum-deliver-delivered-at",
+                    "field": "deliveredAt",
+                    "labelKey": "field.deliveredAt",
+                    "order": 3,
+                    "required": false
+                  },
+                  {
+                    "id": "sum-deliver-updated-at",
+                    "field": "updatedAt",
+                    "labelKey": "field.updatedAt",
+                    "order": 4,
+                    "required": false
+                  }
+                ],
+                "columns": [],
+                "filters": [],
+                "toolbar": [],
+                "rowActions": [],
+                "actions": []
+              }
+            ]
+          }
+        ]
       }
     ]
   },
-  "dataBindings": [
-    {
-      "id": "db_viewOrderBoard",
-      "source": "query",
-      "entity": "Order",
-      "command": "viewOrderBoard",
-      "description": "Lista paginada de pedidos do turno atual",
-      "stateKey": "ui.posWorkspace.data.viewOrderBoard",
-      "inputStateKeys": []
-    },
-    {
-      "id": "db_createOrder",
-      "source": "command",
-      "entity": "Order",
-      "command": "createOrder",
-      "description": "Cria novo pedido com itens e decremento de estoque",
-      "stateKey": "ui.posWorkspace.output.createOrder",
-      "inputStateKeys": [
-        "ui.posWorkspace.input.createOrder.orderType",
-        "ui.posWorkspace.input.createOrder.tableNumber",
-        "ui.posWorkspace.input.createOrder.orderItems",
-        "ui.posWorkspace.input.createOrder.priority",
-        "ui.posWorkspace.input.createOrder.priorityReason"
-      ]
-    },
-    {
-      "id": "db_deliverOrder",
-      "source": "command",
-      "entity": "Order",
-      "command": "deliverOrder",
-      "description": "Marca pedido selecionado como entregue",
-      "stateKey": "ui.posWorkspace.output.deliverOrder",
-      "inputStateKeys": [
-        "ui.posWorkspace.input.deliverOrder.orderId"
-      ]
-    }
-  ]
+  "dataBindings": []
 };
 
 export const pipeline = [

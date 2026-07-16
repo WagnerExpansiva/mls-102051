@@ -18,45 +18,40 @@ export interface OpenShiftOutput {
 export async function openShift(ctx: RequestContext, input: OpenShiftInput): Promise<OpenShiftOutput> {
   const shifts = resolveRepository<IShiftRepository>(ctx, 'Shift');
 
-  const actorId = ctx.sessionContext.actorSession.actorId ?? 'unknown';
+  const existingOpen = await shifts.findOpenShift();
+  if (existingOpen) {
+    throw new AppError(
+      'CONFLICT',
+      'singleOpenShift: já existe um turno aberto. Feche o turno atual antes de abrir um novo.',
+      409,
+      { ruleId: 'singleOpenShift', openShiftId: existingOpen.shiftId },
+    );
+  }
+
   const now = ctx.clock.nowIso();
-  const shiftId = ctx.idGenerator.newId();
+  const openedBy = ctx.sessionContext.actorId ?? 'unknown';
 
-  return ctx.data.runInTransaction(async () => {
-    // Step 4 & 5: Check for existing open shift (singleOpenShift rule)
-    const openShifts = await shifts.list({ status: 'open' });
-    if (openShifts.length > 0) {
-      throw new AppError(
-        'CONFLICT',
-        'singleOpenShift: já existe um turno aberto. Feche o turno atual antes de abrir um novo.',
-        409,
-        { ruleId: 'singleOpenShift', existingShiftId: openShifts[0].shiftId },
-      );
-    }
+  const shift: Shift = {
+    shiftId: ctx.idGenerator.newId(),
+    status: 'open',
+    openedAt: now,
+    closedAt: null,
+    openedBy,
+    closedBy: null,
+    totalApurado: null,
+    notes: input.notes ?? null,
+    createdAt: now,
+    updatedAt: now,
+  };
 
-    // Step 6: Build the new Shift
-    const newShift: Shift = {
-      shiftId,
-      status: 'open',
-      openedAt: now,
-      closedAt: null,
-      openedBy: actorId,
-      closedBy: null,
-      totalApurado: null,
-      notes: input.notes ?? null,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    // Step 7: Persist
-    await shifts.save(newShift);
-
-    // Step 8: Return output
-    return {
-      shiftId: newShift.shiftId,
-      status: newShift.status,
-      openedAt: newShift.openedAt,
-      openedBy: newShift.openedBy,
-    };
+  await ctx.data.runInTransaction(async () => {
+    await shifts.save(shift);
   });
+
+  return {
+    shiftId: shift.shiftId,
+    status: shift.status,
+    openedAt: shift.openedAt,
+    openedBy: shift.openedBy,
+  };
 }

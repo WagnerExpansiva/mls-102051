@@ -1,0 +1,301 @@
+{
+  "defaultProjectId": "102051",
+  "projects": {
+    "102027": {
+      "root": "../mls-102027",
+      "type": "lib"
+    },
+    "102029": {
+      "root": "../mls-102029",
+      "type": "lib"
+    },
+    "102033": {
+      "root": "../mls-102033",
+      "type": "master frontend"
+    },
+    "102034": {
+      "root": "../mls-102034",
+      "type": "master backend",
+      "modules": [
+        {
+          "moduleId": "mdm",
+          "basePath": "/mdm",
+          "shellMode": "spa",
+          "backendRouter": "./_102034_/l1/mdm/layer_2_controllers/router.js"
+        },
+        {
+          "moduleId": "monitor",
+          "basePath": "/monitor",
+          "shellMode": "spa",
+          "backendRouter": "./_102034_/l1/monitor/layer_2_controllers/router.js"
+        },
+        {
+          "moduleId": "audit",
+          "basePath": "/audit",
+          "shellMode": "spa",
+          "backendRouter": "./_102034_/l1/audit/layer_2_controllers/router.js"
+        }
+      ],
+      "persistenceModules": [
+        {
+          "moduleId": "platform",
+          "persistenceEntrypoint": "./_102034_/l1/server/persistence.js"
+        },
+        {
+          "moduleId": "mdm",
+          "persistenceEntrypoint": "./_102034_/l1/mdm/persistence.js"
+        },
+        {
+          "moduleId": "monitor",
+          "persistenceEntrypoint": "./_102034_/l1/monitor/persistence.js"
+        }
+      ]
+    },
+    "102036": {
+      "root": "../mls-102036",
+      "type": "lib"
+    },
+    "102051": {
+      "root": ".",
+      "type": "client",
+      "runtime": {
+        "projectId": "102051"
+      },
+      "modules": [
+        {
+          "moduleId": "cafeFlow",
+          "basePath": "/cafeFlow",
+          "shellMode": "spa",
+          "backendControllers": "./_102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers",
+          "navigation": [
+            {
+              "id": "kitchenQueue",
+              "label": "Fila da cozinha — Preparo de pedidos",
+              "href": "/cafeFlow/kitchenQueue",
+              "description": "Fila da cozinha — Preparo de pedidos"
+            },
+            {
+              "id": "managerDashboard",
+              "label": "Dashboard e assistente IA",
+              "href": "/cafeFlow/managerDashboard",
+              "description": "Dashboard e assistente IA"
+            },
+            {
+              "id": "menuManagement",
+              "label": "Gestão de cardápio",
+              "href": "/cafeFlow/menuManagement",
+              "description": "Gestão de cardápio"
+            },
+            {
+              "id": "posWorkspace",
+              "label": "POS — Lançamento e acompanhamento de pedidos",
+              "href": "/cafeFlow/posWorkspace",
+              "description": "POS — Lançamento e acompanhamento de pedidos"
+            },
+            {
+              "id": "shiftManagement",
+              "label": "Gestão de turno diário",
+              "href": "/cafeFlow/shiftManagement",
+              "description": "Gestão de turno diário"
+            },
+            {
+              "id": "stockManagement",
+              "label": "Gestão de estoque e alertas",
+              "href": "/cafeFlow/stockManagement",
+              "description": "Gestão de estoque e alertas"
+            }
+          ],
+          "frontend": {
+            "layer": "l2",
+            "pages": [
+              {
+                "pageId": "kitchenQueue",
+                "route": "/cafeFlow/kitchenQueue",
+                "source": "l2/cafeFlow/web/desktop/page11/kitchenQueue.ts",
+                "definition": "l2/cafeFlow/web/desktop/page11/kitchenQueue.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page11--kitchen-queue-102051",
+                "title": "Fila da cozinha — Preparo de pedidos"
+              },
+              {
+                "pageId": "managerDashboard",
+                "route": "/cafeFlow/managerDashboard",
+                "source": "l2/cafeFlow/web/desktop/page11/managerDashboard.ts",
+                "definition": "l2/cafeFlow/web/desktop/page11/managerDashboard.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page11--manager-dashboard-102051",
+                "title": "Dashboard e assistente IA"
+              },
+              {
+                "pageId": "menuManagement",
+                "route": "/cafeFlow/menuManagement",
+                "source": "l2/cafeFlow/web/desktop/page11/menuManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page11/menuManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page11--menu-management-102051",
+                "title": "Gestão de cardápio"
+              },
+              {
+                "pageId": "posWorkspace",
+                "route": "/cafeFlow/posWorkspace",
+                "source": "l2/cafeFlow/web/desktop/page11/posWorkspace.ts",
+                "definition": "l2/cafeFlow/web/desktop/page11/posWorkspace.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page11--pos-workspace-102051",
+                "title": "POS — Lançamento e acompanhamento de pedidos"
+              },
+              {
+                "pageId": "shiftManagement",
+                "route": "/cafeFlow/shiftManagement/:shiftId?",
+                "source": "l2/cafeFlow/web/desktop/page11/shiftManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page11/shiftManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page11--shift-management-102051",
+                "title": "Gestão de turno diário"
+              },
+              {
+                "pageId": "stockManagement",
+                "route": "/cafeFlow/stockManagement/:stockItemId?",
+                "source": "l2/cafeFlow/web/desktop/page11/stockManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page11/stockManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page11--stock-management-102051",
+                "title": "Gestão de estoque e alertas"
+              },
+              {
+                "pageId": "kitchenQueue-page21",
+                "route": "/cafeFlow/kitchenQueue-page21",
+                "source": "l2/cafeFlow/web/desktop/page21/kitchenQueue.ts",
+                "definition": "l2/cafeFlow/web/desktop/page21/kitchenQueue.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page21--kitchen-queue-102051",
+                "title": "Fila da cozinha — Preparo de pedidos - PAGE21"
+              },
+              {
+                "pageId": "kitchenQueue-page31",
+                "route": "/cafeFlow/kitchenQueue-page31",
+                "source": "l2/cafeFlow/web/desktop/page31/kitchenQueue.ts",
+                "definition": "l2/cafeFlow/web/desktop/page31/kitchenQueue.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page31--kitchen-queue-102051",
+                "title": "Fila da cozinha — Preparo de pedidos - PAGE31"
+              },
+              {
+                "pageId": "managerDashboard-page21",
+                "route": "/cafeFlow/managerDashboard-page21",
+                "source": "l2/cafeFlow/web/desktop/page21/managerDashboard.ts",
+                "definition": "l2/cafeFlow/web/desktop/page21/managerDashboard.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page21--manager-dashboard-102051",
+                "title": "Dashboard e assistente IA - PAGE21"
+              },
+              {
+                "pageId": "managerDashboard-page31",
+                "route": "/cafeFlow/managerDashboard-page31",
+                "source": "l2/cafeFlow/web/desktop/page31/managerDashboard.ts",
+                "definition": "l2/cafeFlow/web/desktop/page31/managerDashboard.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page31--manager-dashboard-102051",
+                "title": "Dashboard e assistente IA - PAGE31"
+              },
+              {
+                "pageId": "menuManagement-page21",
+                "route": "/cafeFlow/menuManagement-page21",
+                "source": "l2/cafeFlow/web/desktop/page21/menuManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page21/menuManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page21--menu-management-102051",
+                "title": "Gestão de cardápio - PAGE21"
+              },
+              {
+                "pageId": "menuManagement-page31",
+                "route": "/cafeFlow/menuManagement-page31",
+                "source": "l2/cafeFlow/web/desktop/page31/menuManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page31/menuManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page31--menu-management-102051",
+                "title": "Gestão de cardápio - PAGE31"
+              },
+              {
+                "pageId": "posWorkspace-page21",
+                "route": "/cafeFlow/posWorkspace-page21",
+                "source": "l2/cafeFlow/web/desktop/page21/posWorkspace.ts",
+                "definition": "l2/cafeFlow/web/desktop/page21/posWorkspace.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page21--pos-workspace-102051",
+                "title": "POS — Lançamento e acompanhamento de pedidos - PAGE21"
+              },
+              {
+                "pageId": "posWorkspace-page31",
+                "route": "/cafeFlow/posWorkspace-page31",
+                "source": "l2/cafeFlow/web/desktop/page31/posWorkspace.ts",
+                "definition": "l2/cafeFlow/web/desktop/page31/posWorkspace.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page31--pos-workspace-102051",
+                "title": "POS — Lançamento e acompanhamento de pedidos - PAGE31"
+              },
+              {
+                "pageId": "shiftManagement-page21",
+                "route": "/cafeFlow/shiftManagement-page21/:shiftId?",
+                "source": "l2/cafeFlow/web/desktop/page21/shiftManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page21/shiftManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page21--shift-management-102051",
+                "title": "Gestão de turno diário - PAGE21"
+              },
+              {
+                "pageId": "shiftManagement-page31",
+                "route": "/cafeFlow/shiftManagement-page31/:shiftId?",
+                "source": "l2/cafeFlow/web/desktop/page31/shiftManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page31/shiftManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page31--shift-management-102051",
+                "title": "Gestão de turno diário - PAGE31"
+              },
+              {
+                "pageId": "stockManagement-page21",
+                "route": "/cafeFlow/stockManagement-page21/:stockItemId?",
+                "source": "l2/cafeFlow/web/desktop/page21/stockManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page21/stockManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page21--stock-management-102051",
+                "title": "Gestão de estoque e alertas - PAGE21"
+              },
+              {
+                "pageId": "stockManagement-page31",
+                "route": "/cafeFlow/stockManagement-page31/:stockItemId?",
+                "source": "l2/cafeFlow/web/desktop/page31/stockManagement.ts",
+                "definition": "l2/cafeFlow/web/desktop/page31/stockManagement.defs.ts",
+                "componentTag": "cafe-flow--web--desktop--page31--stock-management-102051",
+                "title": "Gestão de estoque e alertas - PAGE31"
+              }
+            ]
+          }
+        }
+      ],
+      "persistenceModules": [
+        {
+          "moduleId": "cafeFlow",
+          "tableDefsDir": "./_102051_/l1/cafeFlow/layer_1_external/adapters/persistence"
+        }
+      ]
+    }
+  },
+  "shellTemplates": {
+    "spa": "./_102033_/l2/shared/spa/index.html",
+    "pwa": "./_102033_/l2/shared/pwa/index.html"
+  },
+  "publication": {
+    "defaultTarget": "web",
+    "targets": {
+      "web": {
+        "assetBaseUrl": "",
+        "serveStaticFromServer": true,
+        "minify": false,
+        "sourcemap": true
+      }
+    }
+  },
+  "clientShell": {
+    "mode": "spa",
+    "activeProfile": "production",
+    "regions": {
+      "aside": {
+        "activeProfile": "defaultAura",
+        "profiles": {
+          "defaultAura": {
+            "renderer": {
+              "entrypoint": "/_102033_/l2/shared/layout/aura-aside.js",
+              "source": "../mls-102033/l2/shared/layout/aura-aside.ts",
+              "tag": "collab-aura-aside"
+            },
+            "widthPx": 280
+          }
+        }
+      }
+    }
+  }
+}

@@ -8,33 +8,41 @@ export interface ShiftClosingReport {
   updatedAt: string;
 }
 
-export function validateShiftClosingReportTotalApurado(report: Pick<ShiftClosingReport, 'totalApurado'>): boolean {
-  return report.totalApurado >= 0;
+export function shiftClosingReportRequiresClosedShift(shiftStatus: string): boolean {
+  return String(shiftStatus) === 'closed';
 }
 
-export function validateShiftClosingReportPaidOrderCount(report: Pick<ShiftClosingReport, 'paidOrderCount'>): boolean {
-  return report.paidOrderCount >= 0;
+export function shiftClosingReportTotalApuradoIsValid(totalApurado: number): boolean {
+  return totalApurado >= 0;
 }
 
-export function validateShiftClosingReportInvariants(report: ShiftClosingReport): string[] {
-  const violations: string[] = [];
-  if (!validateShiftClosingReportTotalApurado(report)) {
-    violations.push('totalApurado must be greater than or equal to zero');
-  }
-  if (!validateShiftClosingReportPaidOrderCount(report)) {
-    violations.push('paidOrderCount must be greater than or equal to zero');
-  }
-  return violations;
+export function shiftClosingReportPaidOrderCountIsValid(paidOrderCount: number): boolean {
+  return paidOrderCount >= 0;
 }
 
 export function isUniqueShiftClosingReportForShift(
   existingReports: ShiftClosingReport[],
   shiftId: string,
-  excludeReportId?: string,
 ): boolean {
-  return !existingReports.some(
-    (report) =>
-      report.shiftId === shiftId &&
-      report.shiftClosingReportId !== excludeReportId,
-  );
+  return !existingReports.some((report) => report.shiftId === shiftId);
+}
+
+export function validateShiftClosingReport(
+  report: Pick<ShiftClosingReport, 'totalApurado' | 'paidOrderCount'>,
+  shiftStatus: string,
+  existingReports: ShiftClosingReport[],
+  shiftId: string,
+): void {
+  if (!shiftClosingReportRequiresClosedShift(shiftStatus)) {
+    throw new Error('Referenced shift must have status "closed" before generating the report');
+  }
+  if (!shiftClosingReportTotalApuradoIsValid(report.totalApurado)) {
+    throw new Error('totalApurado must be >= 0');
+  }
+  if (!shiftClosingReportPaidOrderCountIsValid(report.paidOrderCount)) {
+    throw new Error('paidOrderCount must be >= 0');
+  }
+  if (!isUniqueShiftClosingReportForShift(existingReports, shiftId)) {
+    throw new Error('Only one ShiftClosingReport per shift');
+  }
 }

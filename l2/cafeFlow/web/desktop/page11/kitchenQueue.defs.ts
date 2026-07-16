@@ -83,22 +83,24 @@ export const definition = {
     {
       "id": "sec-kitchen-board",
       "type": "section",
-      "sectionName": "sec-kitchen-board",
-      "titleKey": "sec.kitchen.board.title",
+      "sectionName": "kitchenBoard",
+      "titleKey": "section.kitchenBoard.title",
       "mode": "kanban",
       "order": 1,
       "organisms": [
         {
           "id": "org-kitchen-board",
           "type": "organism",
-          "organismName": "KanbanBoard",
+          "organismName": "kanbanBoard",
           "titleKey": "org.kitchen.board.title",
-          "purpose": "Visualizar fila de pedidos da cozinha agrupados por status (recebido, em preparo, pronto)",
+          "purpose": "Exibir pedidos da cozinha agrupados por status em colunas kanban (recebido, em preparo, pronto) com transições contextuais por cartão",
           "userActions": [
-            "viewKitchenBoard"
+            "viewKitchenBoard",
+            "updateOrderStatus"
           ],
           "requiredEntities": [
-            "Order"
+            "Order",
+            "OrderItem"
           ],
           "readsFields": [
             "orderId",
@@ -113,16 +115,19 @@ export const definition = {
           ],
           "writesFields": [],
           "rulesApplied": [
-            "lanes grouped by status: received, inPreparation, ready",
-            "prioritized orders shown first within each lane",
-            "orders ordered by receivedAt within lane"
+            "Pedidos agrupados por status em lanes: received, inPreparation, ready",
+            "Pedidos ordenados por receivedAt, priorizados primeiro",
+            "Apenas pedidos com status received ou inPreparation sao exibidos ativamente",
+            "Transicoes permitidas: received->inPreparation, inPreparation->ready",
+            "orderId derivado do selectedEntity, nunca digitado manualmente"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-board-list",
+              "id": "intent-board-query",
               "intent": "queryList",
               "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
+              "action": "viewKitchenBoard",
               "order": 1
             }
           ]
@@ -130,19 +135,19 @@ export const definition = {
       ]
     },
     {
-      "id": "sec-transition",
+      "id": "sec-transition-panel",
       "type": "section",
-      "sectionName": "sec-transition",
-      "titleKey": "sec.transition.title",
-      "mode": "form",
+      "sectionName": "transitionPanel",
+      "titleKey": "section.transitionPanel.title",
+      "mode": "detail",
       "order": 2,
       "organisms": [
         {
           "id": "org-transition-panel",
           "type": "organism",
-          "organismName": "TransitionPanel",
+          "organismName": "transitionPanel",
           "titleKey": "org.transition.panel.title",
-          "purpose": "Atualizar status do pedido selecionado para o proximo estado do ciclo de vida",
+          "purpose": "Exibir pedido selecionado com contexto e executar transicao de status com feedback textual",
           "userActions": [
             "updateOrderStatus"
           ],
@@ -158,16 +163,18 @@ export const definition = {
             "status"
           ],
           "rulesApplied": [
-            "allowed transitions: received to inPreparation, inPreparation to ready",
-            "orderId derived from selected entity, never typed manually",
-            "status chosen from allowed next states only"
+            "orderId derivado do selectedEntity, nunca digitado manualmente",
+            "status definido pela transicao escolhida: received->inPreparation ou inPreparation->ready",
+            "Feedback textual dismissible apos execucao",
+            "Apos sucesso: refresh viewKitchenBoard e limpar form e selecao"
           ],
           "order": 1,
           "intentionRefs": [
             {
-              "id": "int-transition-form",
+              "id": "intent-transition-form",
               "intent": "commandForm",
               "stateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
+              "action": "updateOrderStatus",
               "submitAction": "updateOrderStatus",
               "order": 1
             }
@@ -179,28 +186,30 @@ export const definition = {
   "templateId": "kanban_pipeline",
   "visualStyle": "POS-first, high-contrast, touch-friendly, status-driven UI with real-time kitchen board",
   "layout": {
-    "id": "kanban_pipeline",
+    "id": "kanban_pipeline_page11",
     "type": "page",
     "sections": [
       {
         "id": "sec-kitchen-board",
         "type": "section",
-        "sectionName": "sec-kitchen-board",
-        "titleKey": "sec.kitchen.board.title",
+        "sectionName": "kitchenBoard",
+        "titleKey": "section.kitchenBoard.title",
         "mode": "kanban",
         "order": 1,
         "organisms": [
           {
             "id": "org-kitchen-board",
             "type": "organism",
-            "organismName": "KanbanBoard",
+            "organismName": "kanbanBoard",
             "titleKey": "org.kitchen.board.title",
-            "purpose": "Visualizar fila de pedidos da cozinha agrupados por status (recebido, em preparo, pronto)",
+            "purpose": "Exibir pedidos da cozinha agrupados por status em colunas kanban (recebido, em preparo, pronto) com transições contextuais por cartão",
             "userActions": [
-              "viewKitchenBoard"
+              "viewKitchenBoard",
+              "updateOrderStatus"
             ],
             "requiredEntities": [
-              "Order"
+              "Order",
+              "OrderItem"
             ],
             "readsFields": [
               "orderId",
@@ -215,54 +224,58 @@ export const definition = {
             ],
             "writesFields": [],
             "rulesApplied": [
-              "lanes grouped by status: received, inPreparation, ready",
-              "prioritized orders shown first within each lane",
-              "orders ordered by receivedAt within lane"
+              "Pedidos agrupados por status em lanes: received, inPreparation, ready",
+              "Pedidos ordenados por receivedAt, priorizados primeiro",
+              "Apenas pedidos com status received ou inPreparation sao exibidos ativamente",
+              "Transicoes permitidas: received->inPreparation, inPreparation->ready",
+              "orderId derivado do selectedEntity, nunca digitado manualmente"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "int-board-list",
+                "id": "intent-board-query",
                 "intent": "queryList",
                 "order": 1,
-                "titleKey": "intention.boardList.title",
-                "source": "ui.kitchenQueue.data.viewKitchenBoard",
-                "emptyKey": "empty.kitchenBoard",
-                "displayHint": "kanban-lanes-by-status",
+                "titleKey": "section.kitchenBoard.title",
+                "source": "viewKitchenBoard",
+                "binding": "ui.kitchenQueue.data.viewKitchenBoard",
+                "action": "viewKitchenBoard",
+                "emptyKey": "section.kitchenBoard.empty",
+                "displayHint": "kanban-lanes:received,inPreparation,ready",
                 "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
                 "fields": [],
                 "columns": [
                   {
-                    "id": "col-order-id",
+                    "id": "col-orderId",
                     "field": "orderId",
-                    "labelKey": "field.orderId",
+                    "labelKey": "column.orderId.label",
                     "order": 1,
-                    "required": true,
+                    "required": false,
                     "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
                     "id": "col-status",
                     "field": "status",
-                    "labelKey": "field.status",
+                    "labelKey": "column.status.label",
                     "order": 2,
-                    "required": true,
+                    "required": false,
                     "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-order-type",
+                    "id": "col-orderType",
                     "field": "orderType",
-                    "labelKey": "field.orderType",
+                    "labelKey": "column.orderType.label",
                     "order": 3,
                     "required": false,
                     "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-table-number",
+                    "id": "col-tableNumber",
                     "field": "tableNumber",
-                    "labelKey": "field.tableNumber",
+                    "labelKey": "column.tableNumber.label",
                     "order": 4,
                     "required": false,
                     "inputType": "text",
@@ -271,55 +284,78 @@ export const definition = {
                   {
                     "id": "col-priority",
                     "field": "priority",
-                    "labelKey": "field.priority",
+                    "labelKey": "column.priority.label",
                     "order": 5,
                     "required": false,
                     "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-priority-reason",
+                    "id": "col-priorityReason",
                     "field": "priorityReason",
-                    "labelKey": "field.priorityReason",
+                    "labelKey": "column.priorityReason.label",
                     "order": 6,
                     "required": false,
                     "inputType": "text",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-received-at",
+                    "id": "col-receivedAt",
                     "field": "receivedAt",
-                    "labelKey": "field.receivedAt",
+                    "labelKey": "column.receivedAt.label",
                     "order": 7,
                     "required": false,
-                    "inputType": "text",
-                    "format": "datetime",
+                    "inputType": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-in-preparation-at",
+                    "id": "col-inPreparationAt",
                     "field": "inPreparationAt",
-                    "labelKey": "field.inPreparationAt",
+                    "labelKey": "column.inPreparationAt.label",
                     "order": 8,
                     "required": false,
-                    "inputType": "text",
-                    "format": "datetime",
+                    "inputType": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   },
                   {
-                    "id": "col-created-at",
+                    "id": "col-createdAt",
                     "field": "createdAt",
-                    "labelKey": "field.createdAt",
+                    "labelKey": "column.createdAt.label",
                     "order": 9,
                     "required": false,
-                    "inputType": "text",
-                    "format": "datetime",
+                    "inputType": "datetime",
                     "stateKey": "ui.kitchenQueue.data.viewKitchenBoard"
                   }
                 ],
                 "filters": [],
-                "toolbar": [],
-                "rowActions": [],
+                "toolbar": [
+                  {
+                    "id": "tb-refresh",
+                    "action": "viewKitchenBoard",
+                    "labelKey": "action.viewKitchenBoard.label",
+                    "order": 1,
+                    "displayHint": "refresh",
+                    "actionKey": "viewKitchenBoard"
+                  }
+                ],
+                "rowActions": [
+                  {
+                    "id": "ra-start-prep",
+                    "action": "updateOrderStatus",
+                    "labelKey": "transition.startPreparation.label",
+                    "order": 2,
+                    "displayHint": "visibleWhenStatus=received",
+                    "actionKey": "updateOrderStatus"
+                  },
+                  {
+                    "id": "ra-mark-ready",
+                    "action": "updateOrderStatus",
+                    "labelKey": "transition.markReady.label",
+                    "order": 3,
+                    "displayHint": "visibleWhenStatus=inPreparation",
+                    "actionKey": "updateOrderStatus"
+                  }
+                ],
                 "actions": []
               }
             ]
@@ -327,19 +363,19 @@ export const definition = {
         ]
       },
       {
-        "id": "sec-transition",
+        "id": "sec-transition-panel",
         "type": "section",
-        "sectionName": "sec-transition",
-        "titleKey": "sec.transition.title",
-        "mode": "form",
+        "sectionName": "transitionPanel",
+        "titleKey": "section.transitionPanel.title",
+        "mode": "detail",
         "order": 2,
         "organisms": [
           {
             "id": "org-transition-panel",
             "type": "organism",
-            "organismName": "TransitionPanel",
+            "organismName": "transitionPanel",
             "titleKey": "org.transition.panel.title",
-            "purpose": "Atualizar status do pedido selecionado para o proximo estado do ciclo de vida",
+            "purpose": "Exibir pedido selecionado com contexto e executar transicao de status com feedback textual",
             "userActions": [
               "updateOrderStatus"
             ],
@@ -355,41 +391,44 @@ export const definition = {
               "status"
             ],
             "rulesApplied": [
-              "allowed transitions: received to inPreparation, inPreparation to ready",
-              "orderId derived from selected entity, never typed manually",
-              "status chosen from allowed next states only"
+              "orderId derivado do selectedEntity, nunca digitado manualmente",
+              "status definido pela transicao escolhida: received->inPreparation ou inPreparation->ready",
+              "Feedback textual dismissible apos execucao",
+              "Apos sucesso: refresh viewKitchenBoard e limpar form e selecao"
             ],
             "order": 1,
             "intentions": [
               {
-                "id": "int-transition-form",
+                "id": "intent-transition-form",
                 "intent": "commandForm",
                 "order": 1,
-                "titleKey": "intention.transitionForm.title",
-                "binding": "updateOrderStatus",
+                "titleKey": "section.transitionPanel.title",
+                "source": "updateOrderStatus",
+                "binding": "ui.kitchenQueue.output.updateOrderStatus",
+                "action": "updateOrderStatus",
                 "submitAction": "updateOrderStatus",
-                "emptyKey": "empty.transitionPanel",
-                "displayHint": "contextual-to-selected",
+                "emptyKey": "section.transitionPanel.empty",
+                "displayHint": "transition-form",
                 "stateKey": "ui.kitchenQueue.action.updateOrderStatus.status",
                 "fields": [
                   {
-                    "id": "f-order-id",
+                    "id": "fld-orderId",
                     "field": "orderId",
-                    "labelKey": "field.orderId",
+                    "labelKey": "field.orderId.label",
                     "order": 1,
                     "required": true,
-                    "inputType": "readonly",
-                    "source": "ui.kitchenQueue.input.updateOrderStatus.orderId",
+                    "inputType": "text",
+                    "source": "selectedEntity",
                     "stateKey": "ui.kitchenQueue.input.updateOrderStatus.orderId"
                   },
                   {
-                    "id": "f-status",
+                    "id": "fld-status",
                     "field": "status",
-                    "labelKey": "field.status",
+                    "labelKey": "field.status.label",
                     "order": 2,
                     "required": true,
                     "inputType": "select",
-                    "source": "ui.kitchenQueue.input.updateOrderStatus.status",
+                    "source": "userInput",
                     "stateKey": "ui.kitchenQueue.input.updateOrderStatus.status"
                   }
                 ],
@@ -399,10 +438,10 @@ export const definition = {
                 "rowActions": [],
                 "actions": [
                   {
-                    "id": "act-submit-transition",
+                    "id": "act-submit",
                     "action": "updateOrderStatus",
-                    "labelKey": "action.updateOrderStatus.submit",
-                    "order": 1,
+                    "labelKey": "action.updateOrderStatus.label",
+                    "order": 3,
                     "displayHint": "primary",
                     "actionKey": "updateOrderStatus"
                   }
@@ -416,20 +455,20 @@ export const definition = {
   },
   "dataBindings": [
     {
-      "id": "db-viewKitchenBoard",
-      "source": "ui.kitchenQueue.data.viewKitchenBoard",
+      "id": "bind-viewKitchenBoard",
+      "source": "viewKitchenBoard",
       "entity": "Order",
       "command": "viewKitchenBoard",
-      "description": "Lista de pedidos da cozinha agrupados por status",
+      "description": "Carrega pedidos da cozinha do turno atual com status received ou inPreparation",
       "stateKey": "ui.kitchenQueue.data.viewKitchenBoard",
       "inputStateKeys": []
     },
     {
-      "id": "db-updateOrderStatus",
-      "source": "ui.kitchenQueue.output.updateOrderStatus",
+      "id": "bind-updateOrderStatus",
+      "source": "updateOrderStatus",
       "entity": "Order",
       "command": "updateOrderStatus",
-      "description": "Atualizacao de status do pedido selecionado",
+      "description": "Atualiza status do pedido selecionado na cozinha",
       "stateKey": "ui.kitchenQueue.output.updateOrderStatus",
       "inputStateKeys": [
         "ui.kitchenQueue.input.updateOrderStatus.orderId",

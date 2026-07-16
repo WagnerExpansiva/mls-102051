@@ -4,7 +4,6 @@ import { resolveRepository } from '/_102034_/l1/server/layer_2_application/repos
 import type { IOrderRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/orderRepository.js';
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
 import type { Order, OrderStatus } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
-import { ORDER_STATUS_SEQUENCE } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
 
 export interface ViewOrderBoardInput {}
 
@@ -13,7 +12,13 @@ export interface ViewOrderBoardOutput {
   currentShiftId?: string;
 }
 
-const VALID_BOARD_STATUSES: ReadonlySet<OrderStatus> = new Set(ORDER_STATUS_SEQUENCE);
+const VALID_BOARD_STATUSES: ReadonlySet<OrderStatus> = new Set<OrderStatus>([
+  'registered',
+  'received',
+  'inPreparation',
+  'ready',
+  'delivered',
+]);
 
 export async function viewOrderBoard(
   ctx: RequestContext,
@@ -23,8 +28,7 @@ export async function viewOrderBoard(
   const orders = resolveRepository<IOrderRepository>(ctx, 'Order');
 
   // Step 1: Resolve the currently open shift (rule: dashboardCurrentShiftOnly)
-  const openShifts = await shifts.list({ status: 'open' });
-  const openShift = openShifts.length > 0 ? openShifts[0] : null;
+  const openShift = await shifts.findOpenShift();
 
   // Step 2: If no open shift is found, return an empty list without error
   if (!openShift) {
@@ -32,19 +36,21 @@ export async function viewOrderBoard(
   }
 
   // Step 3: Query orders for the open shift
-  const shiftOrders = await orders.list({ shiftId: openShift.shiftId });
+  const shiftOrders = await orders.listByShiftId(openShift.shiftId);
 
-  // Step 5: Filter out orders whose status is not in the allowed enum (rule: orderStatusFlow)
+  // Step 5: Filter out orders with invalid status (rule: orderStatusFlow)
   const validOrders = shiftOrders.filter(
     (order) => VALID_BOARD_STATUSES.has(order.status),
   );
 
-  // Step 4: Sort by createdAt ascending — FIFO kitchen queue (rule: fifoKitchenQueue)
-  const sortedOrders = [...validOrders].sort(
-    (a, b) => a.createdAt.localeCompare(b.createdAt),
-  );
+  // Step 4: Sort by createdAt ascending (rule: fifoKitchenQueue)
+  const sortedOrders = validOrders.slice().sort((a, b) => {
+    if (a.createdAt < b.createdAt) return -1;
+    if (a.createdAt > b.createdAt) return 1;
+    return 0;
+  });
 
-  // Step 7: Return the projected list along with the resolved currentShiftId
+  // Step 6 & 7: Return the projected list with the resolved currentShiftId
   return {
     orders: sortedOrders,
     currentShiftId: openShift.shiftId,

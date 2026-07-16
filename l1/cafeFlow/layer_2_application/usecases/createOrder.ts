@@ -6,14 +6,10 @@ import type { IStockLevelRepository } from '/_102051_/l1/cafeFlow/layer_2_applic
 import type { IShiftRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/shiftRepository.js';
 import type { IStockConsumptionRepository } from '/_102051_/l1/cafeFlow/layer_2_application/ports/stockConsumptionRepository.js';
 import type { Order, OrderItem, OrderType } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
-import {
-  validateTableNumber,
-  validatePriority,
-  orderRequiresItem,
-} from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
+import { orderRequiresItem, validateTableNumber, validatePriorityReason } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/order.js';
 import type { StockLevel } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
+import { applyDecrement } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockLevel.js';
 import type { StockConsumption } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/stockConsumption.js';
-import type { Shift } from '/_102051_/l1/cafeFlow/layer_3_domain/entities/shift.js';
 
 export interface CreateOrderItemInput {
   menuItemId: string;
@@ -43,8 +39,8 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
   const stockConsumptions = resolveRepository<IStockConsumptionRepository>(ctx, 'StockConsumption');
 
   // 1. Resolve the active (open) Shift
-  const openShifts: Shift[] = await shifts.list({ status: 'open' });
-  if (openShifts.length === 0) {
+  const openShift = await shifts.findOpenShift();
+  if (!openShift) {
     throw new AppError(
       'VALIDATION_ERROR',
       'No open shift found — cannot launch order',
@@ -52,9 +48,8 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
       { ruleId: 'orderStatusFlow' },
     );
   }
-  const openShift = openShifts[0];
 
-  // 2. Validate orderType is 'table' or 'takeout' (rule: orderStatusFlow — order must start at 'registered')
+  // 2. Validate orderType
   if (input.orderType !== 'table' && input.orderType !== 'takeout') {
     throw new AppError(
       'VALIDATION_ERROR',
@@ -65,30 +60,36 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
   }
   const orderType = input.orderType as OrderType;
 
-  // 3. Validate tableNumber based on orderType
-  const tableNumber: string | null = orderType === 'table' ? (input.tableNumber ?? null) : null;
-  if (!validateTableNumber(orderType, tableNumber)) {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'tableNumber is required and non-empty when orderType is "table"',
-      400,
-      { ruleId: 'orderStatusFlow' },
-    );
+  // 3. Validate tableNumber
+  let tableNumber: string | null = null;
+  if (orderType === 'table') {
+    if (!input.tableNumber || input.tableNumber.trim().length === 0) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'tableNumber is required when orderType is "table"',
+        400,
+        { ruleId: 'orderStatusFlow' },
+      );
+    }
+    tableNumber = input.tableNumber;
   }
 
-  // 4. Validate priority / priorityReason (rule: orderStatusFlow — priority requires justification)
-  const priority: boolean = input.priority ?? false;
-  const priorityReason: string | null = input.priorityReason ?? null;
-  if (!validatePriority(priority, priorityReason)) {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'priorityReason is required when priority is true',
-      400,
-      { ruleId: 'orderStatusFlow' },
-    );
+  // 4. Validate priority / priorityReason
+  const priority = input.priority ?? false;
+  let priorityReason: string | null = null;
+  if (priority) {
+    if (!input.priorityReason || input.priorityReason.trim().length === 0) {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        'priorityReason is required when priority is true',
+        400,
+        { ruleId: 'orderStatusFlow' },
+      );
+    }
+    priorityReason = input.priorityReason;
   }
 
-  // 5. Validate orderItems array is not empty and each item has a non-null menuItemId and quantity > 0
+  // 5. Validate orderItems
   if (!input.orderItems || input.orderItems.length === 0) {
     throw new AppError(
       'VALIDATION_ERROR',
@@ -101,49 +102,61 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
     if (!item.menuItemId || item.quantity <= 0) {
       throw new AppError(
         'VALIDATION_ERROR',
-        'Each orderItem must have a non-null menuItemId and quantity > 0',
+        'Each order item must have a menuItemId and quantity > 0',
         400,
         { ruleId: 'orderStatusFlow' },
       );
     }
   }
 
-  // 6. Collect all menuItemIds; fetch MenuItems from MDM via ctx.mdm.collection.getMany; validate all exist and have status='active'
-  const menuItemIds = input.orderItems.map((item) => item.menuItemId);
+  // 6. Fetch MenuItems from MDM and validate
+  const menuItemIds = input.orderItems.map((it) => it.menuItemId);
   const menuEntities = await ctx.mdm.collection.getMany({ mdmIds: menuItemIds });
   const menuById = new Map<string, { price: number }>();
   for (const entity of menuEntities) {
     const details = entity.details as unknown as Record<string, unknown>;
-    const status = details.status;
-    if (String(status) !== 'active' && String(status) !== 'Active') {
+    const status = String(details.status);
+    if (status !== 'active' && status !== 'Active') {
       throw new AppError(
         'VALIDATION_ERROR',
         `MenuItem ${entity.mdmId} is not active`,
         400,
-        { menuItemId: entity.mdmId, status },
+        { menuItemId: entity.mdmId, ruleId: 'orderStatusFlow' },
       );
     }
-    const price = typeof details.price === 'number' ? details.price : 0;
+    const price = details.price;
+    if (typeof price !== 'number') {
+      throw new AppError(
+        'VALIDATION_ERROR',
+        `MenuItem ${entity.mdmId} has no valid price`,
+        400,
+        { menuItemId: entity.mdmId },
+      );
+    }
     menuById.set(entity.mdmId, { price });
   }
   for (const id of menuItemIds) {
     if (!menuById.has(id)) {
-      throw new AppError('NOT_FOUND', `MenuItem not found: ${id}`, 404, { menuItemId: id });
+      throw new AppError(
+        'NOT_FOUND',
+        `MenuItem not found: ${id}`,
+        404,
+        { menuItemId: id },
+      );
     }
   }
 
-  // 7. Generate orderId via ctx.idGenerator; set createdAt and updatedAt to ctx.clock.nowIso()
   const now = ctx.clock.nowIso();
-  const orderId = ctx.idGenerator.newId();
 
-  // 8 & 9. Build Order aggregate root with status='registered' and OrderItem children
-  const orderItems: OrderItem[] = input.orderItems.map((item) => {
-    const menuItem = menuById.get(item.menuItemId)!;
+  // 7-9. Build Order aggregate with OrderItems
+  const orderId = ctx.idGenerator.newId();
+  const items: OrderItem[] = input.orderItems.map((it) => {
+    const menuItem = menuById.get(it.menuItemId)!;
     return {
       orderItemId: ctx.idGenerator.newId(),
       orderId,
-      menuItemId: item.menuItemId,
-      quantity: item.quantity,
+      menuItemId: it.menuItemId,
+      quantity: it.quantity,
       unitPrice: menuItem.price,
       createdAt: now,
       updatedAt: now,
@@ -164,61 +177,67 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
     deliveredAt: null,
     createdAt: now,
     updatedAt: now,
-    items: orderItems,
+    items,
   };
 
+  // Apply domain invariants
   if (!orderRequiresItem(order)) {
     throw new AppError(
       'VALIDATION_ERROR',
-      'orderRequiresItem: o pedido precisa de ao menos um item.',
+      'Order requires at least one item',
+      400,
+      { ruleId: 'orderStatusFlow' },
+    );
+  }
+  if (!validateTableNumber(order)) {
+    throw new AppError(
+      'VALIDATION_ERROR',
+      'Invalid tableNumber for the given orderType',
+      400,
+      { ruleId: 'orderStatusFlow' },
+    );
+  }
+  if (!validatePriorityReason(order)) {
+    throw new AppError(
+      'VALIDATION_ERROR',
+      'Priority requires a justification',
       400,
       { ruleId: 'orderStatusFlow' },
     );
   }
 
-  // 10. For all ordered MenuItems, resolve ingredient stock-item links via ctx.mdm.collection.relatedOfMany
-  const relatedMap = await ctx.mdm.collection.relatedOfMany({
-    mdmIds: menuItemIds,
-  });
-
-  // Build a map: menuItemId -> array of { stockItemId, quantityPerUnit }
-  const menuItemIngredients = new Map<string, Array<{ stockItemId: string; quantityPerUnit: number }>>();
-  for (const menuItemId of menuItemIds) {
-    const refs = relatedMap[menuItemId] ?? [];
-    const ingredients: Array<{ stockItemId: string; quantityPerUnit: number }> = [];
-    for (const ref of refs) {
-      const meta = (ref.metadata ?? {}) as Record<string, unknown>;
-      const quantityPerUnit = typeof meta.quantityPerUnit === 'number' ? meta.quantityPerUnit : 0;
-      if (quantityPerUnit > 0) {
-        ingredients.push({ stockItemId: ref.mdmId, quantityPerUnit });
-      }
-    }
-    menuItemIngredients.set(menuItemId, ingredients);
-  }
-
-  // 11. Aggregate total consumption per stockItemId across all order items
+  // 10-11. Resolve ingredient stock-item links via MDM and aggregate consumption
+  const relatedRefs = await ctx.mdm.collection.relatedOfMany({ mdmIds: menuItemIds });
   const consumptionByStockItem = new Map<string, number>();
-  for (const item of input.orderItems) {
-    const ingredients = menuItemIngredients.get(item.menuItemId) ?? [];
-    for (const ingredient of ingredients) {
-      const total = (consumptionByStockItem.get(ingredient.stockItemId) ?? 0) + ingredient.quantityPerUnit * item.quantity;
-      consumptionByStockItem.set(ingredient.stockItemId, total);
+
+  for (const orderItem of input.orderItems) {
+    const refs = relatedRefs[orderItem.menuItemId] ?? [];
+    for (const ref of refs) {
+      const metadata = ref.metadata ?? {};
+      const quantityPerUnit = metadata.quantityPerUnit;
+      if (typeof quantityPerUnit !== 'number') {
+        continue;
+      }
+      const stockItemId = ref.mdmId;
+      const totalConsumption = quantityPerUnit * orderItem.quantity;
+      consumptionByStockItem.set(
+        stockItemId,
+        (consumptionByStockItem.get(stockItemId) ?? 0) + totalConsumption,
+      );
     }
   }
 
-  // 12 & 13. For each stockItemId with consumption > 0, load StockLevel, validate, decrement, and create StockConsumption
-  const stockConsumptionRecords: StockConsumption[] = [];
-  const stockLevelUpdates: StockLevel[] = [];
+  // 12-13. Load StockLevels, validate availability, decrement, and build StockConsumption records
+  const updatedStockLevels: StockLevel[] = [];
+  const consumptionRecords: StockConsumption[] = [];
 
   for (const [stockItemId, totalConsumption] of consumptionByStockItem) {
     if (totalConsumption <= 0) {
       continue;
     }
 
-    // Load StockLevel via StockLevel port (find by stockItemId)
-    const stockLevelList = await stockLevels.list({ stockItemId });
-    const stockLevel = stockLevelList.length > 0 ? stockLevelList[0] : null;
-
+    const existingLevels = await stockLevels.list({ stockItemId });
+    const stockLevel = existingLevels[0];
     if (!stockLevel) {
       throw new AppError(
         'NOT_FOUND',
@@ -228,7 +247,6 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
       );
     }
 
-    // Validate currentQuantity >= total consumption (rule: stockDecrementOnOrderLaunch — stock must be available at launch)
     if (stockLevel.currentQuantity < totalConsumption) {
       throw new AppError(
         'CONFLICT',
@@ -243,17 +261,10 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
       );
     }
 
-    // Decrement currentQuantity and set lastDecrementAt
-    const updatedStockLevel: StockLevel = {
-      ...stockLevel,
-      currentQuantity: stockLevel.currentQuantity - totalConsumption,
-      lastDecrementAt: now,
-      updatedAt: now,
-    };
-    stockLevelUpdates.push(updatedStockLevel);
+    const updated = applyDecrement(stockLevel, totalConsumption, now);
+    updatedStockLevels.push(updated);
 
-    // Create StockConsumption child record
-    const stockConsumption: StockConsumption = {
+    const consumption: StockConsumption = {
       stockConsumptionId: ctx.idGenerator.newId(),
       stockItemId,
       orderId,
@@ -263,32 +274,22 @@ export async function createOrder(ctx: RequestContext, input: CreateOrderInput):
       voidedAt: null,
       voidReason: null,
     };
-    stockConsumptionRecords.push(stockConsumption);
+    consumptionRecords.push(consumption);
   }
 
-  // 15. The order's createdAt timestamp establishes its position in the kitchen queue, ensuring FIFO processing
-  // (rule: fifoKitchenQueue — orders are queued by creation time). No additional field is needed; createdAt is the
-  // deterministic ordering key used by downstream kitchen queue consumers.
-  // This rule is satisfied by setting order.createdAt = now and order.status = 'registered'.
-
-  // 16. Inside a single ctx.data transaction: save the Order aggregate, save each updated StockLevel,
-  //     and append StockConsumption audit event records through the StockConsumption port.
+  // 14-16. Persist everything inside a single transaction
+  // The order's createdAt establishes its FIFO position in the kitchen queue (rule: fifoKitchenQueue).
   await ctx.data.runInTransaction(async () => {
-    // Save the Order aggregate (with embedded OrderItems) through the Order port
     await orders.save(order);
-
-    // Save each updated StockLevel through the StockLevel port
-    for (const sl of stockLevelUpdates) {
+    for (const sl of updatedStockLevels) {
       await stockLevels.save(sl);
     }
-
-    // Append StockConsumption audit event records through the StockConsumption port (append-only, persisted=true)
-    for (const sc of stockConsumptionRecords) {
-      await stockConsumptions.append(sc);
+    for (const consumption of consumptionRecords) {
+      await stockConsumptions.append(consumption);
     }
   });
 
-  // 17. Return { orderId, status: 'registered', orderType, tableNumber, createdAt }
+  // 17. Return output
   return {
     orderId,
     status: 'registered',

@@ -31,19 +31,19 @@ export const stockLevelTableDefinition = {
         "name": "unit",
         "type": "text",
         "nullable": false,
-        "description": "Unit of measure (status-like filter)"
+        "description": "unit of measure discriminator"
       },
       {
         "name": "created_at",
         "type": "timestamp",
         "nullable": false,
-        "description": "Creation timestamp for ordering"
+        "description": "ordering timestamp"
       },
       {
         "name": "details",
         "type": "jsonb",
-        "nullable": true,
-        "description": "Details JSONB: currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt"
+        "nullable": false,
+        "description": "currentQuantity, minimumLevel, lastDecrementAt, lastAdjustmentAt, updatedAt"
       }
     ],
     "primaryKey": [
@@ -54,32 +54,27 @@ export const stockLevelTableDefinition = {
         "indexName": "idx_stock_level_stock_item_id",
         "columns": [
           "stock_item_id"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_stock_level_unit",
         "columns": [
           "unit"
-        ],
-        "unique": false
+        ]
       },
       {
         "indexName": "idx_stock_level_created_at",
         "columns": [
           "created_at"
-        ],
-        "unique": false
+        ]
       }
     ],
     "detailsColumn": {
       "enabled": true,
-      "columnName": "details",
       "childCollections": []
     },
-    "appendOnly": false,
     "purpose": "operational",
-    "retentionDays": 0
+    "appendOnly": false
   }
 } as const;
 

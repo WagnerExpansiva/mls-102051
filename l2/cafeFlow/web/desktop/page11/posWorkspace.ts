@@ -3,399 +3,507 @@
 import { html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { CafeFlowPosWorkspaceBase } from '/_102051_/l2/cafeFlow/web/shared/posWorkspace.js';
-import type { CafeFlowViewOrderBoardOutputItem } from '/_102051_/l2/cafeFlow/web/contracts/posWorkspace.js';
 
 @customElement('cafe-flow--web--desktop--page11--pos-workspace-102051')
 export class CafeFlowDesktopPage11PosWorkspacePage extends CafeFlowPosWorkspaceBase {
-  private _createOrderDismissed = false;
-  private _deliverOrderDismissed = false;
-
   render() {
-    const items: CafeFlowViewOrderBoardOutputItem[] = this.viewOrderBoardData?.items ?? [];
+    const boardItems = this.viewOrderBoardData?.items ?? [];
     const boardLoading = this.viewOrderBoardState === 'loading';
-    const boardTotal = this.viewOrderBoardData?.total ?? 0;
+    const createLoading = this.createOrderState === 'loading';
+    const deliverLoading = this.deliverOrderState === 'loading';
 
-    const statusColorMap: Record<string, string> = {
-      registered: 'var(--info-color, #0a6dc9)',
-      received: 'var(--info-color, #0a6dc9)',
-      inPreparation: 'var(--warning-color, #FAAD14)',
-      ready: 'var(--success-color, #52C41A)',
-      delivered: 'var(--grey-color-darker, #C0C0C0)',
+    const statusLabel = (s: string): string => {
+      if (s === 'registered') return this.msg['lane.registered'];
+      if (s === 'received') return this.msg['lane.received'];
+      if (s === 'inPreparation') return this.msg['lane.inPreparation'];
+      if (s === 'ready') return this.msg['lane.ready'];
+      if (s === 'delivered') return this.msg['lane.delivered'];
+      return s;
     };
 
-    const statusLabelMap: Record<string, string> = {
-      registered: this.msg['lane.registered'],
-      received: this.msg['lane.received'],
-      inPreparation: this.msg['lane.inPreparation'],
-      ready: this.msg['lane.ready'],
-      delivered: this.msg['lane.delivered'],
+    const statusBadgeClass = (s: string): string => {
+      if (s === 'ready') return 'bg-[var(--success-color,#52C41A)] text-white';
+      if (s === 'inPreparation') return 'bg-[var(--warning-color,#FAAD14)] text-white';
+      if (s === 'delivered') return 'bg-[var(--grey-color-dark,#D3D3D3)] text-[var(--text-primary-color,#403f3f)]';
+      if (s === 'received') return 'bg-[var(--info-color,#0a6dc9)] text-white';
+      return 'bg-[var(--grey-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)]';
     };
 
     return html`
-      <div class="min-h-full bg-[var(--bg-secondary-color-lighter,#F9F9F9)]">
+      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
         <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-
-          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#403f3f)]">
+          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#0f172a)]">
             ${this.msg['page.posWorkspace.title']}
           </h1>
 
-          <!-- ── Section: Order Board ─────────────────────────────── -->
+          <!-- ═══ Section: Order Board ═══ -->
           <section
-            class="rounded-lg bg-[var(--bg-primary-color,#ffffff)] border border-[var(--grey-color,#E6E6E6)] p-4 space-y-4"
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-3"
           >
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+              <h2
+                class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+              >
                 ${this.msg['section.orderBoard.title']}
               </h2>
               <button
-                class="px-3 py-1.5 rounded text-sm border border-[var(--grey-color,#E6E6E6)] text-[var(--text-primary-color,#403f3f)] hover:bg-[var(--bg-secondary-color,#E6E6E6)] disabled:opacity-50"
-                @click=${() => this.handleViewOrderBoardClick()}
+                class="px-3 py-1.5 rounded text-sm font-medium bg-[var(--active-color,#1890FF)] text-white disabled:opacity-50"
                 ?disabled=${boardLoading}
+                @click=${this.handleViewOrderBoardClick}
               >
                 ${this.msg['action.viewOrderBoard.label']}
               </button>
             </div>
 
-            <h3 class="text-sm font-medium text-[var(--text-primary-color-lighter,#535353)]">
+            <h3
+              class="text-sm font-medium text-[var(--text-primary-color-lighter,#535353)]"
+            >
               ${this.msg['organism.orderBoardCards.title']}
-              ${boardTotal > 0 ? html`<span class="ml-2 text-xs">(${boardTotal})</span>` : null}
             </h3>
 
             ${boardLoading
-              ? html`<div class="space-y-3">
+              ? html`<div class="space-y-2">
                   ${[1, 2, 3].map(
-                    () => html`
-                      <div
-                        class="h-20 rounded-lg bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"
-                      ></div>
-                    `,
+                    () =>
+                      html`<div
+                        class="h-20 rounded bg-[var(--grey-color-light,#F2F2F2)] animate-pulse"
+                      ></div>`,
                   )}
                 </div>`
-              : items.length === 0
+              : boardItems.length === 0
                 ? html`<p
-                      class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-8 text-center"
-                    >
-                      ${this.msg['empty.orderBoard']}
-                    </p>`
-                : html`<div class="space-y-3">
-                    ${items.map((item: CafeFlowViewOrderBoardOutputItem) => {
-                      const statusColor: string =
-                        statusColorMap[item.status] ?? 'var(--grey-color,#E6E6E6)';
-                      const statusLabel: string =
-                        statusLabelMap[item.status] ?? item.status;
-                      return html`
+                    class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4"
+                  >
+                    ${this.msg['empty.orderBoard']}
+                  </p>`
+                : html`<div class="space-y-2">
+                    ${boardItems.map(
+                      (item) => html`
                         <div
-                          class="rounded-lg border border-[var(--grey-color,#E6E6E6)] p-3 flex flex-col md:flex-row md:items-center gap-3 md:gap-4"
+                          class="rounded border border-[var(--grey-color,#e2e8f0)] p-3 bg-[var(--bg-secondary-color-lighter,#F9F9F9)] space-y-2"
                         >
-                          <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                          <div class="flex items-center justify-between">
                             <div>
-                              <span class="text-[var(--text-primary-color-lighter,#535353)] text-xs"
-                                >${this.msg['column.orderId']}</span
+                              <span
+                                class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                                >${this.msg['field.orderId']}</span
                               >
-                              <p class="font-medium text-[var(--text-primary-color,#403f3f)]">
-                                ${item.orderId}
-                              </p>
-                            </div>
-                            <div>
-                              <span class="text-[var(--text-primary-color-lighter,#535353)] text-xs"
-                                >${this.msg['column.status']}</span
+                              <span
+                                class="ml-2 font-semibold text-[var(--text-primary-color,#0f172a)]"
+                                >${item.orderId}</span
                               >
-                              <p>
-                                <span
-                                  class="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
-                                  style="background-color: ${statusColor}"
-                                >
-                                  ${statusLabel}
-                                </span>
-                              </p>
                             </div>
-                            <div>
-                              <span class="text-[var(--text-primary-color-lighter,#535353)] text-xs"
-                                >${this.msg['column.orderType']}</span
-                              >
-                              <p class="font-medium text-[var(--text-primary-color,#403f3f)]">
-                                ${item.orderType}
-                              </p>
-                            </div>
-                            <div>
-                              <span class="text-[var(--text-primary-color-lighter,#535353)] text-xs"
-                                >${this.msg['column.tableNumber']}</span
-                              >
-                              <p class="font-medium text-[var(--text-primary-color,#403f3f)]">
-                                ${item.tableNumber || '—'}
-                              </p>
-                            </div>
+                            <span
+                              class="inline-block px-2 py-0.5 rounded text-xs font-medium ${statusBadgeClass(
+                                item.status,
+                              )}"
+                            >
+                              ${statusLabel(item.status)}
+                            </span>
                           </div>
-                          <div class="flex items-center gap-3">
+                          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                            <div>
+                              <span
+                                class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                                >${this.msg['field.orderType']}:</span
+                              >
+                              <span
+                                class="text-[var(--text-primary-color,#0f172a)]"
+                                >${item.orderType}</span
+                              >
+                            </div>
+                            <div>
+                              <span
+                                class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                                >${this.msg['field.tableNumber']}:</span
+                              >
+                              <span
+                                class="text-[var(--text-primary-color,#0f172a)]"
+                                >${item.tableNumber || '—'}</span
+                              >
+                            </div>
                             ${item.priority
-                              ? html`<span
-                                  class="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
-                                  style="background-color: var(--warning-color,#FAAD14)"
-                                >
-                                  ${this.msg['column.priority']}
-                                </span>`
-                              : null}
-                            ${item.status === 'ready'
-                              ? html`<button
-                                  class="px-3 py-1.5 rounded text-sm text-white disabled:opacity-50"
-                                  style="background-color: var(--active-color,#1890FF)"
-                                  @click=${() => this.setDeliverOrderOrderId(item.orderId)}
-                                >
-                                  ${this.msg['action.selectForDelivery']}
-                                </button>`
-                              : null}
+                              ? html`<div>
+                                  <span
+                                    class="text-xs font-medium text-[var(--warning-color,#FAAD14)]"
+                                    >★ ${this.msg['field.priority']}</span
+                                  >
+                                  ${item.priorityReason
+                                    ? html`<span
+                                        class="ml-1 text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                                        >(${item.priorityReason})</span
+                                      >`
+                                    : ''}
+                                </div>`
+                              : ''}
+                            <!-- TODO: field.readyAt absent from shared -->
+                            <div>
+                              <span
+                                class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                                >Pronto em:</span
+                              >
+                              <span
+                                class="text-[var(--text-primary-color,#0f172a)]"
+                                >${item.readyAt || '—'}</span
+                              >
+                            </div>
+                            <!-- TODO: field.createdAt absent from shared -->
+                            <div>
+                              <span
+                                class="text-xs text-[var(--text-primary-color-lighter,#535353)]"
+                                >Criado em:</span
+                              >
+                              <span
+                                class="text-[var(--text-primary-color,#0f172a)]"
+                                >${item.createdAt || '—'}</span
+                              >
+                            </div>
                           </div>
+                          ${item.status === 'ready'
+                            ? html`<button
+                                class="px-3 py-1.5 rounded text-sm font-medium bg-[var(--success-color,#52C41A)] text-white disabled:opacity-50"
+                                ?disabled=${deliverLoading}
+                                @click=${() => {
+                                  this.setDeliverOrderOrderId(item.orderId);
+                                  this.handleDeliverOrderClick();
+                                }}
+                              >
+                                ${this.msg['action.deliverOrder.label']}
+                              </button>`
+                            : ''}
                         </div>
-                      `;
-                    })}
+                      `,
+                    )}
                   </div>`}
           </section>
 
-          <!-- ── Section: Create Order ────────────────────────────── -->
+          <!-- ═══ Section: Create Order ═══ -->
           <section
-            class="rounded-lg bg-[var(--bg-primary-color,#ffffff)] border border-[var(--grey-color,#E6E6E6)] p-4 space-y-4"
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-3"
           >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
+            <h2
+              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+            >
               ${this.msg['section.createOrder.title']}
             </h2>
-
-            <form
-              class="space-y-4"
-              @submit=${(e: Event) => {
-                e.preventDefault();
-                this._createOrderDismissed = false;
-                this.handleCreateOrderClick();
-              }}
+            <h3
+              class="text-sm font-medium text-[var(--text-primary-color-lighter,#535353)]"
             >
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-1">
-                  <label
-                    class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                    for="fld_orderType"
-                  >
-                    ${this.msg['field.orderType']} *
-                  </label>
-                  <select
-                    id="fld_orderType"
-                    class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value=${this.createOrderOrderType}
-                    @change=${(e: Event) => this.handleCreateOrderOrderTypeChange(e)}
-                  >
-                    <option value="">—</option>
-                    <option value="table">table</option>
-                    <option value="takeout">takeout</option>
-                  </select>
-                </div>
-
-                <div class="space-y-1">
-                  <label
-                    class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                    for="fld_tableNumber"
-                  >
-                    ${this.msg['field.tableNumber']}
-                  </label>
-                  <input
-                    id="fld_tableNumber"
-                    type="number"
-                    class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value=${this.createOrderTableNumber}
-                    @input=${(e: Event) => this.handleCreateOrderTableNumberChange(e)}
-                  />
-                </div>
-              </div>
-
-              <div class="space-y-1">
-                <label
-                  class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                  for="fld_orderItems"
-                >
-                  ${this.msg['field.orderItems']} *
-                </label>
-                <textarea
-                  id="fld_orderItems"
-                  rows="3"
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                  .value=${this.createOrderOrderItems}
-                  @input=${(e: Event) => this.handleCreateOrderOrderItemsChange(e)}
-                ></textarea>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-1">
-                  <label
-                    class="text-sm text-[var(--text-primary-color,#403f3f)] flex items-center gap-2"
-                    for="fld_priority"
-                  >
-                    <input
-                      id="fld_priority"
-                      type="checkbox"
-                      .checked=${this.createOrderPriority === 'true'}
-                      @change=${(e: Event) => this.handleCreateOrderPriorityChange(e)}
-                    />
-                    ${this.msg['field.priority']}
-                  </label>
-                </div>
-
-                <div class="space-y-1">
-                  <label
-                    class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                    for="fld_priorityReason"
-                  >
-                    ${this.msg['field.priorityReason']}
-                  </label>
-                  <input
-                    id="fld_priorityReason"
-                    type="text"
-                    class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#403f3f)]"
-                    .value=${this.createOrderPriorityReason}
-                    @input=${(e: Event) => this.handleCreateOrderPriorityReasonChange(e)}
-                  />
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <button
-                  type="submit"
-                  class="px-4 py-2 rounded text-sm font-medium text-white disabled:opacity-50"
-                  style="background-color: var(--active-color,#1890FF)"
-                  ?disabled=${this.createOrderState === 'loading'}
-                >
-                  ${this.createOrderState === 'loading'
-                    ? html`<span class="inline-block animate-pulse">${this.msg['action.createOrder.submit']}</span>`
-                    : this.msg['action.createOrder.submit']}
-                </button>
-              </div>
-            </form>
-
-            ${this.createOrderState === 'success' && !this._createOrderDismissed
-              ? html`<div
-                  class="rounded p-3 text-sm flex items-center justify-between"
-                  style="background-color: var(--success-color,#52C41A); color: #fff;"
-                >
-                  <span>${this.msg['action.createOrder.success']}</span>
-                  <button
-                    class="text-white opacity-75 hover:opacity-100 text-sm"
-                    @click=${() => {
-                      this._createOrderDismissed = true;
-                      this.requestUpdate();
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>`
-              : null}
-            ${this.createOrderState === 'error' && !this._createOrderDismissed
-              ? html`<div
-                  class="rounded p-3 text-sm flex items-center justify-between"
-                  style="background-color: var(--error-color,#FF4D4F); color: #fff;"
-                >
-                  <span>${this.createOrderError || this.msg['action.createOrder.error']}</span>
-                  <button
-                    class="text-white opacity-75 hover:opacity-100 text-sm"
-                    @click=${() => {
-                      this._createOrderDismissed = true;
-                      this.requestUpdate();
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>`
-              : null}
-          </section>
-
-          <!-- ── Section: Deliver Order ───────────────────────────── -->
-          <section
-            class="rounded-lg bg-[var(--bg-primary-color,#ffffff)] border border-[var(--grey-color,#E6E6E6)] p-4 space-y-4"
-          >
-            <h2 class="text-lg font-semibold text-[var(--text-primary-color,#403f3f)]">
-              ${this.msg['section.deliverOrder.title']}
-            </h2>
-
-            <h3 class="text-sm font-medium text-[var(--text-primary-color-lighter,#535353)]">
-              ${this.msg['organism.deliverOrderSheet.title']}
+              ${this.msg['organism.createOrderForm.title']}
             </h3>
 
-            ${!this.deliverOrderOrderId
-              ? html`<p
-                  class="text-sm text-[var(--text-primary-color-lighter,#535353)] py-4 text-center"
+            <div class="space-y-3">
+              <div>
+                <label
+                  class="block text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                  for="fld-order-type"
                 >
-                  ${this.msg['empty.deliverOrder']}
-                </p>`
-              : html`<form
-                  class="space-y-4"
-                  @submit=${(e: Event) => {
-                    e.preventDefault();
-                    this._deliverOrderDismissed = false;
-                    this.handleDeliverOrderClick();
-                  }}
+                  ${this.msg['field.orderType']}
+                  <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                </label>
+                <select
+                  id="fld-order-type"
+                  class="mt-1 block w-full rounded border border-[var(--grey-color-dark,#D3D3D3)] px-3 py-2 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)]"
+                  .value=${this.createOrderOrderType}
+                  @change=${this.handleCreateOrderOrderTypeChange}
                 >
-                  <div class="space-y-1">
-                    <label
-                      class="text-sm text-[var(--text-primary-color,#403f3f)]"
-                      for="fld_deliverOrderId"
-                    >
-                      ${this.msg['field.orderId']} *
-                    </label>
-                    <input
-                      id="fld_deliverOrderId"
-                      type="text"
-                      readonly
-                      class="w-full px-3 py-2 rounded border border-[var(--grey-color,#E6E6E6)] bg-[var(--bg-secondary-color-lighter,#F9F9F9)] text-[var(--text-primary-color,#403f3f)]"
-                      .value=${this.deliverOrderOrderId}
-                      @input=${(e: Event) => this.handleDeliverOrderOrderIdChange(e)}
-                    />
-                  </div>
+                  <option value="">—</option>
+                  <option value="table">table</option>
+                  <option value="takeout">takeout</option>
+                </select>
+              </div>
 
-                  <div class="flex items-center gap-3">
-                    <button
-                      type="submit"
-                      class="px-4 py-2 rounded text-sm font-medium text-white disabled:opacity-50"
-                      style="background-color: var(--active-color,#1890FF)"
-                      ?disabled=${this.deliverOrderState === 'loading'}
-                    >
-                      ${this.deliverOrderState === 'loading'
-                        ? html`<span class="inline-block animate-pulse">${this.msg['action.deliverOrder.submit']}</span>`
-                        : this.msg['action.deliverOrder.submit']}
-                    </button>
-                  </div>
-                </form>`}
+              <div>
+                <label
+                  class="block text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                  for="fld-table-number"
+                >
+                  ${this.msg['field.tableNumber']}
+                </label>
+                <input
+                  id="fld-table-number"
+                  type="text"
+                  class="mt-1 block w-full rounded border border-[var(--grey-color-dark,#D3D3D3)] px-3 py-2 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)]"
+                  .value=${this.createOrderTableNumber}
+                  @input=${this.handleCreateOrderTableNumberChange}
+                />
+              </div>
 
-            ${this.deliverOrderState === 'success' && !this._deliverOrderDismissed
-              ? html`<div
-                  class="rounded p-3 text-sm flex items-center justify-between"
-                  style="background-color: var(--success-color,#52C41A); color: #fff;"
+              <div>
+                <label
+                  class="block text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                  for="fld-order-items"
                 >
-                  <span>${this.msg['action.deliverOrder.success']}</span>
-                  <button
-                    class="text-white opacity-75 hover:opacity-100 text-sm"
-                    @click=${() => {
-                      this._deliverOrderDismissed = true;
-                      this.requestUpdate();
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>`
-              : null}
-            ${this.deliverOrderState === 'error' && !this._deliverOrderDismissed
-              ? html`<div
-                  class="rounded p-3 text-sm flex items-center justify-between"
-                  style="background-color: var(--error-color,#FF4D4F); color: #fff;"
+                  ${this.msg['field.orderItems']}
+                  <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                </label>
+                <input
+                  id="fld-order-items"
+                  type="text"
+                  class="mt-1 block w-full rounded border border-[var(--grey-color-dark,#D3D3D3)] px-3 py-2 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)]"
+                  .value=${this.createOrderOrderItems}
+                  @input=${this.handleCreateOrderOrderItemsChange}
+                />
+              </div>
+
+              <div class="flex items-center gap-2">
+                <input
+                  id="fld-priority"
+                  type="checkbox"
+                  class="rounded border-[var(--grey-color-dark,#D3D3D3)]"
+                  .checked=${this.createOrderPriority === 'true'}
+                  @change=${this.handleCreateOrderPriorityChange}
+                />
+                <label
+                  class="text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                  for="fld-priority"
                 >
-                  <span>${this.deliverOrderError || this.msg['action.deliverOrder.error']}</span>
-                  <button
-                    class="text-white opacity-75 hover:opacity-100 text-sm"
-                    @click=${() => {
-                      this._deliverOrderDismissed = true;
-                      this.requestUpdate();
-                    }}
-                  >
-                    ✕
-                  </button>
+                  ${this.msg['field.priority']}
+                </label>
+              </div>
+
+              <div>
+                <label
+                  class="block text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                  for="fld-priority-reason"
+                >
+                  ${this.msg['field.priorityReason']}
+                </label>
+                <input
+                  id="fld-priority-reason"
+                  type="text"
+                  class="mt-1 block w-full rounded border border-[var(--grey-color-dark,#D3D3D3)] px-3 py-2 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)]"
+                  .value=${this.createOrderPriorityReason}
+                  @input=${this.handleCreateOrderPriorityReasonChange}
+                />
+              </div>
+
+              <button
+                type="button"
+                class="px-4 py-2 rounded text-sm font-medium bg-[var(--active-color,#1890FF)] text-white disabled:opacity-50"
+                ?disabled=${createLoading}
+                @click=${this.handleCreateOrderClick}
+              >
+                ${this.msg['action.createOrder.label']}
+              </button>
+            </div>
+
+            ${this.createOrderState === 'success'
+              ? html`<div
+                  class="rounded p-3 text-sm bg-[var(--success-color,#52C41A)] text-white"
+                >
+                  ${this.msg['action.createOrder.success']}
                 </div>`
-              : null}
+              : ''}
+            ${this.createOrderState === 'error'
+              ? html`<div
+                  class="rounded p-3 text-sm bg-[var(--error-color,#FF4D4F)] text-white"
+                >
+                  ${this.createOrderError || this.msg['action.createOrder.error']}
+                </div>`
+              : ''}
           </section>
 
+          <!-- ═══ Section: Deliver Order ═══ -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-3"
+          >
+            <h2
+              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+            >
+              ${this.msg['section.deliverOrder.title']}
+            </h2>
+            <h3
+              class="text-sm font-medium text-[var(--text-primary-color-lighter,#535353)]"
+            >
+              ${this.msg['organism.deliverOrderForm.title']}
+            </h3>
+
+            <div class="space-y-3">
+              <div>
+                <label
+                  class="block text-sm font-medium text-[var(--text-primary-color,#0f172a)]"
+                  for="fld-deliver-order-id"
+                >
+                  ${this.msg['field.orderId']}
+                  <span class="text-[var(--error-color,#FF4D4F)]">*</span>
+                </label>
+                <input
+                  id="fld-deliver-order-id"
+                  type="text"
+                  class="mt-1 block w-full rounded border border-[var(--grey-color-dark,#D3D3D3)] px-3 py-2 text-sm bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)]"
+                  .value=${this.deliverOrderOrderId}
+                  @input=${this.handleDeliverOrderOrderIdChange}
+                />
+              </div>
+
+              <button
+                type="button"
+                class="px-4 py-2 rounded text-sm font-medium bg-[var(--active-color,#1890FF)] text-white disabled:opacity-50"
+                ?disabled=${deliverLoading || !this.deliverOrderOrderId}
+                @click=${this.handleDeliverOrderClick}
+              >
+                ${this.msg['action.deliverOrder.label']}
+              </button>
+            </div>
+
+            ${this.deliverOrderState === 'success'
+              ? html`<div
+                  class="rounded p-3 text-sm bg-[var(--success-color,#52C41A)] text-white"
+                >
+                  ${this.msg['action.deliverOrder.success']}
+                </div>`
+              : ''}
+            ${this.deliverOrderState === 'error'
+              ? html`<div
+                  class="rounded p-3 text-sm bg-[var(--error-color,#FF4D4F)] text-white"
+                >
+                  ${this.deliverOrderError || this.msg['action.deliverOrder.error']}
+                </div>`
+              : ''}
+          </section>
+
+          <!-- ═══ Section: Review ═══ -->
+          <section
+            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+          >
+            <h2
+              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
+            >
+              ${this.msg['section.review.title']}
+            </h2>
+
+            <!-- Review: Create Order -->
+            <div class="space-y-2">
+              <!-- TODO: organism.reviewCreate.title absent from shared -->
+              <h3
+                class="text-sm font-medium text-[var(--text-primary-color-lighter,#535353)]"
+              >
+                Último pedido lançado
+              </h3>
+              ${this.createOrderOutput
+                ? html`<dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      ${this.msg['field.orderId']}
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${this.createOrderOutput.orderId}
+                    </dd>
+                    <!-- TODO: field.status absent from shared -->
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      Status
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${statusLabel(this.createOrderOutput.status)}
+                    </dd>
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      ${this.msg['field.orderType']}
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${this.createOrderOutput.orderType}
+                    </dd>
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      ${this.msg['field.tableNumber']}
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${this.createOrderOutput.tableNumber || '—'}
+                    </dd>
+                    <!-- TODO: field.createdAt absent from shared -->
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      Criado em
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${this.createOrderOutput.createdAt || '—'}
+                    </dd>
+                  </dl>`
+                : html`<p
+                    class="text-sm text-[var(--text-primary-color-lighter,#535353)]"
+                  >
+                    ${this.msg['empty.review']}
+                  </p>`}
+            </div>
+
+            <!-- Review: Deliver Order -->
+            <div class="space-y-2">
+              <!-- TODO: organism.reviewDeliver.title absent from shared -->
+              <h3
+                class="text-sm font-medium text-[var(--text-primary-color-lighter,#535353)]"
+              >
+                Última entrega confirmada
+              </h3>
+              ${this.deliverOrderOutput
+                ? html`<dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      ${this.msg['field.orderId']}
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${this.deliverOrderOutput.orderId}
+                    </dd>
+                    <!-- TODO: field.status absent from shared -->
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      Status
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${statusLabel(this.deliverOrderOutput.status)}
+                    </dd>
+                    <!-- TODO: field.deliveredAt absent from shared -->
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      Entregue em
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${this.deliverOrderOutput.deliveredAt || '—'}
+                    </dd>
+                    <!-- TODO: field.updatedAt absent from shared -->
+                    <dt
+                      class="text-[var(--text-primary-color-lighter,#535353)]"
+                    >
+                      Atualizado em
+                    </dt>
+                    <dd
+                      class="font-medium text-[var(--text-primary-color,#0f172a)]"
+                    >
+                      ${this.deliverOrderOutput.updatedAt || '—'}
+                    </dd>
+                  </dl>`
+                : html`<p
+                    class="text-sm text-[var(--text-primary-color-lighter,#535353)]"
+                  >
+                    ${this.msg['empty.review']}
+                  </p>`}
+            </div>
+          </section>
         </div>
       </div>
     `;

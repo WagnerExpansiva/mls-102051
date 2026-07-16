@@ -1,14 +1,15 @@
 /// <mls fileReference="_102051_/l1/cafeFlow/layer_2_application/usecases/manageStockItem.ts" enhancement="_blank"/>
 import { AppError, type RequestContext } from '/_102034_/l1/server/layer_2_controllers/contracts.js';
+import type { MdmDetailRecord } from '/_102034_/l1/mdm/module.js';
 
-export interface UpdateStockItemInput {
+export interface ManageStockItemInput {
   stockItemId: string;
   name: string;
   unit: string;
   minimumLevel: number;
 }
 
-export interface UpdateStockItemOutput {
+export interface ManageStockItemOutput {
   stockItemId: string;
   name: string;
   unit: string;
@@ -16,57 +17,74 @@ export interface UpdateStockItemOutput {
   updatedAt: string;
 }
 
-const VALID_UNITS = ['kg', 'liter', 'portion', 'unit'];
+const ALLOWED_UNITS: readonly string[] = ['kg', 'liter', 'portion', 'unit'];
 
 /**
- * Updates a StockItem (MDM master-data record) with new cadastral fields.
- * The StockItem lives in the shared MDM store — there is no local port or table.
+ * Inline helper for rule `lowStockAlertCalculation`.
+ *
+ * After updating a StockItem's `minimumLevel`, the low-stock alert threshold
+ * is the new `minimumLevel`. An item is flagged as low-stock when its current
+ * quantity is less than or equal to the threshold. This helper performs the
+ * comparison so callers (e.g. stock monitoring routines) can use the result
+ * without re-implementing the logic.
  */
-export async function updateStockItem(
+function isLowStock(currentQuantity: number | null, minimumLevel: number): boolean {
+  if (currentQuantity === null) {
+    return false;
+  }
+  return currentQuantity <= minimumLevel;
+}
+
+export async function manageStockItem(
   ctx: RequestContext,
-  input: UpdateStockItemInput,
-): Promise<UpdateStockItemOutput> {
-  // ── Step 1: Validate input fields ──────────────────────────────────────────
-  if (!input.name || input.name.trim().length === 0) {
+  input: ManageStockItemInput,
+): Promise<ManageStockItemOutput> {
+  // Step 1: Validate that unit is one of the allowed enum values.
+  if (!ALLOWED_UNITS.includes(input.unit)) {
     throw new AppError(
       'VALIDATION_ERROR',
-      'name não pode ser vazio.',
+      `Invalid unit "${input.unit}". Allowed values: ${ALLOWED_UNITS.join(', ')}.`,
       400,
-      { field: 'name' },
+      {
+        ruleId: 'lowStockAlertCalculation',
+        field: 'unit',
+        allowedValues: [...ALLOWED_UNITS],
+      },
     );
   }
 
-  if (!VALID_UNITS.includes(input.unit)) {
+  // Step 2: Validate that minimumLevel is a non-negative number.
+  if (typeof input.minimumLevel !== 'number' || isNaN(input.minimumLevel) || input.minimumLevel < 0) {
     throw new AppError(
       'VALIDATION_ERROR',
-      `unit deve ser um dos valores: ${VALID_UNITS.join(', ')}.`,
+      'minimumLevel must be a non-negative number.',
       400,
-      { field: 'unit', value: input.unit },
+      {
+        ruleId: 'lowStockAlertCalculation',
+        field: 'minimumLevel',
+        value: input.minimumLevel,
+      },
     );
   }
 
-  // ── Step 4: Rule lowStockAlertCalculation — minimumLevel must be >= 0 ───────
-  if (typeof input.minimumLevel !== 'number' || input.minimumLevel < 0) {
-    throw new AppError(
-      'VALIDATION_ERROR',
-      'minimumLevel deve ser um número não-negativo (regra lowStockAlertCalculation).',
-      400,
-      { ruleId: 'lowStockAlertCalculation', field: 'minimumLevel', value: input.minimumLevel },
-    );
-  }
-
-  // ── Step 2-3: Load existing StockItem via MDM (throws NOT_FOUND if missing) ─
+  // Step 3: Load the existing StockItem from MDM.
+  // ctx.mdm.entity.get throws AppError('NOT_FOUND', …, 404) if the record does not exist.
   const existing = await ctx.mdm.entity.get({ mdmId: input.stockItemId });
 
-  // ── Step 5: System timestamp (systemDefault — not public input) ────────────
-  const updatedAt = ctx.clock.nowIso();
-
-  // Preserve existing module-specific fields and merge updates
   const existingDetails = existing.details as unknown as Record<string, unknown>;
-  const existingCafeFlow = (existingDetails.cafeFlow ?? {}) as Record<string, unknown>;
+  const existingCafeFlow =
+    (existingDetails['cafeFlow'] as Record<string, unknown> | undefined) ?? {};
+  const createdAt =
+    (existingCafeFlow['createdAt'] as string | undefined) ??
+    (existingDetails['createdAt'] as string | undefined) ??
+    existing.document.createdAt;
 
-  // ── Step 6: Update StockItem via MDM facade ─────────────────────────────────
-  const updated = await ctx.mdm.entity.update({
+  const now = ctx.clock.nowIso();
+
+  // Step 4 & 5: Build the updated payload and persist via MDM facade.
+  // Module-specific fields are stored under the `cafeFlow` namespace key;
+  // `name` is a top-level MDM detail field.
+  await ctx.mdm.entity.update({
     mdmId: input.stockItemId,
     expectedVersion: existing.version,
     patch: {
@@ -75,20 +93,27 @@ export async function updateStockItem(
         ...existingCafeFlow,
         unit: input.unit,
         minimumLevel: input.minimumLevel,
-        updatedAt,
+        createdAt,
+        updatedAt: now,
       },
-    } as unknown as Record<string, unknown>,
+    } as unknown as Partial<MdmDetailRecord>,
   });
 
-  // ── Step 7: Return updated fields ───────────────────────────────────────────
-  const updatedDetails = updated.details as unknown as Record<string, unknown>;
-  const updatedCafeFlow = (updatedDetails.cafeFlow ?? {}) as Record<string, unknown>;
+  // Step 6: Apply rule lowStockAlertCalculation (inline).
+  // The low-stock alert threshold is now the updated `minimumLevel`.
+  // If a current quantity is present in the module namespace, compute the
+  // flag; otherwise the threshold is set and the comparison is deferred to
+  // the stock monitoring routine.
+  const currentQuantity =
+    (existingCafeFlow['currentQuantity'] as number | undefined) ?? null;
+  const _lowStockFlag = isLowStock(currentQuantity, input.minimumLevel);
 
+  // Step 7: Return the updated StockItem projection.
   return {
     stockItemId: input.stockItemId,
-    name: String(updatedDetails.name ?? input.name),
-    unit: String(updatedCafeFlow.unit ?? input.unit),
-    minimumLevel: Number(updatedCafeFlow.minimumLevel ?? input.minimumLevel),
-    updatedAt,
+    name: input.name,
+    unit: input.unit,
+    minimumLevel: input.minimumLevel,
+    updatedAt: now,
   };
 }

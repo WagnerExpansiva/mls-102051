@@ -23,62 +23,33 @@ export function canTransitionShift(from: ShiftStatus, to: ShiftStatus): boolean 
   return SHIFT_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-/**
- * Invariant: closedAt and closedBy are required when status is 'closed'.
- */
-export function shiftClosedFieldsRequired(shift: Pick<Shift, 'status' | 'closedAt' | 'closedBy'>): boolean {
+export function shiftRequiresClosedFieldsWhenClosed(shift: Pick<Shift, 'status' | 'closedAt' | 'closedBy' | 'totalApurado'>): boolean {
   if (shift.status !== 'closed') {
     return true;
   }
-  return shift.closedAt !== null && shift.closedBy !== null;
+  return (
+    shift.closedAt !== null &&
+    shift.closedBy !== null &&
+    shift.totalApurado !== null
+  );
 }
 
-/**
- * Invariant: closedAt must be after openedAt.
- */
-export function shiftClosedAfterOpened(shift: Pick<Shift, 'openedAt' | 'closedAt'>): boolean {
+export function shiftClosedAtMustBeAfterOpenedAt(
+  shift: Pick<Shift, 'openedAt' | 'closedAt'>,
+): boolean {
   if (shift.closedAt === null) {
     return true;
   }
   return shift.closedAt > shift.openedAt;
 }
 
-/**
- * Invariant: totalApurado must be filled when status is 'closed'.
- */
-export function shiftTotalApuradoRequiredOnClose(shift: Pick<Shift, 'status' | 'totalApurado'>): boolean {
-  if (shift.status !== 'closed') {
-    return true;
+export function shiftCannotBeReopened(from: ShiftStatus, to: ShiftStatus): boolean {
+  if (from === 'closed' && to === 'open') {
+    return false;
   }
-  return shift.totalApurado !== null;
+  return true;
 }
 
-/**
- * Invariant: cannot have two shifts open simultaneously.
- * Returns true if at most one shift among the given list is open.
- */
-export function atMostOneOpenShift(shifts: Array<Pick<Shift, 'status'>>): boolean {
+export function onlyOneShiftOpen(shifts: Pick<Shift, 'status'>[]): boolean {
   return shifts.filter((s) => s.status === 'open').length <= 1;
-}
-
-/**
- * Validates all single-entity invariants for a shift.
- * Returns an array of error messages (empty when all invariants hold).
- */
-export function validateShiftInvariants(shift: Shift): string[] {
-  const errors: string[] = [];
-
-  if (!shiftClosedFieldsRequired(shift)) {
-    errors.push('closedAt and closedBy are required when status is "closed"');
-  }
-
-  if (!shiftClosedAfterOpened(shift)) {
-    errors.push('closedAt must be after openedAt');
-  }
-
-  if (!shiftTotalApuradoRequiredOnClose(shift)) {
-    errors.push('totalApurado must be filled when status is "closed"');
-  }
-
-  return errors;
 }

@@ -7,482 +7,462 @@ import { CafeFlowShiftManagementBase } from '/_102051_/l2/cafeFlow/web/shared/sh
 @customElement('cafe-flow--web--desktop--page21--shift-management-102051')
 export class CafeFlowDesktopPage21ShiftManagementPage extends CafeFlowShiftManagementBase {
   render() {
+    const formatCurrency = (value: number): string =>
+      new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+    const isShiftClosed: boolean =
+      this.closeShiftOutput !== null && this.closeShiftOutput.status === 'closed';
+    const isShiftOpen: boolean =
+      !isShiftClosed &&
+      this.openShiftOutput !== null &&
+      this.openShiftOutput.status === 'open';
+    const showOpenForm: boolean = !isShiftOpen;
+
     const openOutput = this.openShiftOutput;
+    const closeOutput = this.closeShiftOutput;
     const report = this.viewShiftClosingReportData;
     const reportLoading = this.viewShiftClosingReportState === 'loading';
 
+    const openLoading = this.openShiftState === 'loading';
+    const closeLoading = this.closeShiftState === 'loading';
+
     return html`
-      <div class="min-h-full bg-[var(--bg-primary-color,#ffffff)]">
-        <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-          <h1 class="text-2xl font-bold text-[var(--text-primary-color,#0f172a)]">
-            ${this.msg['page.title']}
-          </h1>
+      <div
+        class="min-h-screen p-4 md:p-6 max-w-5xl mx-auto
+               bg-[var(--bg-primary-color,#ffffff)]
+               text-[var(--text-primary-color,#403f3f)]"
+      >
+        <h1
+          class="text-2xl font-bold mb-6
+                 text-[var(--text-primary-color,#403f3f)]"
+        >
+          ${this.msg['page.shiftManagement.title']}
+        </h1>
 
-          <!-- Section: Board -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
+        <!-- Section: Shift Lifecycle -->
+        <section class="mb-8">
+          <h2
+            class="text-lg font-semibold mb-4
+                   text-[var(--text-primary-color,#403f3f)]"
           >
-            <h2
-              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
-            >
-              ${this.msg['section.board.title']}
-            </h2>
+            ${this.msg['section.shiftLifecycle.title']}
+          </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Open lane -->
-              <div
-                class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-3 space-y-3"
+          <div class="grid md:grid-cols-2 gap-4">
+            <!-- Summary card (summary-first) -->
+            <div
+              class="rounded-lg p-4 border
+                     bg-[var(--bg-secondary-color,#E6E6E6)]
+                     border-[var(--grey-color,#E6E6E6)]"
+            >
+              <h3
+                class="text-xs font-semibold mb-3 uppercase tracking-wide
+                       text-[var(--text-primary-color,#403f3f)]"
               >
-                <div class="flex items-center justify-between">
-                  <h3
-                    class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]"
+                ${this.msg['intention.shiftSummary.title']}
+              </h3>
+
+              ${isShiftOpen && openOutput ? html`
+                <div class="space-y-2">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                           bg-[var(--success-color,#52C41A)] text-[#ffffff]"
                   >
-                    ${this.msg['lane.open.title']}
-                  </h3>
+                    ${this.msg['field.status.label']}: ${openOutput.status}
+                  </span>
+                  <dl class="text-sm space-y-1">
+                    <div>
+                      <dt
+                        class="inline font-medium
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${this.msg['field.shiftId.label']}:
+                      </dt>
+                      <dd
+                        class="inline ml-1
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${openOutput.shiftId}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt
+                        class="inline font-medium
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${this.msg['field.openedAt.label']}:
+                      </dt>
+                      <dd
+                        class="inline ml-1
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${openOutput.openedAt}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt
+                        class="inline font-medium
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${this.msg['field.openedBy.label']}:
+                      </dt>
+                      <dd
+                        class="inline ml-1
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${openOutput.openedBy}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              ` : isShiftClosed && closeOutput ? html`
+                <div class="space-y-2">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                           bg-[var(--grey-color-darker,#C0C0C0)] text-[#ffffff]"
+                  >
+                    ${this.msg['field.status.label']}: ${closeOutput.status}
+                  </span>
+                  <dl class="text-sm space-y-1">
+                    <div>
+                      <dt
+                        class="inline font-medium
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${this.msg['field.closedAt.label']}:
+                      </dt>
+                      <dd
+                        class="inline ml-1
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${closeOutput.closedAt}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt
+                        class="inline font-medium
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${this.msg['field.closedBy.label']}:
+                      </dt>
+                      <dd
+                        class="inline ml-1
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${closeOutput.closedBy}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt
+                        class="inline font-medium
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${this.msg['field.totalApurado.label']}:
+                      </dt>
+                      <dd
+                        class="inline ml-1
+                               text-[var(--text-primary-color,#403f3f)]"
+                      >
+                        ${formatCurrency(closeOutput.totalApurado)}
+                      </dd>
+                    </div>
+                    ${closeOutput.notes ? html`
+                      <div>
+                        <dt
+                          class="inline font-medium
+                                 text-[var(--text-primary-color,#403f3f)]"
+                        >
+                          ${this.msg['field.notes.label']}:
+                        </dt>
+                        <dd
+                          class="inline ml-1
+                                 text-[var(--text-primary-color,#403f3f)]"
+                        >
+                          ${closeOutput.notes}
+                        </dd>
+                      </div>
+                    ` : null}
+                  </dl>
+                </div>
+              ` : html`
+                <p
+                  class="text-sm
+                         text-[var(--text-primary-color,#403f3f)]"
+                >
+                  ${this.msg['intention.shiftSummary.empty']}
+                </p>
+              `}
+            </div>
+
+            <!-- Contextual transition action panel -->
+            <div
+              class="rounded-lg p-4 border
+                     bg-[var(--bg-primary-color,#ffffff)]
+                     border-[var(--grey-color,#E6E6E6)]"
+            >
+              ${showOpenForm ? html`
+                <h3
+                  class="text-xs font-semibold mb-3 uppercase tracking-wide
+                         text-[var(--text-primary-color,#403f3f)]"
+                >
+                  ${this.msg['intention.openShiftForm.title']}
+                </h3>
+                <div class="space-y-3">
+                  <div>
+                    <label
+                      class="block text-sm font-medium mb-1
+                             text-[var(--text-primary-color,#403f3f)]"
+                    >
+                      ${this.msg['field.notes.label']}
+                    </label>
+                    <textarea
+                      class="w-full rounded-lg p-2 text-sm border
+                             bg-[var(--bg-primary-color,#ffffff)]
+                             border-[var(--grey-color,#E6E6E6)]
+                             text-[var(--text-primary-color,#403f3f)]"
+                      rows="3"
+                      .value="${this.openShiftNotes}"
+                      @input="${this.handleOpenShiftNotesChange}"
+                      ?disabled="${openLoading}"
+                    ></textarea>
+                  </div>
                   <button
-                    class="px-3 py-1.5 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
-                    ?disabled=${this.openShiftState === 'loading'}
-                    @click=${(e: Event) => this.handleOpenShiftClick(e)}
+                    class="w-full py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors
+                           bg-[var(--active-color,#1890FF)] text-[#ffffff]
+                           disabled:opacity-50"
+                    @click="${this.handleOpenShiftClick}"
+                    ?disabled="${openLoading}"
                   >
-                    ${this.openShiftState === 'loading'
-                      ? '...'
-                      : this.msg['action.openShift.label']}
+                    ${openLoading ? '...' : this.msg['action.openShift.label']}
                   </button>
                 </div>
-                ${openOutput && openOutput.status === 'open'
-                  ? html`
-                      <div
-                        class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-3 space-y-1 text-sm"
-                      >
-                        <div class="text-[var(--text-primary-color,#0f172a)]">
-                          <span class="font-medium"
-                            >${this.msg['field.shiftId.label']}:</span
-                          >
-                          ${openOutput.shiftId}
-                        </div>
-                        <div class="text-[var(--text-primary-color,#0f172a)]">
-                          <span class="font-medium"
-                            >${this.msg['field.status.label']}:</span
-                          >
-                          ${openOutput.status}
-                        </div>
-                        <div class="text-[var(--text-primary-color,#0f172a)]">
-                          <span class="font-medium"
-                            >${this.msg['field.openedAt.label']}:</span
-                          >
-                          ${openOutput.openedAt}
-                        </div>
-                        <div class="text-[var(--text-primary-color,#0f172a)]">
-                          <span class="font-medium"
-                            >${this.msg['field.openedBy.label']}:</span
-                          >
-                          ${openOutput.openedBy}
-                        </div>
-                        <button
-                          class="mt-2 px-2 py-1 rounded text-xs font-medium border border-[var(--grey-color,#e2e8f0)] text-[var(--text-primary-color,#0f172a)] hover:bg-[var(--bg-secondary-color,#f8fafc)]"
-                          @click=${(e: Event) => this.handleCloseShiftClick(e)}
-                        >
-                          ${this.msg['action.closeShift.label']}
-                        </button>
-                      </div>
-                    `
-                  : html`
-                      <p
-                        class="text-sm text-[var(--text-primary-color,#535353)]"
-                      >
-                        ${this.msg['lane.open.empty']}
-                      </p>
-                    `}
-              </div>
 
-              <!-- Closed lane -->
-              <div
-                class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-3 space-y-3"
-              >
-                <h3
-                  class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]"
-                >
-                  ${this.msg['lane.closed.title']}
-                </h3>
-                ${reportLoading
-                  ? html`
-                      <div class="space-y-2">
-                        <div
-                          class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse"
-                        ></div>
-                        <div
-                          class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse w-3/4"
-                        ></div>
-                      </div>
-                    `
-                  : report
-                    ? html`
-                        <div
-                          class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-3 space-y-1 text-sm"
-                        >
-                          <div
-                            class="text-[var(--text-primary-color,#0f172a)]"
-                          >
-                            <span class="font-medium"
-                              >${this.msg['field.shiftId.label']}:</span
-                            >
-                            ${report.shiftId}
-                          </div>
-                          <div
-                            class="text-[var(--text-primary-color,#0f172a)]"
-                          >
-                            <span class="font-medium"
-                              >${this.msg['field.totalApurado.label']}:</span
-                            >
-                            ${report.totalApurado}
-                          </div>
-                          <div
-                            class="text-[var(--text-primary-color,#0f172a)]"
-                          >
-                            <span class="font-medium"
-                              >${this.msg['field.paidOrderCount.label']}:</span
-                            >
-                            ${report.paidOrderCount}
-                          </div>
-                          <div
-                            class="text-[var(--text-primary-color,#0f172a)]"
-                          >
-                            <span class="font-medium"
-                              >${this.msg['field.createdAt.label']}:</span
-                            >
-                            ${report.createdAt}
-                          </div>
-                          <button
-                            class="mt-2 px-2 py-1 rounded text-xs font-medium border border-[var(--grey-color,#e2e8f0)] text-[var(--text-primary-color,#0f172a)] hover:bg-[var(--bg-secondary-color,#f8fafc)]"
-                            @click=${(e: Event) =>
-                              this.handleViewShiftClosingReportClick(e)}
-                          >
-                            ${this.msg['action.viewShiftClosingReport.label']}
-                          </button>
-                        </div>
-                      `
-                    : html`
-                        <p
-                          class="text-sm text-[var(--text-primary-color,#535353)]"
-                        >
-                          ${this.msg['lane.closed.empty']}
-                        </p>
-                      `}
-              </div>
-            </div>
-
-            <!-- Query report filter + detail -->
-            <div class="space-y-3 pt-2">
-              <h3
-                class="text-sm font-semibold text-[var(--text-primary-color,#0f172a)]"
-              >
-                ${this.msg['intent.query.report.title']}
-              </h3>
-              <div class="flex gap-2 items-end">
-                <div class="flex-1">
-                  <label
-                    class="block text-xs text-[var(--text-primary-color,#535353)] mb-1"
-                    >${this.msg['field.shiftId.label']}</label
-                  >
-                  <input
-                    type="text"
-                    class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
-                    .value=${this.viewShiftClosingReportShiftId}
-                    @input=${(e: Event) =>
-                      this.handleViewShiftClosingReportShiftIdChange(e)}
-                  />
-                </div>
-                <button
-                  class="px-3 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
-                  ?disabled=${reportLoading}
-                  @click=${(e: Event) =>
-                    this.handleViewShiftClosingReportClick(e)}
-                >
-                  ${this.msg['action.viewShiftClosingReport.label']}
-                </button>
-              </div>
-              ${reportLoading
-                ? html`
-                    <div class="space-y-2">
-                      <div
-                        class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse"
-                      ></div>
-                      <div
-                        class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse w-2/3"
-                      ></div>
-                    </div>
-                  `
-                : report
-                  ? html`
-                      <div
-                        class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-3 space-y-1 text-sm"
-                      >
-                        <div
-                          class="text-[var(--text-primary-color,#0f172a)]"
-                        >
-                          <span class="font-medium"
-                            >${this.msg['field.shiftClosingReportId.label']}:</span
-                          >
-                          ${report.shiftClosingReportId}
-                        </div>
-                        <div
-                          class="text-[var(--text-primary-color,#0f172a)]"
-                        >
-                          <span class="font-medium"
-                            >${this.msg['field.shiftId.label']}:</span
-                          >
-                          ${report.shiftId}
-                        </div>
-                        <div
-                          class="text-[var(--text-primary-color,#0f172a)]"
-                        >
-                          <span class="font-medium"
-                            >${this.msg['field.totalApurado.label']}:</span
-                          >
-                          ${report.totalApurado}
-                        </div>
-                        <div
-                          class="text-[var(--text-primary-color,#0f172a)]"
-                        >
-                          <span class="font-medium"
-                            >${this.msg['field.paidOrderCount.label']}:</span
-                          >
-                          ${report.paidOrderCount}
-                        </div>
-                        <div
-                          class="text-[var(--text-primary-color,#0f172a)]"
-                        >
-                          <span class="font-medium"
-                            >${this.msg['field.createdAt.label']}:</span
-                          >
-                          ${report.createdAt}
-                        </div>
-                        <div
-                          class="text-[var(--text-primary-color,#0f172a)]"
-                        >
-                          <span class="font-medium"
-                            >${this.msg['field.updatedAt.label']}:</span
-                          >
-                          ${report.updatedAt}
-                        </div>
-                      </div>
-                    `
-                  : html`
-                      <p
-                        class="text-sm text-[var(--text-primary-color,#535353)]"
-                      >
-                        ${this.msg['empty.report']}
-                      </p>
-                    `}
-            </div>
-          </section>
-
-          <!-- Section: Open Shift Form -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2
-              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
-            >
-              ${this.msg['section.openShift.title']}
-            </h2>
-            <h3
-              class="text-sm font-medium text-[var(--text-primary-color,#535353)]"
-            >
-              ${this.msg['intent.openShift.title']}
-            </h3>
-            <div class="space-y-3">
-              <div>
-                <label
-                  class="block text-sm text-[var(--text-primary-color,#0f172a)] mb-1"
-                  >${this.msg['field.notes.label']}</label
-                >
-                <textarea
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
-                  rows="3"
-                  .value=${this.openShiftNotes}
-                  @input=${(e: Event) => this.handleOpenShiftNotesChange(e)}
-                ></textarea>
-              </div>
-              <button
-                class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
-                ?disabled=${this.openShiftState === 'loading'}
-                @click=${(e: Event) => this.handleOpenShiftClick(e)}
-              >
-                ${this.openShiftState === 'loading'
-                  ? '...'
-                  : this.msg['action.openShift.label']}
-              </button>
-            </div>
-            ${this.openShiftState === 'success'
-              ? html`
+                ${this.openShiftState === 'success' ? html`
                   <div
-                    class="rounded p-3 text-sm text-white bg-[var(--success-color,#52C41A)]"
+                    class="mt-3 p-2 rounded-lg text-sm
+                           bg-[var(--success-color,#52C41A)] text-[#ffffff]"
                   >
                     ${this.msg['action.openShift.success']}
                   </div>
-                `
-              : this.openShiftState === 'error'
-                ? html`
-                    <div
-                      class="rounded p-3 text-sm text-white bg-[var(--error-color,#FF4D4F)]"
-                    >
-                      ${this.openShiftError ||
-                      this.msg['action.openShift.error']}
-                    </div>
-                  `
-                : null}
-          </section>
-
-          <!-- Section: Close Shift Form -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2
-              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
-            >
-              ${this.msg['section.closeShift.title']}
-            </h2>
-            <h3
-              class="text-sm font-medium text-[var(--text-primary-color,#535353)]"
-            >
-              ${this.msg['intent.closeShift.title']}
-            </h3>
-            <div class="space-y-3">
-              <div>
-                <label
-                  class="block text-sm text-[var(--text-primary-color,#0f172a)] mb-1"
-                >
-                  ${this.msg['field.totalApurado.label']}
-                  <span class="text-[var(--error-color,#FF4D4F)]">*</span>
-                </label>
-                <input
-                  type="number"
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
-                  .value=${this.closeShiftTotalApurado}
-                  @input=${(e: Event) =>
-                    this.handleCloseShiftTotalApuradoChange(e)}
-                />
-              </div>
-              <div>
-                <label
-                  class="block text-sm text-[var(--text-primary-color,#0f172a)] mb-1"
-                  >${this.msg['field.notes.label']}</label
-                >
-                <textarea
-                  class="w-full px-3 py-2 rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] text-[var(--text-primary-color,#0f172a)] text-sm"
-                  rows="3"
-                  .value=${this.closeShiftNotes}
-                  @input=${(e: Event) => this.handleCloseShiftNotesChange(e)}
-                ></textarea>
-              </div>
-              <button
-                class="px-4 py-2 rounded text-sm font-medium text-white bg-[var(--active-color,#1890ff)] hover:opacity-90 disabled:opacity-50"
-                ?disabled=${this.closeShiftState === 'loading'}
-                @click=${(e: Event) => this.handleCloseShiftClick(e)}
-              >
-                ${this.closeShiftState === 'loading'
-                  ? '...'
-                  : this.msg['action.closeShift.label']}
-              </button>
-            </div>
-            ${this.closeShiftState === 'success'
-              ? html`
+                ` : null}
+                ${this.openShiftState === 'error' ? html`
                   <div
-                    class="rounded p-3 text-sm text-white bg-[var(--success-color,#52C41A)]"
+                    class="mt-3 p-2 rounded-lg text-sm
+                           bg-[var(--error-color,#FF4D4F)] text-[#ffffff]"
+                  >
+                    ${this.openShiftError || this.msg['action.openShift.error']}
+                  </div>
+                ` : null}
+              ` : html`
+                <h3
+                  class="text-xs font-semibold mb-3 uppercase tracking-wide
+                         text-[var(--text-primary-color,#403f3f)]"
+                >
+                  ${this.msg['intention.closeShiftForm.title']}
+                </h3>
+                <div class="space-y-3">
+                  <div>
+                    <label
+                      class="block text-sm font-medium mb-1
+                             text-[var(--text-primary-color,#403f3f)]"
+                    >
+                      ${this.msg['field.totalApurado.label']} *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      class="w-full rounded-lg p-2 text-sm border
+                             bg-[var(--bg-primary-color,#ffffff)]
+                             border-[var(--grey-color,#E6E6E6)]
+                             text-[var(--text-primary-color,#403f3f)]"
+                      .value="${this.closeShiftTotalApurado}"
+                      @input="${this.handleCloseShiftTotalApuradoChange}"
+                      ?disabled="${closeLoading}"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-medium mb-1
+                             text-[var(--text-primary-color,#403f3f)]"
+                    >
+                      ${this.msg['field.notes.label']}
+                    </label>
+                    <textarea
+                      class="w-full rounded-lg p-2 text-sm border
+                             bg-[var(--bg-primary-color,#ffffff)]
+                             border-[var(--grey-color,#E6E6E6)]
+                             text-[var(--text-primary-color,#403f3f)]"
+                      rows="3"
+                      .value="${this.closeShiftNotes}"
+                      @input="${this.handleCloseShiftNotesChange}"
+                      ?disabled="${closeLoading}"
+                    ></textarea>
+                  </div>
+                  <button
+                    class="w-full py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors
+                           bg-[var(--active-color,#1890FF)] text-[#ffffff]
+                           disabled:opacity-50"
+                    @click="${this.handleCloseShiftClick}"
+                    ?disabled="${closeLoading}"
+                  >
+                    ${closeLoading ? '...' : this.msg['action.closeShift.label']}
+                  </button>
+                </div>
+
+                ${this.closeShiftState === 'success' ? html`
+                  <div
+                    class="mt-3 p-2 rounded-lg text-sm
+                           bg-[var(--success-color,#52C41A)] text-[#ffffff]"
                   >
                     ${this.msg['action.closeShift.success']}
                   </div>
-                `
-              : this.closeShiftState === 'error'
-                ? html`
-                    <div
-                      class="rounded p-3 text-sm text-white bg-[var(--error-color,#FF4D4F)]"
-                    >
-                      ${this.closeShiftError ||
-                      this.msg['action.closeShift.error']}
-                    </div>
-                  `
-                : null}
-          </section>
-
-          <!-- Section: Review Summary -->
-          <section
-            class="rounded-lg border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-primary-color,#ffffff)] p-4 space-y-4"
-          >
-            <h2
-              class="text-lg font-semibold text-[var(--text-primary-color,#0f172a)]"
-            >
-              ${this.msg['section.review.title']}
-            </h2>
-            <h3
-              class="text-sm font-medium text-[var(--text-primary-color,#535353)]"
-            >
-              ${this.msg['intent.report.summary.title']}
-            </h3>
-            ${reportLoading
-              ? html`
-                  <div class="space-y-2">
-                    <div
-                      class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse"
-                    ></div>
-                    <div
-                      class="h-4 bg-[var(--grey-color,#e2e8f0)] rounded animate-pulse w-3/4"
-                    ></div>
+                ` : null}
+                ${this.closeShiftState === 'error' ? html`
+                  <div
+                    class="mt-3 p-2 rounded-lg text-sm
+                           bg-[var(--error-color,#FF4D4F)] text-[#ffffff]"
+                  >
+                    ${this.closeShiftError || this.msg['action.closeShift.error']}
                   </div>
-                `
-              : report
-                ? html`
-                    <div
-                      class="rounded border border-[var(--grey-color,#e2e8f0)] bg-[var(--bg-secondary-color,#f8fafc)] p-4 space-y-2 text-sm"
-                    >
-                      <div class="text-[var(--text-primary-color,#0f172a)]">
-                        <span class="font-medium"
-                          >${this.msg['field.shiftClosingReportId.label']}:</span
-                        >
-                        ${report.shiftClosingReportId}
-                      </div>
-                      <div class="text-[var(--text-primary-color,#0f172a)]">
-                        <span class="font-medium"
-                          >${this.msg['field.shiftId.label']}:</span
-                        >
-                        ${report.shiftId}
-                      </div>
-                      <div class="text-[var(--text-primary-color,#0f172a)]">
-                        <span class="font-medium"
-                          >${this.msg['field.totalApurado.label']}:</span
-                        >
-                        ${report.totalApurado}
-                      </div>
-                      <div class="text-[var(--text-primary-color,#0f172a)]">
-                        <span class="font-medium"
-                          >${this.msg['field.paidOrderCount.label']}:</span
-                        >
-                        ${report.paidOrderCount}
-                      </div>
-                      <div class="text-[var(--text-primary-color,#0f172a)]">
-                        <span class="font-medium"
-                          >${this.msg['field.createdAt.label']}:</span
-                        >
-                        ${report.createdAt}
-                      </div>
-                      <div class="text-[var(--text-primary-color,#0f172a)]">
-                        <span class="font-medium"
-                          >${this.msg['field.updatedAt.label']}:</span
-                        >
-                        ${report.updatedAt}
-                      </div>
-                    </div>
-                  `
-                : html`
-                    <p
-                      class="text-sm text-[var(--text-primary-color,#535353)]"
-                    >
-                      ${this.msg['empty.report']}
-                    </p>
-                  `}
-          </section>
-        </div>
+                ` : null}
+              `}
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Closing Report -->
+        <section>
+          <h2
+            class="text-lg font-semibold mb-4
+                   text-[var(--text-primary-color,#403f3f)]"
+          >
+            ${this.msg['section.closingReport.title']}
+          </h2>
+
+          <div
+            class="rounded-lg p-4 border
+                   bg-[var(--bg-secondary-color,#E6E6E6)]
+                   border-[var(--grey-color,#E6E6E6)]"
+          >
+            <h3
+              class="text-xs font-semibold mb-3 uppercase tracking-wide
+                     text-[var(--text-primary-color,#403f3f)]"
+            >
+              ${this.msg['intention.reportDisplay.title']}
+            </h3>
+
+            ${reportLoading ? html`
+              <div class="space-y-2 animate-pulse">
+                <div
+                  class="h-4 rounded
+                         bg-[var(--grey-color,#E6E6E6)]"
+                ></div>
+                <div
+                  class="h-4 rounded w-3/4
+                         bg-[var(--grey-color,#E6E6E6)]"
+                ></div>
+                <div
+                  class="h-4 rounded w-1/2
+                         bg-[var(--grey-color,#E6E6E6)]"
+                ></div>
+              </div>
+            ` : report ? html`
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                  <dt
+                    class="text-xs font-medium uppercase tracking-wide mb-1
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${this.msg['field.totalApurado.label']}
+                  </dt>
+                  <dd
+                    class="text-xl font-bold
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${formatCurrency(report.totalApurado)}
+                  </dd>
+                </div>
+                <div>
+                  <dt
+                    class="text-xs font-medium uppercase tracking-wide mb-1
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${this.msg['field.paidOrderCount.label']}
+                  </dt>
+                  <dd
+                    class="text-xl font-bold
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${report.paidOrderCount}
+                  </dd>
+                </div>
+                <div>
+                  <dt
+                    class="text-xs font-medium uppercase tracking-wide mb-1
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${this.msg['field.shiftId.label']}
+                  </dt>
+                  <dd
+                    class="text-sm
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${report.shiftId}
+                  </dd>
+                </div>
+                <div>
+                  <dt
+                    class="text-xs font-medium uppercase tracking-wide mb-1
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${this.msg['field.shiftClosingReportId.label']}
+                  </dt>
+                  <dd
+                    class="text-sm
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${report.shiftClosingReportId}
+                  </dd>
+                </div>
+                <div>
+                  <dt
+                    class="text-xs font-medium uppercase tracking-wide mb-1
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${this.msg['field.createdAt.label']}
+                  </dt>
+                  <dd
+                    class="text-sm
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${report.createdAt}
+                  </dd>
+                </div>
+                <div>
+                  <dt
+                    class="text-xs font-medium uppercase tracking-wide mb-1
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${this.msg['field.updatedAt.label']}
+                  </dt>
+                  <dd
+                    class="text-sm
+                           text-[var(--text-primary-color,#403f3f)]"
+                  >
+                    ${report.updatedAt}
+                  </dd>
+                </div>
+              </div>
+            ` : html`
+              <p
+                class="text-sm
+                       text-[var(--text-primary-color,#403f3f)]"
+              >
+                ${this.msg['intention.reportDisplay.empty']}
+              </p>
+            `}
+          </div>
+        </section>
       </div>
     `;
   }

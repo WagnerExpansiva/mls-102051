@@ -26,7 +26,7 @@ export const updateOrderStatusUsecase = {
         "input": [
           {
             "name": "orderId",
-            "type": "string",
+            "type": "uuid",
             "required": true,
             "ofEntity": "Order",
             "description": "Pedido selecionado pelo cozinheiro na fila da cozinha"
@@ -42,26 +42,30 @@ export const updateOrderStatusUsecase = {
         "output": [
           {
             "name": "orderId",
-            "type": "string",
+            "type": "uuid",
             "required": true,
-            "ofEntity": "Order"
+            "ofEntity": "Order",
+            "description": "ID do pedido atualizado"
           },
           {
             "name": "status",
             "type": "string",
             "required": true,
-            "ofEntity": "Order"
+            "ofEntity": "Order",
+            "description": "Status confirmado após a atualização"
           },
           {
             "name": "updatedAt",
-            "type": "string",
+            "type": "datetime",
             "required": true,
-            "ofEntity": "Order"
+            "ofEntity": "Order",
+            "description": "Timestamp da última atualização do registro"
           }
         ],
         "ports": [
           "Order",
-          "Shift"
+          "Shift",
+          "StockConsumption"
         ],
         "rulesApplied": [
           "orderStatusFlow",
@@ -69,15 +73,15 @@ export const updateOrderStatusUsecase = {
         ],
         "transactional": true,
         "steps": [
-          "1. Resolve the active (open) Shift by querying the Shift port for a single record with status='open'. If none is open, return a validation error indicating no active shift.",
-          "2. Load the Order by orderId through the Order port (getById). If not found, return a not-found error.",
-          "3. Validate that the loaded Order belongs to the active shift: order.shiftId must equal the resolved shift.shiftId. If not, return a validation error 'ORDER_NOT_IN_ACTIVE_SHIFT'.",
-          "4. Apply rule orderStatusFlow: the only allowed transitions are received→inPreparation and inPreparation→ready. If the requested status is 'inPreparation' and the current status is not 'received', reject with 'INVALID_STATUS_TRANSITION: orderStatusFlow'. If the requested status is 'ready' and the current status is not 'inPreparation', reject with 'INVALID_STATUS_TRANSITION: inProgressBeforeReady'. Any other target status is rejected with 'INVALID_STATUS_TRANSITION: orderStatusFlow'.",
-          "5. Set system-default timestamps using ctx.clock.now(): if new status is 'inPreparation', set inPreparationAt=now; if new status is 'ready', set readyAt=now. Always set updatedAt=now.",
-          "6. Mutate the Order in memory: update status, the relevant timestamp, and updatedAt.",
-          "7. Save the updated Order through the Order port inside the same transaction (ctx.data transaction wrapper).",
-          "8. NOTE: eventWrites declares a StockConsumption audit event on port 'StockConsumption', but that port is NOT in the provided ports list ['Order','Shift']. This is a modeling gap — the event cannot be appended without the port. Record the gap and skip the event write until the StockConsumption port is added.",
-          "9. Return { orderId, status, updatedAt }."
+          "1. Resolve o turno ativo consultando o port Shift por status='open'; se nenhum turno aberto existir, retorna erro de validação 'Nenhum turno aberto encontrado'",
+          "2. Carrega o pedido pelo orderId através do port Order (getById)",
+          "3. Valida que o pedido pertence ao turno ativo comparando order.shiftId com o shiftId resolvido no passo 1; se não pertencer, retorna erro 'Pedido não pertence ao turno ativo'",
+          "4. Aplica a regra orderStatusFlow: o novo status deve seguir a sequência obrigatória received → inPreparation → ready. Se o status atual for 'received', só permite transição para 'inPreparation'. Se o status atual for 'inPreparation', só permite transição para 'ready'. Qualquer outro salto retorna erro com a regra orderStatusFlow",
+          "5. Aplica a regra inProgressBeforeReady: o pedido só pode ser marcado como 'ready' se o status atual for 'inPreparation'; caso contrário retorna erro com a regra inProgressBeforeReady",
+          "6. Define timestamps via ctx.clock.now(): se o novo status for 'inPreparation', preenche inPreparationAt; se for 'ready', preenche readyAt; sempre atualiza updatedAt",
+          "7. Persiste o pedido atualizado através do port Order (update) dentro da mesma transação",
+          "8. Emite evento StockConsumption (purpose=audit) através do port StockConsumption dentro da mesma transação, registrando a mudança de status do pedido",
+          "9. Retorna orderId, status confirmado e updatedAt"
         ]
       }
     ],

@@ -5,17 +5,12 @@ export type ShiftClosingReportId = string;
 export type ShiftId = string;
 
 export interface ShiftClosingReportFilter {
-  shiftClosingReportId?: ShiftClosingReportId;
   shiftId?: ShiftId;
-  fromCreatedAt?: string;
-  toCreatedAt?: string;
 }
 
 export interface IShiftClosingReportRepository {
-  getById(reportId: ShiftClosingReportId): Promise<ShiftClosingReport>;
-  findById(reportId: ShiftClosingReportId): Promise<ShiftClosingReport | null>;
+  getById(id: ShiftClosingReportId): Promise<ShiftClosingReport>;
   list(filter?: ShiftClosingReportFilter): Promise<ShiftClosingReport[]>;
   save(report: ShiftClosingReport): Promise<void>;
   findByShiftId(shiftId: ShiftId): Promise<ShiftClosingReport | null>;
-  findByPeriod(start: Date, end: Date): Promise<ShiftClosingReport[]>;
 }
