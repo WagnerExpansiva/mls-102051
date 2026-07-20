@@ -20,32 +20,6 @@
   "links": [],
   "servicesConfigEnabled": false,
   "modules": [
-    {
-      "moduleName": "cafeFlow",
-      "backend": {
-        "backendControllers": "./_102051_/l1/cafeFlow/layer_1_external/adapters/http/controllers",
-        "persistence": {
-          "tableDefsDir": "./_102051_/l1/cafeFlow/layer_1_external/adapters/persistence"
-        },
-        "routeKeys": [
-          "cafeFlow.browseStockItems.browseStockItems",
-          "cafeFlow.manageStockItem.manageStockItem",
-          "cafeFlow.menuItemLifecycle.browseMenuItems",
-          "cafeFlow.menuItemLifecycle.manageMenuItem",
-          "cafeFlow.orderLifecycle.createOrder",
-          "cafeFlow.orderLifecycle.deliverOrder",
-          "cafeFlow.orderLifecycle.updateOrderStatus",
-          "cafeFlow.orderLifecycle.viewKitchenBoard",
-          "cafeFlow.orderLifecycle.viewOrderBoard",
-          "cafeFlow.requestAiPromoSuggestions.requestAiPromoSuggestions",
-          "cafeFlow.requestAiSalesSummary.requestAiSalesSummary",
-          "cafeFlow.shiftLifecycle.closeShift",
-          "cafeFlow.shiftLifecycle.openShift",
-          "cafeFlow.shiftLifecycle.viewShiftClosingReport",
-          "cafeFlow.viewDashboard.viewDashboard"
-        ]
-      }
-    }
   ],
   "layouts": {
     "1": {
@@ -53,9 +27,6 @@
     },
     "2": {
       "name": "Ux 2"
-    },
-    "3": {
-      "name": "Ux 3"
     }
   },
   "dependencies": [
